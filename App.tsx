@@ -12,17 +12,21 @@ import {
 } from 'react-native-safe-area-context';
 import RootNavigator from './src/navigation/RootNavigator';
 import { COLORS } from './src/constants';
+import { Provider } from 'react-redux';
+import { store } from './src/store/store';
 
 function App(): React.JSX.Element {
   return (
-    <SafeAreaProvider>
-      <StatusBar 
-        barStyle="light-content" 
-        backgroundColor={COLORS.primary}
-        translucent={false}
-      />
-      <RootNavigator />
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <SafeAreaProvider>
+        <StatusBar 
+          barStyle="light-content" 
+          backgroundColor={COLORS.primary}
+          translucent={false}
+        />
+        <RootNavigator />
+      </SafeAreaProvider>
+    </Provider>
   );
 }
 
