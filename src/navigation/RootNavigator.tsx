@@ -8,6 +8,7 @@ import StudioDetailsScreen from '../screens/StudioDetailsScreen';
 import BookingScreen from '../screens/BookingScreen';
 import BookingConfirmationScreen from '../screens/BookingConfirmationScreen';
 import SplashScreen from '../screens/SplashScreen';
+import GettingStartedScreen from '../screens/GettingStartedScreen';
 import { RootStackParamList } from '../types';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -22,6 +23,7 @@ const RootNavigator: React.FC = () => {
         }}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="GettingStarted" component={GettingStartedScreen} />
         <Stack.Screen name="Auth" component={AuthNavigator} />
         <Stack.Screen name="Main" component={MainTabNavigator} />
         <Stack.Screen 

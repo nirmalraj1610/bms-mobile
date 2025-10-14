@@ -113,6 +113,7 @@ export interface Feature {
 
 export type RootStackParamList = {
   Splash: undefined;
+  GettingStarted: undefined;
   Auth: undefined;
   Main: undefined;
   StudioDetails: { studioId: string };

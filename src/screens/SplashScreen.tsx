@@ -5,6 +5,8 @@ import {
   StyleSheet,
   Dimensions,
   StatusBar,
+  ImageBackground,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -17,72 +19,52 @@ const SplashScreen: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // In a real app, you would check authentication status here
-      navigation.replace('Auth');
-    }, 2500);
+      navigation.replace('GettingStarted');
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [navigation]);
 
   return (
-    <LinearGradient
-      colors={[COLORS.primary, COLORS.secondary]}
-      style={styles.container}
-    >
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <View style={styles.content}>
-        <Text style={styles.logo}>📸</Text>
-        <Text style={styles.title}>Book My Shoot</Text>
-        <Text style={styles.subtitle}>
-          Your Photography Studio Booking Platform
-        </Text>
-      </View>
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Connecting photographers with premium studios
-        </Text>
-      </View>
-    </LinearGradient>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <ImageBackground
+          source={require('../assets/images/Splash_Screen.png')}
+
+        style={styles.background}
+        resizeMode="cover"
+      >
+
+      </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  content: {
+  background: {
+    flex: 1,
+  },
+  overlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  content: {
+    alignItems: 'center',
+    gap: 6,
   },
   logo: {
-    fontSize: 80,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.background,
+    width: width * 0.6,
+    height: 110,
     marginBottom: 10,
-    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: COLORS.background,
-    textAlign: 'center',
-    opacity: 0.9,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 50,
-    alignItems: 'center',
-  },
-  footerText: {
     fontSize: 14,
-    color: COLORS.background,
-    opacity: 0.8,
+    color: COLORS.text.secondary,
     textAlign: 'center',
   },
 });
