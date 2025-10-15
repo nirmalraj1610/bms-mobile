@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS, CITIES, FEATURES } from '../constants';
 import { mockStudios } from '../utils/mockData';
 import { Studio, Feature } from '../types';
+import { ImageSourcePropType } from 'react-native/types_generated/index';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -37,16 +38,30 @@ const HomeScreen: React.FC = () => {
     navigation.navigate('Browse');
   };
 
-  const categories = [
-    { id: 'portrait', label: 'Portrait', icon: 'face' },
-    { id: 'fashion', label: 'Fashion', icon: 'style' },
-    { id: 'product', label: 'Product', icon: 'inventory' },
-    { id: 'wedding', label: 'Wedding', icon: 'favorite' },
+  const tabImages = {
+    camera: require('../assets/images/camera.png'),
+    fashion: require('../assets/images/fashion.png'),
+    product: require('../assets/images/product.png'),
+    wedding: require('../assets/images/wedding.png'),
+    // add more if needed
+  };
+
+  type Category = {
+    id: string;
+    label: string;
+    image: ImageSourcePropType;
+  };
+
+  const categories: Category[] = [
+    { id: 'portrait', label: 'Portrait', image: tabImages.camera },
+    { id: 'fashion', label: 'Fashion', image: tabImages.fashion },
+    { id: 'product', label: 'Product', image: tabImages.product },
+    { id: 'wedding', label: 'Wedding', image: tabImages.wedding },
   ];
 
-  const renderCategoryChip = ({ item }: { item: { id: string; label: string; icon: string } }) => (
+  const renderCategoryChip = ({ item }: { item: Category }) => (
     <TouchableOpacity style={styles.categoryChip} onPress={navigateToBrowse}>
-      <Icon name={item.icon} size={18} color={COLORS.text.primary} />
+      <Image resizeMode='contain' source={item.image} style={{ tintColor: COLORS.text.primary, height: 20, width: 20 }} />
       <Text style={styles.categoryText}>{item.label}</Text>
     </TouchableOpacity>
   );
@@ -97,12 +112,20 @@ const HomeScreen: React.FC = () => {
     const rounded = Math.round(rating);
     return (
       <View style={styles.starsRow}>
-        {[1,2,3,4,5].map((i) => (
-          <Icon
-            key={i}
-            name="star"
-            size={12}
-            color={i <= rounded ? COLORS.secondary : '#C9CDD2'}
+        {[1, 2, 3, 4, 5].map((i) => (
+          // <Icon
+          //   key={i}
+          //   name="star"
+          //   size={12}
+          //   color={i <= rounded ? COLORS.secondary : '#C9CDD2'}
+          // />
+          <Image
+            source={
+              i <= rounded
+                ? require('../assets/images/rating_selected.png')
+                : require('../assets/images/rating_notSelected.png')
+            }
+            style={styles.ratingStar}
           />
         ))}
       </View>
@@ -116,12 +139,12 @@ const HomeScreen: React.FC = () => {
         <Text style={styles.recommendName} numberOfLines={1}>{item.name}</Text>
         <View style={styles.recommendStarsRow}>{renderStars(item.rating)}</View>
         <View style={styles.recommendMetaRow}>
-        <View style={styles.recommendMeta}>
-          <Icon name="place" size={14} color={COLORS.text.secondary} />
-          <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
+          <View style={styles.recommendMeta}>
+            <Icon name="place" size={14} color={COLORS.text.secondary} />
+            <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
+          </View>
+          <Text style={styles.recommendPrice} numberOfLines={1} ellipsizeMode="tail">From ₹{item.pricing.hourlyRate}/hour</Text>
         </View>
-        <Text style={styles.recommendPrice} numberOfLines={1} ellipsizeMode="tail">From ₹{item.pricing.hourlyRate}/hour</Text>
-      </View>
       </View>
     </TouchableOpacity>
   );
@@ -142,31 +165,48 @@ const HomeScreen: React.FC = () => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.headerLight}>
-          <View style={styles.headerRow}>
-            <View style={styles.logoRow}>
+        <View style={styles.headerOutline}>
+          <Image
+            source={require('../assets/images/logoo.png')}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
+          <View style={styles.userNameOutline}>
+            <View style={styles.profileImageOutline}>
               <Image
-                source={require('../assets/images/logoo.png')}
-                style={styles.headerLogo}
+                source={require('../assets/images/profile.png')}
+                style={styles.profileImage}
                 resizeMode="contain"
               />
-              <Text style={styles.helloText}>
-                Hello <Text style={styles.helloName}>Jana</Text> !
+              <Text style={styles.welcomeText}>
+                Hello<Text style={styles.userName}> Pazhani !</Text>
               </Text>
             </View>
-            <TouchableOpacity style={styles.bellButton}>
-              <Icon name="notifications-none" size={22} color={COLORS.text.primary} />
+            <TouchableOpacity>
+              <Image
+                source={require('../assets/images/notification.png')}
+                style={styles.notificationIcon}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
-          <View style={styles.searchContainer}>
-            <TouchableOpacity style={styles.searchInput} onPress={navigateToSearch}>
-              <Icon name="search" size={20} color={COLORS.text.secondary} />
-              <Text style={styles.searchPlaceholder}>Search...</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.searchAction} onPress={navigateToSearch}>
-              <Icon name="search" size={20} color={COLORS.background} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={navigateToSearch} style={styles.searchOutline}>
+            <View style={styles.searchInneroutlineLeft}>
+              <Image
+                source={require('../assets/images/search.png')}
+                style={styles.searchLeftIcon}
+                resizeMode="contain"
+              />
+              <Text style={styles.searchText}>Search....</Text>
+            </View>
+            <View style={styles.searchInnerOutlineRight}>
+              <Image
+                source={require('../assets/images/search.png')}
+                style={styles.searshRightIcon}
+                resizeMode="contain"
+              />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Categories */}
@@ -260,68 +300,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  headerLight: {
-    backgroundColor: '#E9F3DA',
-    paddingTop: 10,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerLogo: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  helloText: {
-    fontSize: 16,
-    color: COLORS.text.primary,
-    fontWeight: '600',
-  },
-  helloName: {
-    color: COLORS.accent,
-  },
-  bellButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  searchAction: {
-    width: 48,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: '#2F3037',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   header: {
     paddingTop: 10,
     paddingBottom: 20,
@@ -360,15 +338,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 10,
   },
-  searchPlaceholder: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-    color: COLORS.text.secondary,
-  },
   section: {
     marginTop: 25,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -424,15 +396,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   studioList: {
-    paddingRight: 20,
+    paddingBottom: 5,
   },
   recommendCard: {
     width: RECOMMEND_CARD_WIDTH,
     backgroundColor: COLORS.background,
-    borderRadius: 16,
+    borderRadius: 14,
     marginRight: 15,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -440,14 +412,14 @@ const styles = StyleSheet.create({
   },
   recommendImage: {
     width: '100%',
-    height: 120,
+    height: 110,
   },
   recommendInfo: {
     padding: 12,
   },
   recommendName: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '500',
     color: COLORS.text.primary,
   },
   recommendMeta: {
@@ -694,6 +666,92 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginRight: 8,
   },
+  headerOutline: {
+    backgroundColor: COLORS.surface,
+    padding: 15,
+    borderBottomRightRadius: 25,
+    borderBottomLeftRadius: 25,
+  },
+  headerLogo: {
+    height: 40,
+    width: 64
+  },
+  userNameOutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 5,
+    marginLeft: 7
+  },
+  profileImageOutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  profileImage: {
+    height: 20,
+    width: 20,
+    marginRight: 5
+  },
+  welcomeText: {
+    fontWeight: '600',
+    fontSize: 18,
+    color: COLORS.text.primary
+  },
+  userName: {
+    color: '#FF6B35'
+  },
+  notificationIcon: {
+    height: 24,
+    width: 24,
+    tintColor: '#363636'
+  },
+  searchOutline: {
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#BABABA',
+    margin: 10,
+    marginRight: 5,
+    marginLeft: 5,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    height: 50
+  },
+  searchInneroutlineLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  searchLeftIcon: {
+    height: 18,
+    width: 18,
+    marginRight: 10,
+    marginLeft: 20,
+    tintColor: '#363636'
+  },
+  searchText: {
+    fontWeight: '400',
+    fontSize: 14,
+    color: '#363636'
+  },
+  searchInnerOutlineRight: {
+    backgroundColor: '#363636',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopRightRadius: 30,
+    borderBottomRightRadius: 30,
+    height: 50,
+    width: 70
+  },
+  searshRightIcon: {
+    height: 18,
+    width: 18
+  },
+  ratingStar: {
+    height: 9,
+    width: 9
+  }
 });
 
 export default HomeScreen;

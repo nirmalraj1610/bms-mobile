@@ -62,7 +62,7 @@ export const mockStudios: Studio[] = [
       fullDayRate: 18000,
     },
     availability: [],
-    rating: 4.8,
+    rating: 2.8,
     reviewCount: 127,
     verified: true,
     owner: {
@@ -96,7 +96,7 @@ export const mockStudios: Studio[] = [
       fullDayRate: 22000,
     },
     availability: [],
-    rating: 4.6,
+    rating: 3.6,
     reviewCount: 89,
     verified: true,
     owner: {
@@ -130,7 +130,7 @@ export const mockStudios: Studio[] = [
       fullDayRate: 15000,
     },
     availability: [],
-    rating: 4.9,
+    rating: 1.9,
     reviewCount: 156,
     verified: true,
     owner: {

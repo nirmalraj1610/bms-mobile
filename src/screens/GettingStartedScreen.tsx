@@ -30,7 +30,7 @@ const GettingStartedScreen: React.FC = () => {
       <ImageBackground
         source={require('../assets/images/Getting_started.png')}
         style={styles.background}
-        resizeMode="contain"
+        resizeMode="cover"
       >
         <View style={styles.logoContainer}>
           <Image

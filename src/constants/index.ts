@@ -3,9 +3,9 @@ export const COLORS = {
   secondary: '#F5A623',
   accent: '#7ED321',
   background: '#FFFFFF',
-  surface: '#F8F9FA',
+  surface: '#F2F5EC',
   text: {
-    primary: '#212529',
+    primary: '#101010',
     secondary: '#6C757D',
     light: '#ADB5BD',
   },
