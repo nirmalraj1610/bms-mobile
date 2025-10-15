@@ -30,8 +30,7 @@ const RootNavigator: React.FC = () => {
           name="StudioDetails" 
           component={StudioDetailsScreen}
           options={{
-            headerShown: true,
-            title: 'Studio Details',
+            headerShown: false,
           }}
         />
         <Stack.Screen 

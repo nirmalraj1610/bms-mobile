@@ -170,3 +170,89 @@ export const mockReviews: Review[] = [
     createdAt: new Date('2024-01-22'),
   },
 ];
+
+// Favorites-specific mock studios to mirror the Figma design
+export const mockFavoriteStudios: Studio[] = [
+  {
+    id: 'rez-photography',
+    name: 'Rez Photography',
+    description:
+      "We believe photography isn't just about pictures — it's about capturing emotions, memories, and the art in every moment.",
+    location: {
+      city: 'Pune',
+      state: 'Maharashtra',
+      address: 'Rez Studio, Pune',
+      coordinates: { latitude: 18.5204, longitude: 73.8567 },
+    },
+    type: { id: 'portrait', name: 'Portrait Studio', icon: '👤' },
+    images: [
+      'https://images.unsplash.com/photo-1554306274-f23873d9a26c?w=1200&auto=format&fit=crop',
+    ],
+    amenities: ['Air Conditioning', 'WiFi', 'Parking', 'Green Room'],
+    equipment: [
+      { id: 'e1', name: 'Godox VL300 Light', category: 'lighting' },
+      { id: 'e2', name: 'Large Octbox', category: 'lighting' },
+      { id: 'e3', name: 'Seamless Backdrops(white, Grey, Black)', category: 'props' },
+    ],
+    pricing: { hourlyRate: 1880, halfDayRate: 8000, fullDayRate: 15000 },
+    availability: [],
+    rating: 4.8,
+    reviewCount: 289,
+    verified: true,
+    owner: { name: 'Rez Studio', contact: '+91 98765 43210' },
+  },
+  {
+    id: 'mk-studioz',
+    name: 'Mk Studioz',
+    description:
+      'Modern studio with professional lighting, ideal for portraits and fashion shoots.',
+    location: {
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      address: 'Andheri West, Mumbai',
+      coordinates: { latitude: 19.1197, longitude: 72.8468 },
+    },
+    type: { id: 'fashion', name: 'Fashion Studio', icon: '👗' },
+    images: [
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&auto=format&fit=crop',
+    ],
+    amenities: ['WiFi', 'Parking', 'Wardrobe'],
+    equipment: [
+      { id: 'e4', name: 'Profoto D2 1000W', category: 'lighting' },
+      { id: 'e5', name: 'Softbox 80x80cm', category: 'lighting' },
+    ],
+    pricing: { hourlyRate: 2200, halfDayRate: 9000, fullDayRate: 16000 },
+    availability: [],
+    rating: 4.8,
+    reviewCount: 268,
+    verified: true,
+    owner: { name: 'Mk Studioz', contact: '+91 99876 54321' },
+  },
+  {
+    id: 'jd-capture',
+    name: 'JD Capture',
+    description:
+      'Creative studio space perfect for portraits, product shoots, and content creation.',
+    location: {
+      city: 'Hyderabad',
+      state: 'Telangana',
+      address: 'Banjara Hills, Hyderabad',
+      coordinates: { latitude: 17.4126, longitude: 78.4381 },
+    },
+    type: { id: 'product', name: 'Product Photography', icon: '📦' },
+    images: [
+      'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=1200&auto=format&fit=crop',
+    ],
+    amenities: ['WiFi', 'Parking'],
+    equipment: [
+      { id: 'e6', name: 'Backdrop Stand', category: 'props' },
+      { id: 'e7', name: 'LED Panels', category: 'lighting' },
+    ],
+    pricing: { hourlyRate: 2000, halfDayRate: 7800, fullDayRate: 14000 },
+    availability: [],
+    rating: 4.7,
+    reviewCount: 195,
+    verified: true,
+    owner: { name: 'JD Capture', contact: '+91 91234 56789' },
+  },
+];
