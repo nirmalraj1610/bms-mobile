@@ -17,11 +17,11 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS, CITIES, FEATURES } from '../constants';
 import { mockStudios } from '../utils/mockData';
 import { Studio, Feature } from '../types';
-import { ImageSourcePropType } from 'react-native/types_generated/index';
+import { ImageSourcePropType } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
-const RECOMMEND_CARD_WIDTH = width * 0.4;
+const RECOMMEND_CARD_WIDTH = width * 0.5;
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -39,7 +39,7 @@ const HomeScreen: React.FC = () => {
   };
 
   const tabImages = {
-    camera: require('../assets/images/camera.png'),
+    camera: require('../assets/images/potrait.png'),
     fashion: require('../assets/images/fashion.png'),
     product: require('../assets/images/product.png'),
     wedding: require('../assets/images/wedding.png'),
@@ -134,16 +134,40 @@ const HomeScreen: React.FC = () => {
 
   const renderRecommendCard = ({ item }: { item: Studio }) => (
     <TouchableOpacity style={styles.recommendCard} onPress={() => navigateToStudioDetails(item.id)}>
-      <Image source={{ uri: item.images[0] }} style={styles.recommendImage} />
+      <View style={styles.recommendImageContainer}>
+        <Image source={{ uri: item.images[0] }} style={styles.recommendImage} />
+        
+        {/* Rating Badge */}
+        <View style={styles.ratingBadge}>
+          <Icon name="star" size={16} color="#FF7441" />
+          <Text style={styles.ratingBadgeText}>{item.rating}</Text>
+        </View>
+        
+        {/* Heart Icon */}
+        <TouchableOpacity style={styles.heartIcon}>
+          <Icon name="favorite-border" size={14} color="#FF6D38" />
+        </TouchableOpacity>
+      </View>
+      
       <View style={styles.recommendInfo}>
-        <Text style={styles.recommendName} numberOfLines={1}>{item.name}</Text>
-        <View style={styles.recommendStarsRow}>{renderStars(item.rating)}</View>
-        <View style={styles.recommendMetaRow}>
-          <View style={styles.recommendMeta}>
-            <Icon name="place" size={14} color={COLORS.text.secondary} />
-            <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
+     
+        
+        <View style={styles.recommendBottomRow}>
+          <View style={styles.recommendLeftInfo}>
+               <Text style={styles.recommendName} numberOfLines={1}>{item.name}</Text>
+            <View style={styles.recommendMeta}>
+              
+              <Icon name="place" size={12} color={COLORS.text.secondary} />
+              <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
+            </View>
+            <Text style={styles.recommendSqft}>800 sq ft</Text>
           </View>
-          <Text style={styles.recommendPrice} numberOfLines={1} ellipsizeMode="tail">From ₹{item.pricing.hourlyRate}/hour</Text>
+          
+          <View style={styles.recommendPriceRow}>
+            <Text style={styles.recommendFromText}>From</Text>
+            <Text style={styles.recommendPrice}>₹{item.pricing.hourlyRate.toLocaleString()}</Text>
+            <Text style={styles.recommendPerHour}>Per hour</Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -166,42 +190,54 @@ const HomeScreen: React.FC = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.headerOutline}>
-          <Image
-            source={require('../assets/images/logoo.png')}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
-          <View style={styles.userNameOutline}>
-            <View style={styles.profileImageOutline}>
+          {/* Top Row: Logo, Greeting, Location, Notification */}
+          <View style={styles.headerTopRow}>
+            <View style={styles.headerLeft}>
               <Image
-                source={require('../assets/images/profile.png')}
-                style={styles.profileImage}
+                source={require('../assets/images/logoo.png')}
+                style={styles.headerLogo}
                 resizeMode="contain"
               />
               <Text style={styles.welcomeText}>
-                Hello<Text style={styles.userName}> Pazhani !</Text>
+                Hello<Text style={styles.userName}> Jana !</Text>
               </Text>
             </View>
-            <TouchableOpacity>
-              <Image
-                source={require('../assets/images/notification.png')}
-                style={styles.notificationIcon}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
+            
+            <View style={styles.headerRight}>
+              <View style={styles.rightColumn}>
+                 <TouchableOpacity style={styles.notificationIconOutline}>
+                  <Image
+                    source={require('../assets/images/notification.png')}
+                    style={styles.notificationIcon}
+                    resizeMode='cover'
+                  />
+                </TouchableOpacity>
+                <View style={styles.locationContainer}>
+                  <Text style={styles.locationLabel}>Current Location</Text>
+                  <View style={styles.locationRow}>
+                    <Icon name="location-on" size={16} color="#FF6B35" />
+                    <Text style={styles.locationText}>Chennai</Text>
+                  </View>
+                </View>
+                
+               
+              </View>
+            </View>
           </View>
+          
+          {/* Search Bar */}
           <TouchableOpacity onPress={navigateToSearch} style={styles.searchOutline}>
             <View style={styles.searchInneroutlineLeft}>
               <Image
-                source={require('../assets/images/search.png')}
+                source={require('../assets/images/Search.png')}
                 style={styles.searchLeftIcon}
                 resizeMode="contain"
               />
-              <Text style={styles.searchText}>Search....</Text>
+              <Text style={styles.searchText}>Search Studios</Text>
             </View>
             <View style={styles.searchInnerOutlineRight}>
               <Image
-                source={require('../assets/images/search.png')}
+                source={require('../assets/images/Search.png')}
                 style={styles.searshRightIcon}
                 resizeMode="contain"
               />
@@ -238,7 +274,7 @@ const HomeScreen: React.FC = () => {
         {/* Browse Studios */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Browse Studios</Text>
+            <Text style={styles.sectionTitle}>Top Rated Photographers</Text>
             {/* <TouchableOpacity onPress={navigateToBrowse}>
               <Text style={styles.viewAllButton}>View All</Text>
             </TouchableOpacity> */}
@@ -258,12 +294,18 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Why Choose Book My Shoot?</Text>
           <View style={styles.whyCard}>
             <View style={styles.whyIconCircle}>
-              <Icon name="photo-camera" size={26} color={COLORS.background} />
+              <Image 
+                source={require('../assets/images/camera.png')} 
+                style={styles.whyIconImage}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={styles.whyTitle}>Professional Studios</Text>
-            <Text style={styles.whySubtitle}>
-              Access to premium photography studios with professional equipment
-            </Text>
+            <View style={styles.whyTextContent}>
+              <Text style={styles.whyTitle}>Professional Studios</Text>
+              <Text style={styles.whySubtitle}>
+                Access to premium photography studios with professional equipment
+              </Text>
+            </View>
           </View>
           <View style={styles.dotsRow}>
             <View style={[styles.dot, styles.dotActive]} />
@@ -275,7 +317,7 @@ const HomeScreen: React.FC = () => {
         </View>
 
         {/* CTA Section */}
-        <View style={styles.ctaSection}>
+        {/* <View style={styles.ctaSection}>
           <LinearGradient
             colors={[COLORS.primary, COLORS.secondary]}
             style={styles.ctaCard}
@@ -289,7 +331,7 @@ const HomeScreen: React.FC = () => {
               <Icon name="arrow-forward" size={20} color={COLORS.primary} />
             </TouchableOpacity>
           </LinearGradient>
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -352,6 +394,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text.primary,
     marginBottom: 15,
+    alignSelf:'center',
   },
   viewAllButton: {
     fontSize: 14,
@@ -362,16 +405,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderRadius: 20,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
     marginRight: 10,
   },
   categoryText: {
     marginLeft: 6,
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.text.primary,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   cityList: {
     paddingRight: 20,
@@ -410,42 +453,82 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     overflow: 'hidden',
   },
+  recommendImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 140,
+  },
   recommendImage: {
     width: '100%',
-    height: 110,
+    height: '100%',
+  },
+  ratingBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#FFFFFF99',
+    borderRadius: 12,
+    paddingHorizontal:4,
+    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingBadgeText: {
+    color: 'black',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 2,
+  },
+  heartIcon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FFFFFF99',
+    borderRadius: 15,
+    padding: 5,
   },
   recommendInfo: {
     padding: 12,
   },
   recommendName: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.text.primary,
+  },
+  recommendBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  recommendLeftInfo: {
+    flex: 1,
   },
   recommendMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    marginBottom: 2,
   },
   recommendLocation: {
-    fontSize: 10,
+    fontSize: 12,
     color: COLORS.text.secondary,
     marginLeft: 4,
-    flex: 1,
   },
-  recommendMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
+  recommendSqft: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
   },
-  recommendBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
+  recommendPriceRow: {
+    alignItems: 'flex-end',
   },
-  recommendStarsRow: {
-    marginTop: 6,
+  recommendFromText: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    textAlign: 'right',
+  },
+  recommendPerHour: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    textAlign: 'right',
   },
   starsRow: {
     flexDirection: 'row',
@@ -462,8 +545,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   recommendPrice: {
-    fontSize: 11,
-    color: COLORS.text.secondary,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FF6B35',
+    textAlign: 'right',
   },
   gridCard: {
     flex: 1,
@@ -587,20 +672,32 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   whyCard: {
-    backgroundColor: COLORS.background,
+    backgroundColor: '#E8F5F0',
     borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
+    padding: 30,
+    flexDirection: 'row',
+    // alignItems: '',
+    justifyContent: 'space-between',
     elevation: 1,
   },
   whyIconCircle: {
-    width: 56,
-    height: 56,
+    // width: 60,
+    // height: 60,
     borderRadius: 28,
-    backgroundColor: COLORS.primary,
+    // backgroundColor: '#FF6B35',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginLeft: 10,
+  },
+  whyIconImage: {
+    width: 80,
+    height: 80,
+    // tintColor: COLORS.background,
+  },
+  whyTextContent: {
+    flex: 1,
+    marginLeft: 45,
+    width: '40%',
   },
   whyTitle: {
     fontSize: 16,
@@ -611,13 +708,14 @@ const styles = StyleSheet.create({
   whySubtitle: {
     fontSize: 12,
     color: COLORS.text.secondary,
-    textAlign: 'center',
+    lineHeight: 16,
   },
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 10,
   },
   dot: {
     width: 6,
@@ -672,39 +770,70 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 25,
     borderBottomLeftRadius: 25,
   },
-  headerLogo: {
-    height: 40,
-    width: 64
-  },
-  userNameOutline: {
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 5,
-    marginLeft: 7
+    // marginBottom: 15,
   },
-  profileImageOutline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
+  headerLeft: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    flex: 1,
+    marginLeft: 10,
   },
-  profileImage: {
-    height: 20,
-    width: 20,
-    marginRight: 5
+  headerRight: {
+    alignItems: 'flex-end',
+  },
+  rightColumn: {
+    alignItems: 'flex-end',
+    marginRight: 10,
+  },
+  headerLogo: {
+    height: 50,
+    width: 64,
+    marginRight: 12,
   },
   welcomeText: {
     fontWeight: '600',
     fontSize: 18,
-    color: COLORS.text.primary
+    color: COLORS.text.primary,
   },
   userName: {
     color: '#FF6B35'
   },
+  locationContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 8,
+  },
+  locationLabel: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginBottom: 2,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#FF6B35',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
   notificationIcon: {
-    height: 24,
-    width: 24,
-    tintColor: '#363636'
+    height: 20,
+    width: 20,
+    tintColor: '#363636',
+  },
+  notificationIconOutline: {
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#034833',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    // backgroundColor: COLORS.background,
   },
   searchOutline: {
     borderRadius: 30,
@@ -733,10 +862,10 @@ const styles = StyleSheet.create({
   searchText: {
     fontWeight: '400',
     fontSize: 14,
-    color: '#363636'
+    color: 'gray'
   },
   searchInnerOutlineRight: {
-    backgroundColor: '#363636',
+    backgroundColor: '#034833',
     alignItems: 'center',
     justifyContent: 'center',
     borderTopRightRadius: 30,
