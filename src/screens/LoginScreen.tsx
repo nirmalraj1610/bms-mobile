@@ -11,21 +11,21 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
 
 const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation<any>();
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!emailOrPhone || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
@@ -43,48 +43,62 @@ const LoginScreen: React.FC = () => {
     navigation.navigate('SignUp');
   };
 
+  const handleForgotPassword = () => {
+    Alert.alert('Forgot Password', 'Password reset functionality will be implemented soon.');
+  };
+
+  const handleSocialLogin = (provider: string) => {
+    Alert.alert('Social Login', `${provider} login will be implemented soon.`);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.secondary]}
-        style={styles.header}
-      >
-        <Text style={styles.logo}>📸</Text>
-        <Text style={styles.headerTitle}>Welcome Back</Text>
-        <Text style={styles.headerSubtitle}>Sign in to continue</Text>
-      </LinearGradient>
-
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.formContainer}
+        style={styles.keyboardContainer}
       >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.form}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo Section */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../assets/images/logoo.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.tagline}>Discover Your</Text>
+            <Text style={styles.taglineSecond}>Best Photo Studio, Photographers</Text>
+          </View>
+
+          {/* Form Section */}
+          <View style={styles.formContainer}>
+            <Text style={styles.formTitle}>Log In</Text>
+
+            {/* Email/Phone Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Address</Text>
-              <View style={styles.inputContainer}>
-                <Icon name="email" size={20} color={COLORS.text.secondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your email"
-                  placeholderTextColor={COLORS.text.light}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
+              <Text style={styles.inputLabel}>Mail id or Phone Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your mail or mobile number"
+                placeholderTextColor="#999"
+                value={emailOrPhone}
+                onChangeText={setEmailOrPhone}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             </View>
 
+            {/* Password Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
-              <View style={styles.inputContainer}>
-                <Icon name="lock" size={20} color={COLORS.text.secondary} />
+              <Text style={styles.inputLabel}>Password</Text>
+              <View style={styles.passwordContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={styles.passwordInput}
                   placeholder="Enter your password"
-                  placeholderTextColor={COLORS.text.light}
+                  placeholderTextColor="#999"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -96,37 +110,71 @@ const LoginScreen: React.FC = () => {
                   <Icon
                     name={showPassword ? 'visibility-off' : 'visibility'}
                     size={20}
-                    color={COLORS.text.secondary}
+                    color="#666"
                   />
                 </TouchableOpacity>
               </View>
+              <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPassword}>
+                <Text style={styles.forgotPasswordText}>Forgot Password</Text>
+              </TouchableOpacity>
             </View>
 
+            {/* Login Button */}
             <TouchableOpacity
               style={[styles.loginButton, isLoading && styles.disabledButton]}
               onPress={handleLogin}
               disabled={isLoading}
             >
               <Text style={styles.loginButtonText}>
-                {isLoading ? 'Signing In...' : 'Sign In'}
+                {isLoading ? 'Logging In...' : 'Log In'}
               </Text>
             </TouchableOpacity>
 
+            {/* Sign Up Link */}
+            <View style={styles.signUpContainer}>
+              <Text style={styles.signUpText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={navigateToSignUp}>
+                <Text style={styles.signUpLink}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>or</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            <TouchableOpacity style={styles.googleButton}>
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-
-            <View style={styles.signUpContainer}>
-              <Text style={styles.signUpText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={navigateToSignUp}>
-                <Text style={styles.signUpLink}>Sign Up</Text>
+            {/* Social Login Buttons */}
+            <View style={styles.socialContainer}>
+              <TouchableOpacity 
+                style={styles.socialButton} 
+                onPress={() => handleSocialLogin('Google')}
+              >
+                <Text style={styles.socialButtonText}>G</Text>
               </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.socialButton} 
+                onPress={() => handleSocialLogin('Apple')}
+              >
+                <Text style={styles.socialButtonText}>🍎</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.socialButton} 
+                onPress={() => handleSocialLogin('Facebook')}
+              >
+                <Text style={styles.socialButtonText}>f</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Terms and Privacy */}
+            <View style={styles.termsContainer}>
+              <Text style={styles.termsText}>
+                By continuing, you agree to our{'\n'}
+                <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>
+              </Text>
             </View>
           </View>
         </ScrollView>
@@ -138,79 +186,129 @@ const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F5F5F5',
   },
-  header: {
+  keyboardContainer: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    alignItems: 'center',
     paddingTop: 40,
     paddingBottom: 30,
-    paddingHorizontal: 20,
-    alignItems: 'center',
   },
-  logo: {
-    fontSize: 60,
-    marginBottom: 10,
+  headerLogo: {
+    width: 120,
+    height: 60,
+    marginBottom: 20,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.background,
-    marginBottom: 5,
+  tagline: {
+    fontSize: 18,
+    color: '#2C5530',
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 16,
-    color: COLORS.background,
-    opacity: 0.9,
+  taglineSecond: {
+    fontSize: 18,
+    color: '#2C5530',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   formContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    paddingBottom: 40,
     flex: 1,
-    backgroundColor: COLORS.background,
   },
-  form: {
-    padding: 20,
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 30,
   },
   inputGroup: {
     marginBottom: 20,
   },
-  label: {
+  inputLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text.primary,
+    color: '#333',
     marginBottom: 8,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: COLORS.text.light,
+    fontWeight: '500',
   },
   input: {
-    flex: 1,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     fontSize: 16,
-    color: COLORS.text.primary,
-    marginLeft: 10,
+    color: '#333',
+    backgroundColor: 'white',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    backgroundColor: 'white',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#333',
   },
   eyeIcon: {
-    padding: 5,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginTop: 8,
+  },
+  forgotPasswordText: {
+    color: '#2C5530',
+    fontSize: 14,
+    fontWeight: '500',
   },
   loginButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
+    backgroundColor: '#2C5530',
+    borderRadius: 8,
     paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 20,
   },
   disabledButton: {
     opacity: 0.6,
   },
   loginButtonText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.background,
+  },
+  signUpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  signUpText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  signUpLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2C5530',
   },
   divider: {
     flexDirection: 'row',
@@ -220,41 +318,45 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.text.light,
+    backgroundColor: '#E0E0E0',
   },
   dividerText: {
     marginHorizontal: 15,
     fontSize: 14,
-    color: COLORS.text.secondary,
+    color: '#666',
   },
-  googleButton: {
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.text.light,
-    marginBottom: 20,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text.primary,
-  },
-  signUpContainer: {
+  socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    gap: 20,
+    marginBottom: 30,
+  },
+  socialButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
   },
-  signUpText: {
-    fontSize: 14,
-    color: COLORS.text.secondary,
+  socialButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  signUpLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.primary,
+  termsContainer: {
+    alignItems: 'center',
+  },
+  termsText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  linkText: {
+    color: '#2C5530',
+    fontWeight: '500',
   },
 });
 

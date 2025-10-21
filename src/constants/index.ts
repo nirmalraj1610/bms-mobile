@@ -4,6 +4,9 @@ export const COLORS = {
   accent: '#7ED321',
   background: '#FFFFFF',
   surface: '#F2F5EC',
+  bg:'#034833',
+  bg2:'#F8F8F8',
+  favColor:'#FF7441',
   text: {
     primary: '#034833',
     secondary: '#6C757D',

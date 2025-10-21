@@ -56,7 +56,7 @@ const FavoritesScreen: React.FC = () => {
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
           <View>
-            <Icon name="favorite" size={22} color={COLORS.text.primary} />
+            <Icon name="favorite" size={22} color={COLORS.favColor} />
           </View>
         </View>
         <View style={styles.ratingRow}>
@@ -68,7 +68,11 @@ const FavoritesScreen: React.FC = () => {
             <Text style={styles.reviewText}>({item.total_reviews} Reviews)</Text>
           )}
         </View>
-        {/* <Text style={styles.cityText} numberOfLines={1}>{item.location?.city || 'Unknown City'}</Text> */}
+        <View style={styles.recommendMeta}>
+              
+              <Icon name="place" size={12} color={COLORS.text.secondary} />
+              <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
+            </View>
       </View>
     </TouchableOpacity>
   );
@@ -96,7 +100,7 @@ const FavoritesScreen: React.FC = () => {
             onChangeText={setQuery}
           />
         </View>
-        <TouchableOpacity style={styles.searchAction}>
+        <TouchableOpacity style={styles.searchIconButton}>
           <Icon name="search" size={20} color={COLORS.background} />
         </TouchableOpacity>
       </View>
@@ -141,10 +145,10 @@ const FavoritesScreen: React.FC = () => {
                 value={query}
                 onChangeText={setQuery}
               />
+              <TouchableOpacity style={styles.searchIconButton}>
+                <Icon name="search" size={20} color={COLORS.background} />
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.searchAction}>
-              <Icon name="search" size={20} color={COLORS.background} />
-            </TouchableOpacity>
           </View>
           <FlatList
             contentContainerStyle={styles.listContainer}
@@ -195,41 +199,41 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 16,
+    marginTop: 20,
+    marginHorizontal: 4,
   },
   searchInput: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 24,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 0,
+    // backgroundColor: '#F5F5F5',
+    borderRadius: 30,
+    paddingLeft: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   searchPlaceholder: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
+    marginLeft: 8,
+    fontSize: 14,
     color: COLORS.text.secondary,
   },
-  searchAction: {
-    width: 48,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: '#2F3037',
+  searchIconButton: {
+    width: 60,
+    height: 40,
+    padding: 10,
+    borderTopRightRadius: 30,
+    borderBottomRightRadius: 30,
+    backgroundColor: COLORS.bg,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 8,
   },
   listContainer: {
     paddingTop: 8,
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.bg2,
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
@@ -338,6 +342,16 @@ const styles = StyleSheet.create({
     color: COLORS.background,
     fontSize: 15,
     fontWeight: '600',
+  },
+   recommendMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  recommendLocation: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginLeft: 4,
   },
 });
 

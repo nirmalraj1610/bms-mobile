@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { COLORS } from '../constants';
 
-const BrowseScreen: React.FC = () => {
+const BookingScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Browse Studios</Text>
+      <Text style={styles.title}>Bookings</Text>
       <Text style={styles.subtitle}>Coming Soon...</Text>
     </SafeAreaView>
   );
@@ -32,4 +32,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BrowseScreen;
+export default BookingScreen;

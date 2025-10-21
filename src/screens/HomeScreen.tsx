@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   FlatList,
   Image,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -18,6 +19,7 @@ import { COLORS, CITIES, FEATURES } from '../constants';
 import { mockStudios } from '../utils/mockData';
 import { Studio, Feature } from '../types';
 import { ImageSourcePropType } from 'react-native';
+import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -25,6 +27,7 @@ const RECOMMEND_CARD_WIDTH = width * 0.5;
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const [query, setQuery] = useState('');
 
   const navigateToStudioDetails = (studioId: string) => {
     navigation.navigate('StudioDetails', { studioId });
@@ -150,8 +153,6 @@ const HomeScreen: React.FC = () => {
       </View>
       
       <View style={styles.recommendInfo}>
-     
-        
         <View style={styles.recommendBottomRow}>
           <View style={styles.recommendLeftInfo}>
                <Text style={styles.recommendName} numberOfLines={1}>{item.name}</Text>
@@ -226,23 +227,21 @@ const HomeScreen: React.FC = () => {
           </View>
           
           {/* Search Bar */}
-          <TouchableOpacity onPress={navigateToSearch} style={styles.searchOutline}>
-            <View style={styles.searchInneroutlineLeft}>
-              <Image
-                source={require('../assets/images/Search.png')}
-                style={styles.searchLeftIcon}
-                resizeMode="contain"
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInput}>
+              {/* <Icon name="search" size={18} color={COLORS.text.secondary} /> */}
+              <TextInput
+                style={styles.searchPlaceholder}
+                placeholder="Search Studios..."
+                placeholderTextColor={COLORS.text.secondary}
+                value={query}
+                onChangeText={setQuery}
               />
-              <Text style={styles.searchText}>Search Studios</Text>
+              <TouchableOpacity style={styles.searchIconButton} onPress={navigateToSearch}>
+                <Icon name="search" size={20} color={COLORS.background} />
+              </TouchableOpacity>
             </View>
-            <View style={styles.searchInnerOutlineRight}>
-              <Image
-                source={require('../assets/images/Search.png')}
-                style={styles.searshRightIcon}
-                resizeMode="contain"
-              />
-            </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Categories */}
@@ -835,47 +834,45 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     // backgroundColor: COLORS.background,
   },
-  searchOutline: {
+  searchContainer: {
+    marginTop: 20,
+    marginHorizontal: 4,
+  },
+  searchInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // backgroundColor: '#F5F5F5',
     borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#BABABA',
-    margin: 10,
-    marginRight: 5,
-    marginLeft: 5,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    height: 50
+    // paddingLeft: 16,
+    // paddingRight: 4,
+    // paddingVertical: 12,
+    // borderWidth: 1,
+    // borderColor: '#E0E0E0',
   },
-  searchInneroutlineLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  searchLeftIcon: {
-    height: 18,
-    width: 18,
-    marginRight: 10,
-    marginLeft: 20,
-    tintColor: '#363636'
-  },
-  searchText: {
-    fontWeight: '400',
+  searchPlaceholder: {
+    flex: 1,
+    // marginLeft: 8,
+    paddingLeft: 16,
     fontSize: 14,
-    color: 'gray'
+    borderTopLeftRadius: 30,
+    borderBottomLeftRadius: 30,
+    color: COLORS.text.secondary,
+    backgroundColor:'white',
+    borderWidth: 1,
+    borderColor: COLORS.bg,
   },
-  searchInnerOutlineRight: {
-    backgroundColor: '#034833',
-    alignItems: 'center',
-    justifyContent: 'center',
+  searchIconButton: {
+    width: 60,
+    height: 44,
+    // borderRadius: 20,
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
-    height: 50,
-    width: 70
-  },
-  searshRightIcon: {
-    height: 18,
-    width: 18
+    backgroundColor: COLORS.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // marginLeft: 8,
+    
+
   },
   ratingStar: {
     height: 9,

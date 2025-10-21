@@ -10,6 +10,7 @@ import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { MainTabParamList } from '../types';
 import { COLORS } from '../constants';
+import BookingScreen from '../screens/BookingScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -24,14 +25,12 @@ const MainTabNavigator: React.FC = () => {
             case 'Home':
               iconName = 'home';
               break;
-            case 'Browse':
-              iconName = 'explore';
+            case 'Bookings':
+              iconName = 'book';
               break;
-            case 'Search':
-              iconName = 'search';
-              break;
+            
             case 'Favorites':
-              iconName = focused ? 'favorite' : 'favorite-border';
+              iconName = focused ? 'star' : 'star-border';
               break;
             case 'Profile':
               iconName = 'person';
@@ -42,7 +41,7 @@ const MainTabNavigator: React.FC = () => {
 
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: COLORS.primary,
+        tabBarActiveTintColor: COLORS.surface,
         tabBarInactiveTintColor: COLORS.text.secondary,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
@@ -55,15 +54,15 @@ const MainTabNavigator: React.FC = () => {
         options={{ title: 'Home' }}
       />
       <Tab.Screen 
-        name="Browse" 
-        component={BrowseScreen} 
-        options={{ title: 'Browse' }}
+        name="Bookings" 
+        component={BookingScreen} 
+        options={{ title: 'Bookings' }}
       />
-      <Tab.Screen 
+      {/* <Tab.Screen 
         name="Search" 
         component={SearchScreen} 
         options={{ title: 'Search' }}
-      />
+      /> */}
       <Tab.Screen 
         name="Favorites" 
         component={FavoritesScreen} 
@@ -80,16 +79,17 @@ const MainTabNavigator: React.FC = () => {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: COLORS.background,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.text.light,
+    backgroundColor: COLORS.bg,
     height: 60,
     paddingBottom: 5,
     paddingTop: 5,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
   },
   tabBarLabel: {
     fontSize: 12,
     fontWeight: '500',
+    color: COLORS.background,
   },
 });
 

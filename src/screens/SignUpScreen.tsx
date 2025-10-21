@@ -11,9 +11,9 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
 
@@ -40,7 +40,7 @@ const SignUpScreen: React.FC = () => {
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -49,7 +49,9 @@ const SignUpScreen: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      navigation.replace('Main');
+      Alert.alert('Success', 'Account created successfully!', [
+        { text: 'OK', onPress: () => navigation.replace('Main') }
+      ]);
     }, 1500);
   };
 
@@ -59,75 +61,78 @@ const SignUpScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <LinearGradient
-        colors={[COLORS.primary, COLORS.secondary]}
-        style={styles.header}
-      >
-        <Text style={styles.logo}>📸</Text>
-        <Text style={styles.headerTitle}>Create Account</Text>
-        <Text style={styles.headerSubtitle}>Join our photography community</Text>
-      </LinearGradient>
-
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.formContainer}
+        style={styles.keyboardContainer}
       >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.form}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo Section */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../assets/images/logoo.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.tagline}>Discover Your</Text>
+            <Text style={styles.taglineSecond}>Best Photo Studio, Photographers</Text>
+          </View>
+
+          {/* Form Section */}
+          <View style={styles.formContainer}>
+            <Text style={styles.formTitle}>Sign Up</Text>
+
+            {/* Name Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Full Name *</Text>
-              <View style={styles.inputContainer}>
-                <Icon name="person" size={20} color={COLORS.text.secondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your full name"
-                  placeholderTextColor={COLORS.text.light}
-                  value={name}
-                  onChangeText={setName}
-                />
-              </View>
+              <Text style={styles.inputLabel}>Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your name"
+                placeholderTextColor="#999"
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
             </View>
 
+            {/* Email Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Address *</Text>
-              <View style={styles.inputContainer}>
-                <Icon name="email" size={20} color={COLORS.text.secondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your email"
-                  placeholderTextColor={COLORS.text.light}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
+              <Text style={styles.inputLabel}>Mail id</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your mail"
+                placeholderTextColor="#999"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             </View>
 
+            {/* Phone Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Phone Number</Text>
-              <View style={styles.inputContainer}>
-                <Icon name="phone" size={20} color={COLORS.text.secondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your phone number"
-                  placeholderTextColor={COLORS.text.light}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                />
-              </View>
+              <Text style={styles.inputLabel}>Phone number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your phone number"
+                placeholderTextColor="#999"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+              />
             </View>
 
+            {/* Password Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password *</Text>
-              <View style={styles.inputContainer}>
-                <Icon name="lock" size={20} color={COLORS.text.secondary} />
+              <Text style={styles.inputLabel}>Set password</Text>
+              <View style={styles.passwordContainer}>
                 <TextInput
-                  style={styles.input}
-                  placeholder="Create a password"
-                  placeholderTextColor={COLORS.text.light}
+                  style={styles.passwordInput}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#999"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -139,20 +144,20 @@ const SignUpScreen: React.FC = () => {
                   <Icon
                     name={showPassword ? 'visibility-off' : 'visibility'}
                     size={20}
-                    color={COLORS.text.secondary}
+                    color="#666"
                   />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* Confirm Password Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirm Password *</Text>
-              <View style={styles.inputContainer}>
-                <Icon name="lock" size={20} color={COLORS.text.secondary} />
+              <Text style={styles.inputLabel}>Confirm password</Text>
+              <View style={styles.passwordContainer}>
                 <TextInput
-                  style={styles.input}
-                  placeholder="Confirm your password"
-                  placeholderTextColor={COLORS.text.light}
+                  style={styles.passwordInput}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#999"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
@@ -164,45 +169,37 @@ const SignUpScreen: React.FC = () => {
                   <Icon
                     name={showConfirmPassword ? 'visibility-off' : 'visibility'}
                     size={20}
-                    color={COLORS.text.secondary}
+                    color="#666"
                   />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* Sign Up Button */}
             <TouchableOpacity
               style={[styles.signUpButton, isLoading && styles.disabledButton]}
               onPress={handleSignUp}
               disabled={isLoading}
             >
               <Text style={styles.signUpButtonText}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
+                {isLoading ? 'Creating Account...' : 'Sign Up'}
               </Text>
             </TouchableOpacity>
 
+            {/* Sign In Link */}
+            <View style={styles.signInContainer}>
+              <Text style={styles.signInText}>Already have an account? </Text>
+              <TouchableOpacity onPress={navigateToLogin}>
+                <Text style={styles.signInLink}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Terms and Privacy */}
             <View style={styles.termsContainer}>
               <Text style={styles.termsText}>
-                By creating an account, you agree to our{' '}
-                <Text style={styles.linkText}>Terms & Conditions</Text> and{' '}
-                <Text style={styles.linkText}>Privacy Policy</Text>
+                By continuing, you agree to our{'\n'}
+                <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>
               </Text>
-            </View>
-
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity style={styles.googleButton}>
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={navigateToLogin}>
-                <Text style={styles.loginLink}>Sign In</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -214,136 +211,133 @@ const SignUpScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#F5F5F5',
   },
-  header: {
+  keyboardContainer: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    alignItems: 'center',
     paddingTop: 40,
     paddingBottom: 30,
-    paddingHorizontal: 20,
-    alignItems: 'center',
   },
-  logo: {
-    fontSize: 60,
-    marginBottom: 10,
+  headerLogo: {
+    width: 120,
+    height: 60,
+    marginBottom: 20,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.background,
-    marginBottom: 5,
+  tagline: {
+    fontSize: 18,
+    color: '#2C5530',
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 16,
-    color: COLORS.background,
-    opacity: 0.9,
+  taglineSecond: {
+    fontSize: 18,
+    color: '#2C5530',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   formContainer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    paddingBottom: 40,
     flex: 1,
-    backgroundColor: COLORS.background,
   },
-  form: {
-    padding: 20,
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 30,
   },
   inputGroup: {
     marginBottom: 20,
   },
-  label: {
+  inputLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text.primary,
+    color: '#333',
     marginBottom: 8,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: COLORS.text.light,
+    fontWeight: '500',
   },
   input: {
-    flex: 1,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     fontSize: 16,
-    color: COLORS.text.primary,
-    marginLeft: 10,
+    color: '#333',
+    backgroundColor: 'white',
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    backgroundColor: 'white',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#333',
   },
   eyeIcon: {
-    padding: 5,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
   },
   signUpButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
+    backgroundColor: '#2C5530',
+    borderRadius: 8,
     paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 15,
+    marginTop: 20,
+    marginBottom: 20,
   },
   disabledButton: {
     opacity: 0.6,
   },
   signUpButtonText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.background,
+  },
+  signInContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  signInText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  signInLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2C5530',
   },
   termsContainer: {
-    marginBottom: 20,
+    alignItems: 'center',
   },
   termsText: {
     fontSize: 12,
-    color: COLORS.text.secondary,
+    color: '#666',
     textAlign: 'center',
     lineHeight: 18,
   },
   linkText: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.text.light,
-  },
-  dividerText: {
-    marginHorizontal: 15,
-    fontSize: 14,
-    color: COLORS.text.secondary,
-  },
-  googleButton: {
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.text.light,
-    marginBottom: 20,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text.primary,
-  },
-  loginContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  loginText: {
-    fontSize: 14,
-    color: COLORS.text.secondary,
-  },
-  loginLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.primary,
+    color: '#2C5530',
+    fontWeight: '500',
   },
 });
 
