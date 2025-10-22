@@ -202,6 +202,38 @@ const HomeScreen: React.FC = () => {
       </View>
     </TouchableOpacity>
   );
+// Replace the renderRated function with this:
+const renderRated = ({ item }: { item: Studio }) => (
+  <TouchableOpacity 
+    style={styles.ratedCard} 
+    onPress={() => navigateToStudioDetails(item.id)}
+  >
+    <View style={styles.ratedImageContainer}>
+      <Image source={{ uri: item.images[0] }} style={styles.ratedImage} />
+      <TouchableOpacity style={styles.ratedHeartIcon}>
+        <Icon name="favorite-border" size={16} color="#FF6D38" />
+      </TouchableOpacity>
+    </View>
+    
+    <View style={styles.ratedInfo}>
+      <View style={styles.ratedTopRow}>
+        {renderStars(item.rating)}
+      </View>
+      
+      <Text style={styles.ratedName} numberOfLines={1}>{item.name}</Text>
+      
+      <View style={styles.ratedLocationRow}>
+        <Icon name="place" size={14} color={COLORS.text.secondary} />
+        <Text style={styles.ratedLocation} numberOfLines={1}>{item.location.city}</Text>
+      </View>
+      
+      <View style={styles.ratedBottomRow}>
+        <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{item.pricing.hourlyRate.toLocaleString()}</Text> <Text style={styles.ratedPerHour}>Per hour</Text></Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
+
 
   const renderWhuChooseCard =({item, index}: {item: whyChoose, index: number }) => (
     <View style={{marginLeft: index == 0 ? 10 : 5, marginRight: whyChooseData.length - 1 ? 10 : 5}}>
@@ -329,7 +361,7 @@ const HomeScreen: React.FC = () => {
           </View>
           <FlatList
             data={mockStudios}
-            renderItem={renderRecommendCard}
+            renderItem={renderRated}
             keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -494,6 +526,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     overflow: 'hidden',
+    
   },
   recommendImageContainer: {
     position: 'relative',
@@ -916,10 +949,96 @@ const styles = StyleSheet.create({
     
 
   },
-  ratingStar: {
-    height: 9,
-    width: 9
-  }
+  // ratingStar: {
+  //   height: 9,
+  //   width: 9
+  // }
+  // Update these existing styles:
+ratingStar: {
+  height: 12,
+  width: 12,
+  marginHorizontal: 1,
+},
+
+// Add these new styles for the Top Rated section:
+ratedCard: {
+  width: width * 0.8,
+  backgroundColor: COLORS.background,
+  borderRadius: 12,
+  marginRight: 15,
+  elevation: 2,
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.08,
+  shadowRadius: 6,
+  overflow: 'hidden',
+  flexDirection: 'row',
+  padding: 12,
+},
+ratedImageContainer: {
+  position: 'relative',
+  width: 150,
+  height: 120,
+  borderRadius: 8,
+  overflow: 'hidden',
+},
+ratedImage: {
+  width: '100%',
+  height: '100%',
+},
+ratedHeartIcon: {
+  position: 'absolute',
+  top: 8,
+  right: 8,
+  backgroundColor: '#FFFFFF99',
+  borderRadius: 15,
+  padding: 5,
+},
+ratedInfo: {
+  flex: 1,
+  marginLeft: 12,
+  justifyContent: 'space-between',
+},
+ratedTopRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 10,
+},
+ratedName: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: COLORS.text.primary,
+  // marginTop: 4,
+  
+},
+ratedLocationRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  // marginTop: 4,
+  marginBottom: 15,
+},
+ratedLocation: {
+  fontSize: 13,
+  color: COLORS.text.secondary,
+  marginLeft: 4,
+},
+ratedBottomRow: {
+  marginTop: 8,
+},
+ratedFromText: {
+  fontSize: 13,
+  color: COLORS.text.secondary,
+},
+ratedPrice: {
+  fontSize: 16,
+  fontWeight: '700',
+  color: '#FF6B35',
+},
+ratedPerHour: {
+  fontSize: 13,
+  color: COLORS.text.secondary,
+},
+
 });
 
 export default HomeScreen;

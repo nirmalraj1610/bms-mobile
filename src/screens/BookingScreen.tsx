@@ -22,7 +22,8 @@ const mockBookings = [
     date: 'Tue, Sep 24',
     time: '5:00 PM',
     status: 'Completed',
-    image: 'https://images.unsplash.com/photo-1554048612-b6ebae92138d?w=400',
+    image: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?w=400',
+
     isFavorite: true,
   },
 ];
@@ -62,9 +63,9 @@ const BookingScreen: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Confirmed':
-        return COLORS.success;
+        return COLORS.background;
       case 'Completed':
-        return COLORS.bg;
+        return COLORS.background;
       default:
         return COLORS.text.secondary;
     }
@@ -75,7 +76,6 @@ const BookingScreen: React.FC = () => {
       <Image source={{ uri: item.image }} style={styles.cardImage} />
       <View style={styles.cardContent}>
         <View style={styles.cardHeader}>
-          <Text style={styles.studioName}>{item.studioName}</Text>
           <TouchableOpacity>
             <Icon 
               name="favorite" 
@@ -84,7 +84,10 @@ const BookingScreen: React.FC = () => {
             />
           </TouchableOpacity>
         </View>
+          {/* <Text style={styles.studioName}>{item.studioName}</Text> */}
+        <Text style={styles.dateTime1}>{item.studioName}</Text>
         <Text style={styles.dateTime}>{item.date} {item.time}</Text>
+
         <View style={styles.statusContainer}>
           <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
             {item.status}
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   studioName: {
@@ -268,19 +271,33 @@ const styles = StyleSheet.create({
   dateTime: {
     fontSize: 13,
     color: COLORS.text.secondary,
+    marginBottom: 20,
+    // marginTop: 4,
+
+    
+    
+
+  },
+  dateTime1: {
+    fontSize: 16,
+    color: COLORS.text.primary,
+
+    fontWeight: '700',
+
     marginTop: 4,
   },
   statusContainer: {
-    alignSelf: 'flex-start',
-    marginTop: 8,
+    alignSelf: 'flex-end',
+    // marginTop: 8,
+    marginRight:15,
   },
   statusText: {
     fontSize: 12,
     fontWeight: '600',
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 8,
+    backgroundColor: COLORS.bg,
   },
   sectionTitle: {
     fontSize: 18,
