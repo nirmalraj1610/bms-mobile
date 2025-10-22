@@ -9,6 +9,8 @@ import BookingScreen from '../screens/BookingScreen';
 import BookingConfirmationScreen from '../screens/BookingConfirmationScreen';
 import SplashScreen from '../screens/SplashScreen';
 import GettingStartedScreen from '../screens/GettingStartedScreen';
+import OurWorksScreen from '../screens/OurWorksScreen';
+import GalleryScreen from '../screens/GalleryScreen';
 import { RootStackParamList } from '../types';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -47,6 +49,20 @@ const RootNavigator: React.FC = () => {
           options={{
             headerShown: true,
             title: 'Booking Confirmed',
+          }}
+        />
+        <Stack.Screen 
+          name="OurWorks" 
+          component={OurWorksScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="Gallery" 
+          component={GalleryScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

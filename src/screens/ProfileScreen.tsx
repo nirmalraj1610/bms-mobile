@@ -14,6 +14,14 @@ const ProfileScreen: React.FC = () => {
     navigation.navigate('Auth', { screen: 'SignUp' });
   };
 
+  const navigateToOurWorks = () => {
+    navigation.navigate('OurWorks');
+  };
+
+  const navigateToGallery = () => {
+    navigation.navigate('Gallery');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Profile</Text>
@@ -28,6 +36,14 @@ const ProfileScreen: React.FC = () => {
         
         <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
           <Text style={[styles.tempButtonText, styles.signUpButtonText]}>Go to SignUp Screen</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={[styles.tempButton, styles.ourWorksButton]} onPress={navigateToOurWorks}>
+          <Text style={[styles.tempButtonText, styles.ourWorksButtonText]}>View Our Works</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={[styles.tempButton, styles.galleryButton]} onPress={navigateToGallery}>
+          <Text style={[styles.tempButtonText, styles.galleryButtonText]}>View Gallery</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -86,6 +102,20 @@ const styles = StyleSheet.create({
   },
   signUpButtonText: {
     color: COLORS.primary,
+  },
+  ourWorksButton: {
+    backgroundColor: COLORS.bg,
+    borderWidth: 0,
+  },
+  ourWorksButtonText: {
+    color: COLORS.background,
+  },
+  galleryButton: {
+    backgroundColor: COLORS.primary,
+    borderWidth: 0,
+  },
+  galleryButtonText: {
+    color: COLORS.background,
   },
 });
 

@@ -889,13 +889,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    // backgroundColor: '#F5F5F5',
     borderRadius: 30,
-    // paddingLeft: 16,
-    // paddingRight: 4,
-    // paddingVertical: 12,
-    // borderWidth: 1,
-    // borderColor: '#E0E0E0',
   },
   searchPlaceholder: {
     flex: 1,
@@ -911,7 +905,7 @@ const styles = StyleSheet.create({
   },
   searchIconButton: {
     width: 60,
-    height: 44,
+    height: 43,
     // borderRadius: 20,
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,

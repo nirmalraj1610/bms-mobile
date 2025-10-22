@@ -117,8 +117,10 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   StudioDetails: { studioId: string };
-  Booking: { studioId: string; selectedDate?: Date };
+  Booking: { studioId: string };
   BookingConfirmation: { bookingId: string };
+  OurWorks: undefined;
+  Gallery: undefined;
 };
 
 export type MainTabParamList = {
