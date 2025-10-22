@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,21 @@ import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
+const WHY_CHOOSE_CARD_WIDTH = width * 0.9;
 const RECOMMEND_CARD_WIDTH = width * 0.5;
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const [query, setQuery] = useState('');
+  const flatListRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleScrollEnd = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const width = event.nativeEvent.layoutMeasurement.width;
+    const index = Math.round(offsetX / width);
+    setCurrentIndex(index);
+  };
 
   const navigateToStudioDetails = (studioId: string) => {
     navigation.navigate('StudioDetails', { studioId });
@@ -49,10 +59,22 @@ const HomeScreen: React.FC = () => {
     // add more if needed
   };
 
+    const whyChooseImages = {
+    camera: require('../assets/images/camera.png'),
+    // add more if needed
+  };
+
   type Category = {
     id: string;
     label: string;
     image: ImageSourcePropType;
+  };
+
+    type whyChoose = {
+    id: string;
+    image: ImageSourcePropType;
+    title: string;
+    desc: string;
   };
 
   const categories: Category[] = [
@@ -60,6 +82,13 @@ const HomeScreen: React.FC = () => {
     { id: 'fashion', label: 'Fashion', image: tabImages.fashion },
     { id: 'product', label: 'Product', image: tabImages.product },
     { id: 'wedding', label: 'Wedding', image: tabImages.wedding },
+  ];
+
+    const whyChooseData: whyChoose[] = [
+    { id: '1', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+    { id: '2', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+    { id: '3', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+    { id: '4', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
   ];
 
   const renderCategoryChip = ({ item }: { item: Category }) => (
@@ -173,6 +202,26 @@ const HomeScreen: React.FC = () => {
       </View>
     </TouchableOpacity>
   );
+
+  const renderWhuChooseCard =({item, index}: {item: whyChoose, index: number }) => (
+    <View style={{marginLeft: index == 0 ? 10 : 5, marginRight: whyChooseData.length - 1 ? 10 : 5}}>
+    <View key={item.id} style={styles.whyCard}>
+            <View style={styles.whyIconCircle}>
+              <Image 
+                source={item.image} 
+                style={styles.whyIconImage}
+                resizeMode="contain"
+              />
+            </View>
+            <View style={styles.whyTextContent}>
+              <Text style={styles.whyTitle}>{item.title}</Text>
+              <Text style={styles.whySubtitle}>
+                {item.desc}
+              </Text>
+            </View>
+          </View>
+          </View>
+  )
 
   const renderGridCard = ({ item }: { item: Studio }) => (
     <TouchableOpacity style={styles.gridCard} onPress={() => navigateToStudioDetails(item.id)}>
@@ -291,27 +340,21 @@ const HomeScreen: React.FC = () => {
         {/* Why Choose Book My Shoot? */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Why Choose Book My Shoot?</Text>
-          <View style={styles.whyCard}>
-            <View style={styles.whyIconCircle}>
-              <Image 
-                source={require('../assets/images/camera.png')} 
-                style={styles.whyIconImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.whyTextContent}>
-              <Text style={styles.whyTitle}>Professional Studios</Text>
-              <Text style={styles.whySubtitle}>
-                Access to premium photography studios with professional equipment
-              </Text>
-            </View>
-          </View>
+          <FlatList
+            data={whyChooseData}
+            ref={flatListRef}
+            renderItem={renderWhuChooseCard}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.studioList}
+            onMomentumScrollEnd={handleScrollEnd}
+          />
           <View style={styles.dotsRow}>
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
+            {whyChooseData.map((item, index)  => (
+              <View style={currentIndex == index ? styles.dotActive : styles.dot} />              
+            ))}
           </View>
         </View>
 
@@ -671,6 +714,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   whyCard: {
+    width: WHY_CHOOSE_CARD_WIDTH,
     backgroundColor: '#E8F5F0',
     borderRadius: 16,
     padding: 30,
@@ -720,11 +764,15 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(0,0,0,0.2)',
     marginHorizontal: 3,
+    backgroundColor: '#D9D9D9',
   },
   dotActive: {
-    backgroundColor: COLORS.text.primary,
+    width: 16,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 3,
+    backgroundColor: '#525050',
   },
   ctaSection: {
     margin: 20,
