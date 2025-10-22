@@ -16,28 +16,43 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
+import { authLogin } from '../lib/api';
+import { useDispatch } from 'react-redux';
+import { login } from '../features/auth/authSlice';
 
 const LoginScreen: React.FC = () => {
+  const dispatch = useDispatch();
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation<any>();
 
-  const handleLogin = async () => {
-    if (!emailOrPhone || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+const handleLogin = async () => {
+  if (!emailOrPhone || !password) {
+    Alert.alert('Error', 'Please fill in all fields');
+    return;
+  }
 
+  try {
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      navigation.replace('Main');
-    }, 1500);
-  };
+    console.log('Attempting login with:', { emailOrPhone, password });
+
+    const result = await dispatch(login({ email: emailOrPhone, password })).unwrap(); 
+    // unwrap() helps catch rejections properly if using createAsyncThunk
+
+    console.log('Login Success:', result);
+
+    Alert.alert('Success', 'Login successful!');
+    navigation.replace('Main');
+  } catch (err: any) {
+    console.log('Login Error:', err);
+    Alert.alert('Login Failed', err?.message || 'Something went wrong, please try again');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const navigateToSignUp = () => {
     navigation.navigate('SignUp');
