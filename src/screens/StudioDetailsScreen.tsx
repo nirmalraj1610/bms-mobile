@@ -1,19 +1,171 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
-import { mockFavoriteStudios } from '../utils/mockData';
+import { mockFavoriteStudios, mockStudios } from '../utils/mockData';
+import BookingModal from '../components/BookingModal';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { studioDetailsThunk } from '../features/studios/studiosSlice';
+import { Studio } from '../types';
+import { StudioDetail } from '../types/api';
 
 const StudioDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
   const studioId: string | undefined = route?.params?.studioId;
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
-  const studio = useMemo(() => {
-    return mockFavoriteStudios.find((s) => s.id === studioId) || mockFavoriteStudios[0];
-  }, [studioId]);
+  // Get studio data from Redux
+  const { data: studioData, loading, error } = useAppSelector(state => state.studios.detail);
+  const searchResults = useAppSelector(state => state.studios.search.results);
+
+  // Fetch studio details when component mounts or studioId changes
+  useEffect(() => {
+    if (studioId) {
+      dispatch(studioDetailsThunk(studioId));
+    }
+  }, [dispatch, studioId]);
+
+  // Use actual studio data or fallback to search results or mock data
+  const studio: Studio | StudioDetail = useMemo(() => {
+    console.log('=== StudioDetailsScreen Debug ===');
+    console.log('studioId from route:', studioId);
+    console.log('studioData from API:', studioData);
+    console.log('searchResults:', searchResults);
+    console.log('loading:', loading);
+    console.log('error:', error);
+    console.log('Redux state - studios.detail:', { data: studioData, loading, error });
+    
+    // First priority: Use API detail data if available
+    if (studioData) {
+      console.log('✅ Using API detail data');
+      console.log('API studio object:', JSON.stringify(studioData, null, 2));
+      console.log('API studio ID:', studioData.id);
+      console.log('API studio ID type:', typeof studioData.id);
+      return studioData;
+    }
+    
+    // Second priority: Use studio from search results if available
+    if (searchResults && searchResults.length > 0 && studioId) {
+      const studioFromSearch = searchResults.find((s: any) => s.id === studioId);
+      if (studioFromSearch) {
+        console.log('✅ Using studio from search results');
+        console.log('Search studio object:', JSON.stringify(studioFromSearch, null, 2));
+        console.log('Search studio ID:', studioFromSearch.id);
+        return studioFromSearch;
+      }
+    }
+    
+    // Fallback to mock data if no real data is available
+    // First try to find in main mockStudios array (used by HomeScreen)
+    let mockStudio = mockStudios.find((s) => s.id === studioId);
+    
+    // If not found, try mockFavoriteStudios array (used by FavoritesScreen)
+    if (!mockStudio) {
+      mockStudio = mockFavoriteStudios.find((s) => s.id === studioId);
+    }
+    
+    // If still not found, use the first studio from favorites as fallback
+    if (!mockStudio) {
+      mockStudio = mockFavoriteStudios[0];
+      console.log('Using fallback studio, original ID:', mockStudio?.id, 'route studioId:', studioId);
+      
+      // Only override ID if we're using fallback and have a valid studioId
+      if (mockStudio && studioId) {
+        const studioWithCorrectId = { ...mockStudio, id: studioId };
+        console.log('Using fallback mock data with corrected ID:', studioWithCorrectId.id);
+        return studioWithCorrectId;
+      }
+    }
+    
+    console.log('Using found mock studio, ID:', mockStudio?.id);
+    return mockStudio;
+  }, [studioData, studioId, searchResults]);
+
+  // Helper functions to safely access studio data
+  const getStudioImages = () => {
+    if (studio?.images && Array.isArray(studio.images)) {
+      return studio.images;
+    }
+    return ['https://via.placeholder.com/400x200'];
+  };
+
+  const getOwnerName = () => {
+    // Type guard to check if it's StudioDetail (API data)
+    if ('customers' in studio && studio.customers?.full_name) {
+      return studio.customers.full_name;
+    }
+    // Type guard to check if it's Studio (mock data)
+    if ('owner' in studio && studio.owner?.name) {
+      return studio.owner.name;
+    }
+    return 'Studio Owner';
+  };
+
+  const getLocationCity = () => {
+    return studio?.location?.city || 'Unknown Location';
+  };
+
+  const getRating = () => {
+    // Type guard for StudioDetail (API data)
+    if ('average_rating' in studio && studio.average_rating !== undefined) {
+      return studio.average_rating;
+    }
+    // Type guard for Studio (mock data)
+    if ('rating' in studio && studio.rating !== undefined) {
+      return studio.rating;
+    }
+    return 0;
+  };
+
+  const getReviewCount = () => {
+    // Type guard for StudioDetail (API data)
+    if ('total_reviews' in studio && studio.total_reviews !== undefined) {
+      return studio.total_reviews;
+    }
+    // Type guard for Studio (mock data)
+    if ('reviewCount' in studio && studio.reviewCount !== undefined) {
+      return studio.reviewCount;
+    }
+    return 0;
+  };
+
+  const getHourlyRate = () => {
+    if (studio?.pricing) {
+      // For API data - check for hourly_rate first
+      if ('hourly_rate' in studio.pricing && studio.pricing.hourly_rate !== undefined) {
+        return studio.pricing.hourly_rate;
+      }
+      // For API data - check for hourly (alternative API format)
+      if ('hourly' in studio.pricing && (studio.pricing as any).hourly !== undefined) {
+        return (studio.pricing as any).hourly;
+      }
+      // For mock data
+      if ('hourlyRate' in studio.pricing && studio.pricing.hourlyRate !== undefined) {
+        return studio.pricing.hourlyRate;
+      }
+    }
+    return 0;
+  };
+
+  const getEquipment = (): Array<{ id: number | string; name: string }> => {
+    // For API data (amenities)
+    if (studio?.amenities && Array.isArray(studio.amenities)) {
+      return studio.amenities.map((amenity: string, index: number) => ({ id: index, name: amenity }));
+    }
+    // For mock data (equipment)
+    if ('equipment' in studio && studio.equipment && Array.isArray(studio.equipment)) {
+      return studio.equipment;
+    }
+    return [
+      { id: 1, name: 'Professional Lighting' },
+      { id: 2, name: 'Camera Equipment' },
+      { id: 3, name: 'Backdrop Options' }
+    ];
+  };
 
   const renderStars = (rating: number) => {
     const rounded = Math.round(rating);
@@ -26,6 +178,23 @@ const StudioDetailsScreen: React.FC = () => {
     );
   };
 
+  // Show loading state while fetching studio data
+  if (loading && !studioData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Icon name="arrow-back" size={22} color={COLORS.text.primary} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Loading studio details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -37,37 +206,37 @@ const StudioDetailsScreen: React.FC = () => {
         </View>
 
         {/* Hero Image */}
-        <Image source={{ uri: studio.images[0] }} style={styles.heroImage} />
+        <Image source={{ uri: getStudioImages()[0] }} style={styles.heroImage} />
 
         {/* Chips */}
         <View style={styles.chipsRow}>
           <View style={styles.chip}><Text style={styles.chipText}>Mon, 11th</Text></View>
           <View style={styles.chip}><Text style={styles.chipText}>2.00 PM</Text></View>
           <View style={styles.locationChip}>
-            <Text style={styles.locationChipText}>{studio.owner.name}, {studio.location.city}</Text>
+            <Text style={styles.locationChipText}>{getOwnerName()}, {getLocationCity()}</Text>
           </View>
         </View>
 
         {/* Title & Rating */}
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>{studio.name}</Text>
+          <Text style={styles.title}>{studio?.name || 'Studio Name'}</Text>
           <View style={styles.ratingRow}>
-            {renderStars(studio.rating)}
-            <Text style={styles.ratingText}>{studio.rating.toFixed(1)}</Text>
-            <Text style={styles.reviewText}>({studio.reviewCount} Reviews)</Text>
+            {renderStars(getRating())}
+            <Text style={styles.ratingText}>{getRating().toFixed(1)}</Text>
+            <Text style={styles.reviewText}>({getReviewCount()} Reviews)</Text>
           </View>
         </View>
 
         {/* Pricing */}
-        <Text style={styles.priceText}>Starting at ₹{studio.pricing.hourlyRate}/hour</Text>
+        <Text style={styles.priceText}>Starting at ₹{getHourlyRate().toLocaleString()}/hour</Text>
 
         {/* Description */}
-        <Text style={styles.description}>{studio.description}</Text>
+        <Text style={styles.description}>{studio?.description || 'No description available.'}</Text>
 
         {/* Equipment Included */}
         <Text style={styles.sectionTitle}>Equipment Included</Text>
         <View style={styles.bullets}>
-          {studio.equipment.slice(0, 3).map((e) => (
+          {getEquipment().slice(0, 3).map((e: { id: number | string; name: string }) => (
             <View key={e.id} style={styles.bulletRow}>
               <View style={styles.bulletDot} />
               <Text style={styles.bulletText}>{e.name}</Text>
@@ -86,10 +255,17 @@ const StudioDetailsScreen: React.FC = () => {
         </View>
 
         {/* CTA */}
-        <TouchableOpacity style={styles.bookBtn} onPress={() => navigation.navigate('Booking', { studioId: studio.id })}>
+        <TouchableOpacity style={styles.bookBtn} onPress={() => setShowBookingModal(true)}>
           <Text style={styles.bookBtnText}>Book Now</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Booking Modal */}
+      <BookingModal
+        visible={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        studio={studio}
+      />
     </SafeAreaView>
   );
 };
@@ -246,6 +422,17 @@ const styles = StyleSheet.create({
     color: COLORS.background,
     fontSize: 16,
     fontWeight: '700',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: COLORS.text.secondary,
   },
 });
 

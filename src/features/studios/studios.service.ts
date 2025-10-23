@@ -14,7 +14,13 @@ export const searchStudios = async (query: StudiosSearchQuery) => {
 };
 
 export const getStudioDetails = async (id: string) => {
-  return studioDetail(id);
+  console.log('=== getStudioDetails Debug ===');
+  console.log('Calling studioDetail API with ID:', id);
+  
+  const result = await studioDetail(id);
+  console.log('studioDetail API result:', result);
+  
+  return result;
 };
 
 export const getStudioAvailability = async (payload: AvailabilityPayload) => {

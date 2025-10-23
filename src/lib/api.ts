@@ -80,7 +80,7 @@ export async function studioFavorite(payload: { studio_id: string; action: 'add'
 }
 
 export async function studioAvailability(id: string, date?: string) {
-  return apiFetch<StudioAvailabilityResponse>(`/studio-availability/${id}`, { method: 'GET', query: { date }, auth: false });
+  return apiFetch<StudioAvailabilityResponse>(`/studio-availability/studios/${id}`, { method: 'GET', query: { date }, auth: false });
 }
 
 // Photographers

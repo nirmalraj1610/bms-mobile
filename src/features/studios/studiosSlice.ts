@@ -36,9 +36,24 @@ export const studiosSearchThunk = createAsyncThunk('studios/search', async (quer
 
 export const studioDetailsThunk = createAsyncThunk('studios/details', async (id: string, { rejectWithValue }) => {
   try {
+    console.log('=== studioDetailsThunk Debug ===');
+    console.log('Fetching studio details for ID:', id);
+    console.log('ID type:', typeof id);
+    
     const res = await getStudioDetails(id);
-    return res.studio || null;
+    console.log('API response:', res);
+    console.log('API response type:', typeof res);
+    console.log('API response keys:', res ? Object.keys(res) : 'null');
+    console.log('res.studio:', res.studio);
+    
+    const studioData = res.studio || null;
+    console.log('Returning studio data:', studioData);
+    
+    return studioData;
   } catch (err: any) {
+    console.error('studioDetailsThunk error:', err);
+    console.error('Error type:', typeof err);
+    console.error('Error keys:', err ? Object.keys(err) : 'null');
     return rejectWithValue(err?.error || 'Failed to load studio details');
   }
 });
