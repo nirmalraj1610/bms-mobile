@@ -147,14 +147,15 @@ const ProfileScreen: React.FC = () => {
                           </View>
                           </TouchableOpacity>
                           <View style={styles.userDetailOutline}>
-                          <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text> <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text>
+                          <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text>
+                           {/* <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text> */}
                           </View>
-                          <View style={styles.userDetailOutline}>
+                          {/* <View style={styles.userDetailOutline}>
                           <Text style={styles.userEmail}>{fullProfileData?.email}</Text> <Text style={styles.userStatus}>{fullProfileData?.email_verified ? "✅" : "❌" }</Text>
                           </View>
                           <View style={styles.userDetailOutline}>
                           <Text style={styles.userPhone}>+91 {fullProfileData?.phone}</Text> <Text style={styles.userStatus}>{fullProfileData?.phone_verified ? "✅" : "❌" }</Text>
-                          </View>
+                          </View> */}
       </View>     
 
       {/* Tabs */}
@@ -520,11 +521,12 @@ const styles = StyleSheet.create({
   },
  profileImageContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 10,
   },
   profileImageOutline: {
     width: 100,
     height: 100,
+    marginBottom: 10,
     borderRadius: 60, // makes it circular
     borderWidth: 2,
     borderColor: '#034833', // green outline
@@ -538,8 +540,8 @@ const styles = StyleSheet.create({
     elevation: 5, // Android shadow
   },
   profileImage: {
-    width: 90,
-    height: 90,
+    width: 95,
+    height: 95,
     borderRadius: 55,
   },
   cameraOutline: {
@@ -553,8 +555,8 @@ const styles = StyleSheet.create({
     bottom: 3
   },
   camera: {
-    height: 22,
-    width: 22
+    height: 20,
+    width: 20
   },
   userDetailOutline: {
   flexDirection: 'row',

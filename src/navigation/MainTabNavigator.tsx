@@ -11,6 +11,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import { MainTabParamList } from '../types';
 import { COLORS } from '../constants';
 import BookingScreen from '../screens/BookingScreen';
+import DashboardScreen from '../screens/DashboardScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -27,6 +28,10 @@ const MainTabNavigator: React.FC = () => {
               break;
             case 'Bookings':
               iconName = 'book';
+              break;
+
+            case 'Dashboard':
+              iconName = 'space-dashboard';
               break;
             
             case 'Favorites':
@@ -58,11 +63,11 @@ const MainTabNavigator: React.FC = () => {
         component={BookingScreen} 
         options={{ title: 'Bookings' }}
       />
-      {/* <Tab.Screen 
-        name="Search" 
-        component={SearchScreen} 
-        options={{ title: 'Search' }}
-      /> */}
+      <Tab.Screen 
+        name="Dashboard" 
+        component={DashboardScreen} 
+        options={{ title: 'Dashboard' }}
+      />
       <Tab.Screen 
         name="Favorites" 
         component={FavoritesScreen} 
