@@ -7,12 +7,9 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Alert,
   Image,
-  SafeAreaView,
 } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { Picker } from "@react-native-picker/picker";
@@ -37,6 +34,7 @@ const ProfileScreen: React.FC = () => {
 
   // PERSONAL INFO STATES
   const [loggedInUser, setLoggedInUser] = useState(false)
+  const [fullProfileData, setFullProfileData] = useState()
   const [profile, setProfile] = useState({
     firstName: "",
     lastName: "",
@@ -69,6 +67,7 @@ const ProfileScreen: React.FC = () => {
         const profileRoot = res?.profile ?? res?.customer ?? res;
         const cp = profileRoot?.customer_profiles ?? {};
         const nameParts = (profileRoot?.full_name ?? "").split(" ");
+        setFullProfileData(res);
         setProfile({
           firstName: nameParts[0] || "",
           lastName: nameParts.slice(1).join(" ") || "",
@@ -80,7 +79,6 @@ const ProfileScreen: React.FC = () => {
         setLoggedInUser(true);
       } catch (err) {
         setLoggedInUser(false);
-        Alert.alert("Error", "Failed to load profile data");
       } finally {
         setLoading(false);
       }
@@ -100,10 +98,8 @@ const ProfileScreen: React.FC = () => {
         address: { city: profile.location },
         bio: profile.description,
       };
-      await dispatch(updateProfile(payload)); // wait for async action
-      Alert.alert("Success", "Profile updated successfully");
+      await dispatch(updateProfile(payload));
     } catch (err: any) {
-      Alert.alert("Error", "Failed to save changes");
     } finally {
       setLoading(false);
     }
@@ -124,7 +120,15 @@ const ProfileScreen: React.FC = () => {
   };
 
   return (
-    < >
+    <>
+    {/* Loading */}
+    {loading ?
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color="#034833" />
+          <Text style={styles.loadingText}>Loading....</Text>
+        </View> :
+
+    <>
       {loggedInUser ? 
     <View style={styles.container}> 
     <View style={styles.profileImageContainer}>
@@ -142,6 +146,15 @@ const ProfileScreen: React.FC = () => {
                           />
                           </View>
                           </TouchableOpacity>
+                          <View style={styles.userDetailOutline}>
+                          <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text> <Text style={fullProfileData?.kyc_status == "pending" ? styles.userNotVerified : styles.userVerified}>{fullProfileData?.kyc_status == "pending" ? "Not Verified" : "Verified" }</Text>
+                          </View>
+                          <View style={styles.userDetailOutline}>
+                          <Text style={styles.userEmail}>U{fullProfileData?.email}</Text> <Text style={fullProfileData?.email_verified ? styles.userVerified : styles.userNotVerified}>{fullProfileData?.email_verified ? "Verified" : "Not Verified" }</Text>
+                          </View>
+                          <View style={styles.userDetailOutline}>
+                          <Text style={styles.userPhone}>{fullProfileData?.phone}</Text> <Text style={fullProfileData?.phone_verified ? styles.userVerified : styles.userNotVerified}>{fullProfileData?.phone_verified ? "Verified" : "Not Verified" }</Text>
+                          </View>
       </View>     
 
       {/* Tabs */}
@@ -180,13 +193,7 @@ const ProfileScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-
-      {/* Loading */}
-      {loading && (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color="#034833" />
-        </View>
-      )}
+      
 
       {/* PERSONAL INFO TAB */}
       {activeTab === "personal" && !loading && (
@@ -306,22 +313,20 @@ const ProfileScreen: React.FC = () => {
       )}
     </View> :
     <View style={styles.logoutUserContainer}>
-    <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>Coming Soon...</Text>
       
       <View style={styles.tempButtonsContainer}>
-        <Text style={styles.tempTitle}>Temporary Navigation (For Testing)</Text>
         
         <TouchableOpacity style={styles.tempButton} onPress={navigateToLogin}>
-          <Text style={styles.tempButtonText}>Go to Login Screen</Text>
+          <Text style={styles.tempButtonText}>Login</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
-          <Text style={[styles.tempButtonText, styles.signUpButtonText]}>Go to SignUp Screen</Text>
+          <Text style={[styles.tempButtonText, styles.signUpButtonText]}>SignUp</Text>
         </TouchableOpacity>
       </View>
       </View>
 }
+    </> }
     </>
   );
 };
@@ -329,21 +334,67 @@ const ProfileScreen: React.FC = () => {
 const styles = StyleSheet.create({
   logoutUserContainer: {
     flex: 1,
-    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.background,
     paddingHorizontal: 20,
   },
+
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text.primary,
-    marginBottom: 10,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#034833',
+    marginBottom: 8,
   },
+
   subtitle: {
     fontSize: 16,
-    color: COLORS.text.secondary,
+    color: '#6C757D',
+    marginBottom: 30,
+  },
+
+  tempButtonsContainer: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // Android shadow
+  },
+
+  tempTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#034833',
+    marginBottom: 16,
     textAlign: 'center',
+  },
+
+  tempButton: {
+    backgroundColor: '#034833',
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+
+  tempButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
+  signUpButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#034833',
+  },
+
+  signUpButtonText: {
+    color: '#034833',
   },
   container: {
     flex: 1,
@@ -374,6 +425,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 20,
+    color: "#101010",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   formContainer: {
     padding: 16,
@@ -499,7 +556,55 @@ const styles = StyleSheet.create({
     height: 22,
     width: 22
   },
-
+  userDetailOutline: {
+    flexDirection: 'row',
+    justifyContent: "space-between",
+    alignItems: 'center',
+    marginBottom: 5
+  },
+     userName: {
+    color: '#101010',
+    fontSize: 16,
+    marginRight: 6,
+    fontWeight: "800",
+    marginBottom: 5,
+  },
+  userRole: {
+    color: '#101010',
+    fontSize: 14,
+    marginRight: 6,
+    fontWeight: "600",
+  },
+  userEmail: {
+    color: '#101010',
+    fontSize: 14,
+    marginRight: 6,
+    fontWeight: "600",
+  },
+  userPhone: {
+    color: '#101010',
+    fontSize: 14,
+    marginRight: 6,
+    fontWeight: "600",
+  },
+  userVerified: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    backgroundColor: '#034833',
+    padding: 5,
+    borderRadius: 10,
+    textAlign: 'center',
+    fontWeight: "400",
+  },
+  userNotVerified: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    backgroundColor: '#DC3545',
+    padding: 5,
+    borderRadius: 10,
+    textAlign: 'center',
+    fontWeight: "400",
+  },
 });
 
 export default ProfileScreen;
