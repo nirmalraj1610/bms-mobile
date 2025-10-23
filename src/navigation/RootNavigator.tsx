@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import MainTabNavigator from './MainTabNavigator';
 import AuthNavigator from './AuthNavigator';
 import StudioDetailsScreen from '../screens/StudioDetailsScreen';
+import PhotographerDetailsScreen from '../screens/PhotographerDetailsScreen';
 import BookingScreen from '../screens/BookingScreen';
 import BookingConfirmationScreen from '../screens/BookingConfirmationScreen';
 import SplashScreen from '../screens/SplashScreen';
@@ -31,6 +32,13 @@ const RootNavigator: React.FC = () => {
         <Stack.Screen 
           name="StudioDetails" 
           component={StudioDetailsScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="PhotographerDetails" 
+          component={PhotographerDetailsScreen}
           options={{
             headerShown: false,
           }}

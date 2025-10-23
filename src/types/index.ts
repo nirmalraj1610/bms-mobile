@@ -25,6 +25,7 @@ export interface Studio {
   amenities: string[];
   equipment: Equipment[];
   pricing: {
+    [x: string]: number;
     hourlyRate: number;
     halfDayRate: number;
     fullDayRate: number;
@@ -117,6 +118,7 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   StudioDetails: { studioId: string };
+  PhotographerDetails: { photographerId: string };
   Booking: { studioId: string };
   BookingConfirmation: { bookingId: string };
   OurWorks: undefined;

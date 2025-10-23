@@ -5,6 +5,7 @@ import paymentsReducer from '../features/payments/paymentsSlice';
 import studiosReducer from '../features/studios/studiosSlice';
 import authReducer from '../features/auth/authSlice';
 import notificationsReducer from '../features/notifications/notificationsSlice';
+import photographersReducer from '../features/photographers/photographersSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     studios: studiosReducer,
     auth: authReducer,
     notifications: notificationsReducer,
+    photographers: photographersReducer,
   },
   devTools: true,
 });

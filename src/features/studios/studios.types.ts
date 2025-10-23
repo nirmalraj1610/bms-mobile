@@ -1,6 +1,7 @@
 import type { StudioSummary, StudioDetail, AvailabilityBookingSlot } from '../../types/api';
 
 export type StudiosState = {
+  [x: string]: any;
   search: {
     loading: boolean;
     error: string | null;

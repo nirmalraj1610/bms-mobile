@@ -230,3 +230,186 @@ export interface BookingRejectResponse {
   message: string;
   booking: BookingRejectItem;
 }
+
+export interface PhotographerSummary {
+  id: string;
+  full_name: string;
+  email?: string;
+  phone?: string;
+  bio?: string;
+  location?: { city?: string; address?: string };
+  specialties?: string[];
+  portfolio_images?: string[];
+  pricing?: { hourly_rate?: number; daily_rate?: number };
+  average_rating?: number;
+  total_reviews?: number;
+  experience_years?: number;
+  verified?: boolean;
+  status?: string;
+}
+
+export interface PhotographersSearchResponse {
+  photographers: PhotographerSummary[];
+  total: number;
+}
+
+// Enhanced photographer interfaces from web app
+export interface PhotographerService {
+  id: string;
+  title: string;
+  description: string;
+  service_type: string;
+  base_price: number;
+  duration_hours: number;
+  equipment_included: string[];
+  active: boolean;
+}
+
+export interface PhotographerSearchResult {
+  id: string;
+  full_name: string;
+  email: string;
+  profile_image_url: string;
+  bio: string;
+  average_rating: number;
+  total_reviews: number;
+  services: PhotographerService[];
+}
+
+export interface PhotographerPortfolioItem {
+  id: string;
+  title: string;
+  image_url: string;
+  category: string;
+  featured: boolean;
+}
+
+export interface PhotographerAvailability {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+}
+
+export interface PhotographerDetail {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  profile_image_url: string;
+  bio: string;
+  average_rating: number;
+  total_reviews: number;
+  services: PhotographerService[];
+  portfolio: PhotographerPortfolioItem[];
+  availability: PhotographerAvailability[];
+}
+
+export interface PhotographerDetailResponse {
+  photographer: PhotographerDetail;
+}
+
+export interface PhotographerServicePayload {
+  title: string;
+  description: string;
+  service_type: string;
+  base_price: number;
+  duration_hours: number;
+  equipment_included: string[];
+}
+
+export interface PhotographerServiceUpdatePayload {
+  service_id: string;
+  title: string;
+  description: string;
+  service_type: string;
+  base_price: number;
+  duration_hours: number;
+  equipment_included: string[];
+  active: boolean;
+}
+
+export interface PhotographerServiceItem {
+  id: string;
+  title: string;
+  description: string;
+  service_type: string;
+  base_price: number;
+  duration_hours: number;
+  equipment_included: string[];
+  active: boolean;
+  photographer_id: string;
+  created_at: string;
+}
+
+export interface PhotographerServiceResponse {
+  message: string;
+  service: PhotographerServiceItem;
+}
+
+export interface PhotographerServiceListResponse {
+  services: PhotographerServiceItem[];
+}
+
+export interface photographer {
+  id: string;
+  owner_id: string;
+  name: string;
+  status: 'pending_approval' | 'approved' | 'rejected';
+  created_at: string;
+}
+
+export interface photographerCreateResponse {
+  photographer: photographer;
+  message: string;
+}
+
+export interface photographerReview {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at?: string;
+  customers?: { full_name?: string };
+}
+
+export interface photographerReviewCreateResponse {
+  message: string;
+  review: photographerReview;
+}
+
+export interface PhotographerProfileResponse {
+  photographer: {
+    id: string;
+    full_name: string;
+    email: string;
+    phone: string;
+    profile_image_url: string;
+    bio: string;
+    average_rating: number;
+    total_reviews: number;
+    services: PhotographerService[];
+    portfolio: PhotographerPortfolioItem[];
+    availability: PhotographerAvailability[];
+  };
+}
+
+export interface PortfolioItem {
+  id: string;
+  photographer_id: string;
+  title: string;
+  image_url: string;
+  created_at: string;
+}
+
+export interface PhotographerPortfolioUploadResponse {
+  message: string;
+  portfolio_item: PortfolioItem;
+}
+
+export interface PhotographerPortfolioUploadPayload {
+  title: string;
+  description: string;
+  image_url: string;
+  category: string;
+  featured: boolean;
+}

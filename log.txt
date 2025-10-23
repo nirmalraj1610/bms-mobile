@@ -1,0 +1,348 @@
+log for studiosState
+
+{
+    "search": {
+        "loading": false,
+        "error": null,
+        "results": [
+            {
+                "id": "da140299-1eae-4596-a33b-84fcfe439a93",
+                "owner_id": "886f9ceb-6bc8-47c3-b870-89c0e5066b6c",
+                "name": "nature studioss",
+                "description": "we will give the best nature photographer ",
+                "location": {
+                    "city": "chennai",
+                    "state": "Maharashtra",
+                    "address": "",
+                    "pincode": "607305",
+                    "coordinates": {
+                        "lat": 19.076,
+                        "lng": 72.8777
+                    }
+                },
+                "pricing": {
+                    "hourly_rate": 1200,
+                    "minimum_hours": 2,
+                    "extra_hour_rate": 1232,
+                    "weekend_multiplier": 1
+                },
+                "amenities": [
+                    "Changing Room",
+                    "Cyclorama Wall",
+                    "Air Conditioning"
+                ],
+                "status": "active",
+                "created_at": "2025-10-14T06:12:15.060862+00:00",
+                "updated_at": "2025-10-14T11:42:38.610522+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            },
+            {
+                "id": "97098219-80bb-4595-9449-7efeee39d169",
+                "owner_id": "886f9ceb-6bc8-47c3-b870-89c0e5066b6c",
+                "name": "harshi",
+                "description": "hai",
+                "location": {
+                    "city": "mumbai",
+                    "state": "Maharashtra",
+                    "address": "cuddalore",
+                    "pincode": "607301",
+                    "coordinates": {
+                        "lat": 19.076,
+                        "lng": 72.8777
+                    }
+                },
+                "pricing": {
+                    "hourly_rate": 2500,
+                    "minimum_hours": 2,
+                    "extra_hour_rate": 500,
+                    "weekend_multiplier": 1.2
+                },
+                "amenities": [],
+                "status": "active",
+                "created_at": "2025-10-09T11:44:47.963841+00:00",
+                "updated_at": "2025-10-09T12:30:52.938512+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            },
+            {
+                "id": "e095b008-410c-4951-bd52-468b5b78c03b",
+                "owner_id": "886f9ceb-6bc8-47c3-b870-89c0e5066b6c",
+                "name": "harshi studios",
+                "description": "",
+                "location": {
+                    "city": "mumbai",
+                    "state": "Maharashtra",
+                    "address": "cuddalore",
+                    "pincode": "607302",
+                    "coordinates": {
+                        "lat": 19.076,
+                        "lng": 72.8777
+                    }
+                },
+                "pricing": {
+                    "hourly_rate": 2500,
+                    "minimum_hours": 2,
+                    "extra_hour_rate": 500,
+                    "weekend_multiplier": 1.2
+                },
+                "amenities": [],
+                "status": "active",
+                "created_at": "2025-10-09T11:41:39.93264+00:00",
+                "updated_at": "2025-10-09T12:31:01.761452+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            },
+            {
+                "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+                "owner_id": "88888888-8888-8888-8888-888888888888",
+                "name": "Meena Studio OMR",
+                "description": "Modern studio on OMR",
+                "location": {
+                    "city": "Chennai",
+                    "address": "234, OMR"
+                },
+                "pricing": {
+                    "daily": 16000,
+                    "hourly": 2800
+                },
+                "amenities": [
+                    "LED Lighting",
+                    "Parking"
+                ],
+                "status": "active",
+                "created_at": "2025-10-07T14:05:43.857734+00:00",
+                "updated_at": "2025-10-07T14:05:43.857734+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            },
+            {
+                "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "owner_id": "77777777-7777-7777-7777-777777777777",
+                "name": "Deepak Studio T Nagar",
+                "description": "Premium studio in T Nagar",
+                "location": {
+                    "city": "Chennai",
+                    "address": "15, Usman Road, T Nagar"
+                },
+                "pricing": {
+                    "daily": 15000,
+                    "hourly": 2500
+                },
+                "amenities": [
+                    "Natural Light",
+                    "WiFi",
+                    "AC"
+                ],
+                "status": "active",
+                "created_at": "2025-10-07T14:05:43.857734+00:00",
+                "updated_at": "2025-10-07T14:05:43.857734+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            },
+            {
+                "id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+                "owner_id": "99999999-9999-9999-9999-999999999999",
+                "name": "Suresh Productions",
+                "description": "Photo & video studio",
+                "location": {
+                    "city": "Chennai",
+                    "address": "67, Velachery"
+                },
+                "pricing": {
+                    "daily": 20000,
+                    "hourly": 3500
+                },
+                "amenities": [
+                    "Video Equipment",
+                    "Green Screen"
+                ],
+                "status": "active",
+                "created_at": "2025-10-07T14:05:43.857734+00:00",
+                "updated_at": "2025-10-07T14:05:43.857734+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            },
+            {
+                "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                "owner_id": "77777777-7777-7777-7777-777777777777",
+                "name": "Deepak Studio Adyar",
+                "description": "Spacious studio in Adyar",
+                "location": {
+                    "city": "Chennai",
+                    "address": "89, Adyar"
+                },
+                "pricing": {
+                    "daily": 18000,
+                    "hourly": 3000
+                },
+                "amenities": [
+                    "Professional Lighting",
+                    "Parking"
+                ],
+                "status": "active",
+                "created_at": "2025-10-07T14:05:43.857734+00:00",
+                "updated_at": "2025-10-07T14:05:43.857734+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            },
+            {
+                "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+                "owner_id": "88888888-8888-8888-8888-888888888888",
+                "name": "Meena Creative Space",
+                "description": "Boutique studio",
+                "location": {
+                    "city": "Chennai",
+                    "address": "45, Luz Church Road"
+                },
+                "pricing": {
+                    "daily": 12000,
+                    "hourly": 2000
+                },
+                "amenities": [
+                    "Vintage Props",
+                    "WiFi"
+                ],
+                "status": "active",
+                "created_at": "2025-10-07T14:05:43.857734+00:00",
+                "updated_at": "2025-10-07T14:05:43.857734+00:00",
+                "customers": null,
+                "reviews": [],
+                "average_rating": 0
+            }
+        ],
+        "query": ""
+    },
+    "detail": {
+        "loading": false,
+        "error": null,
+        "data": null
+    },
+    "availability": {
+        "loading": false,
+        "error": null,
+        "booking_slots": [],
+        "bookings": []
+    },
+    "favorites": {
+        "loading": false,
+        "error": null,
+        "items": []
+    },
+    "reviewCreate": {
+        "loading": false,
+        "error": null,
+        "success": false
+    },
+    "studioCreate": {
+        "loading": false,
+        "error": null,
+        "created_id": null
+    }
+}
+
+
+log for photographersState 
+
+
+{
+    "search": {
+        "items": [
+            {
+                "id": "81d62d0b-58e0-41d4-b4ad-0aa5e68c3129",
+                "services": [
+                    {
+                        "id": "dd2d2947-6897-4f20-a56b-38835fe50746",
+                        "service_type": "portrait",
+                        "title": "Portrait Session",
+                        "description": "Professional portrait photography",
+                        "base_price": 300,
+                        "duration_hours": 2
+                    },
+                    {
+                        "id": "e8c0b769-8f0c-4de2-ae74-e593c6724c13",
+                        "service_type": "wedding",
+                        "title": "Wedding Photography",
+                        "description": "Full-day coverage with 2 photographers and drone shots",
+                        "base_price": 25000,
+                        "duration_hours": 8
+                    },
+                    {
+                        "id": "0bbd0b0a-1d7a-44b9-ac33-057bb2436bd8",
+                        "service_type": "portrait",
+                        "title": "Portrait Session",
+                        "description": "Professional portrait photography",
+                        "base_price": 400,
+                        "duration_hours": 2
+                    }
+                ],
+                "portfolio": [
+                    {
+                        "id": "ac107169-7d81-4e28-9f9e-a99218cd1441",
+                        "photographer_id": "81d62d0b-58e0-41d4-b4ad-0aa5e68c3129",
+                        "image_url": "blob:http://localhost:3000/6b6474fd-7fd9-4cad-a564-d8bf31ddcd9b",
+                        "title": "casual",
+                        "description": "casual wedding photo ",
+                        "category": "wedding",
+                        "featured": true,
+                        "created_at": "2025-10-16T12:50:08.104488+00:00"
+                    }
+                ],
+                "rating": 0,
+                "total_reviews": 0,
+                "profile_image_url": ""
+            },
+            {
+                "id": "886f9ceb-6bc8-47c3-b870-89c0e5066b6c",
+                "services": [
+                    {
+                        "id": "241a8acc-f822-41f7-ae14-3303a30edde6",
+                        "service_type": "wedding",
+                        "title": "wedding photo",
+                        "description": "portraits and video",
+                        "base_price": 4000,
+                        "duration_hours": 2
+                    }
+                ],
+                "portfolio": [],
+                "rating": 0,
+                "total_reviews": 0,
+                "profile_image_url": ""
+            }
+        ],
+        "total": 2,
+        "loading": false,
+        "error": null
+    },
+    "detail": {
+        "photographer": null,
+        "loading": false,
+        "error": null
+    },
+    "services": {
+        "items": [],
+        "loading": false,
+        "error": null
+    },
+    "availability": {
+        "timeSlots": [],
+        "loading": false,
+        "error": null
+    },
+    "review": {
+        "submitting": false,
+        "error": null
+    },
+    "create": {
+        "loading": false,
+        "error": null,
+        "photographer": null
+    }
+}

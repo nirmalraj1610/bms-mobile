@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,15 +11,21 @@ import {
   Image,
   Dimensions,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS, CITIES, FEATURES } from '../constants';
 import { mockStudios } from '../utils/mockData';
 import { Studio, Feature } from '../types';
+import { PhotographerSummary } from '../types/api';
 import { ImageSourcePropType } from 'react-native';
 import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
+import { RootState, AppDispatch } from '../store/store';
+import { studiosSearchThunk } from '../features/studios/studiosSlice';
+import { getphotographersSearch } from '../features/photographers/photographersSlice';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -28,9 +34,42 @@ const RECOMMEND_CARD_WIDTH = width * 0.5;
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState('');
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Redux selectors
+  const studiosState = useSelector((state: RootState) => state.studios);
+  const photographersState = useSelector((state: RootState) => state.photographers);
+  console.log('studiosState', studiosState);
+  console.log('photographersState', photographersState);
+
+  // Get studios and photographers data
+  const studiosError = studiosState.searchError;
+  const photographersError = photographersState.searchError;
+
+  // Fetch data on component mount
+  useEffect(() => {
+    // Fetch studios with basic search parameters
+    dispatch(studiosSearchThunk({
+      q: '',
+      city: '',
+      types: [],
+      page: 1,
+      limit: 10
+    }));
+
+    // Fetch photographers with basic search parameters
+    dispatch(getphotographersSearch({
+      query: '',
+      location: '',
+      specialization: '',
+      priceRange: "0-10000",
+      page: 1,
+      limit: 10
+    }));
+  }, [dispatch]);
 
   const handleScrollEnd = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -41,6 +80,10 @@ const HomeScreen: React.FC = () => {
 
   const navigateToStudioDetails = (studioId: string) => {
     navigation.navigate('StudioDetails', { studioId });
+  };
+
+  const navigateToPhotographerDetails = (photographerId: string) => {
+    navigation.navigate('PhotographerDetails', { photographerId });
   };
 
   const navigateToSearch = () => {
@@ -98,47 +141,47 @@ const HomeScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const renderStudioCard = ({ item }: { item: Studio }) => (
-    <TouchableOpacity
-      style={styles.studioCard}
-      onPress={() => navigateToStudioDetails(item.id)}
-    >
-      <Image source={{ uri: item.images[0] }} style={styles.studioImage} />
-      <View style={styles.studioInfo}>
-        <View style={styles.studioHeader}>
-          <Text style={styles.studioName}>{item.name}</Text>
-          {item.verified && (
-            <Icon name="verified" size={18} color={COLORS.accent} />
-          )}
-        </View>
-        <Text style={styles.studioLocation}>
-          {item.location.city}, {item.location.state}
-        </Text>
-        <Text style={styles.studioType}>{item.type.name}</Text>
-        <View style={styles.ratingContainer}>
-          <Icon name="star" size={16} color={COLORS.secondary} />
-          <Text style={styles.rating}>{item.rating}</Text>
-          <Text style={styles.reviewCount}>({item.reviewCount} reviews)</Text>
-        </View>
-        <Text style={styles.price}>₹{item.pricing.hourlyRate}/hour</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  // const renderStudioCard = ({ item }: { item: Studio }) => (
+  //   <TouchableOpacity
+  //     style={styles.studioCard}
+  //     onPress={() => navigateToStudioDetails(item.id)}
+  //   >
+  //     <Image source={{ uri: item.images[0] }} style={styles.studioImage} />
+  //     <View style={styles.studioInfo}>
+  //       <View style={styles.studioHeader}>
+  //         <Text style={styles.studioName}>{item.name}</Text>
+  //         {item.verified && (
+  //           <Icon name="verified" size={18} color={COLORS.accent} />
+  //         )}
+  //       </View>
+  //       <Text style={styles.studioLocation}>
+  //         {item.location.city}, {item.location.state}
+  //       </Text>
+  //       <Text style={styles.studioType}>{item.type.name}</Text>
+  //       <View style={styles.ratingContainer}>
+  //         <Icon name="star" size={16} color={COLORS.secondary} />
+  //         <Text style={styles.rating}>{item.rating}</Text>
+  //         <Text style={styles.reviewCount}>({item.reviewCount} reviews)</Text>
+  //       </View>
+  //       <Text style={styles.price}>₹{item.pricing.hourlyRate}/hour</Text>
+  //     </View>
+  //   </TouchableOpacity>
+  // );
 
-  const renderFeatureCard = ({ item }: { item: Feature }) => (
-    <View style={styles.featureCard}>
-      <Text style={styles.featureIcon}>{item.icon}</Text>
-      <Text style={styles.featureTitle}>{item.title}</Text>
-      <Text style={styles.featureDescription}>{item.description}</Text>
-    </View>
-  );
+  // const renderFeatureCard = ({ item }: { item: Feature }) => (
+  //   <View style={styles.featureCard}>
+  //     <Text style={styles.featureIcon}>{item.icon}</Text>
+  //     <Text style={styles.featureTitle}>{item.title}</Text>
+  //     <Text style={styles.featureDescription}>{item.description}</Text>
+  //   </View>
+  // );
 
-  const renderCityCard = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.cityCard} onPress={navigateToBrowse}>
-      <Text style={styles.cityName}>{item.name}</Text>
-      <Text style={styles.stateName}>{item.state}</Text>
-    </TouchableOpacity>
-  );
+  // const renderCityCard = ({ item }: { item: any }) => (
+  //   <TouchableOpacity style={styles.cityCard} onPress={navigateToBrowse}>
+  //     <Text style={styles.cityName}>{item.name}</Text>
+  //     <Text style={styles.stateName}>{item.state}</Text>
+  //   </TouchableOpacity>
+  // );
 
   const renderStars = (rating: number) => {
     const rounded = Math.round(rating);
@@ -167,7 +210,7 @@ const HomeScreen: React.FC = () => {
   const renderRecommendCard = ({ item }: { item: Studio }) => (
     <TouchableOpacity style={styles.recommendCard} onPress={() => navigateToStudioDetails(item.id)}>
       <View style={styles.recommendImageContainer}>
-        <Image source={{ uri: item.images[0] }} style={styles.recommendImage} />
+        <Image source={{ uri: item.images?.[0] || 'https://via.placeholder.com/300x200' }} style={styles.recommendImage} />
         
         {/* Rating Badge */}
         <View style={styles.ratingBadge}>
@@ -195,7 +238,7 @@ const HomeScreen: React.FC = () => {
           
           <View style={styles.recommendPriceRow}>
             <Text style={styles.recommendFromText}>From</Text>
-            <Text style={styles.recommendPrice}>₹{item.pricing.hourlyRate.toLocaleString()}</Text>
+            <Text style={styles.recommendPrice}>₹{(item.pricing?.hourly_rate || item.pricing?.hourly || 0).toLocaleString()}</Text>
             <Text style={styles.recommendPerHour}>Per hour</Text>
           </View>
         </View>
@@ -203,36 +246,89 @@ const HomeScreen: React.FC = () => {
     </TouchableOpacity>
   );
 // Replace the renderRated function with this:
-const renderRated = ({ item }: { item: Studio }) => (
-  <TouchableOpacity 
-    style={styles.ratedCard} 
-    onPress={() => navigateToStudioDetails(item.id)}
-  >
-    <View style={styles.ratedImageContainer}>
-      <Image source={{ uri: item.images[0] }} style={styles.ratedImage} />
-      <TouchableOpacity style={styles.ratedHeartIcon}>
-        <Icon name="favorite-border" size={16} color="#FF6D38" />
-      </TouchableOpacity>
-    </View>
+const renderRated = ({ item }: { item: any }) => {
+  // Handle photographer data structure from actual API
+  const isPhotographer = item.services && Array.isArray(item.services);
+  
+  if (isPhotographer) {
+    // Photographer data structure
+    const minPrice = item.services.length > 0 
+      ? Math.min(...item.services.map((s: any) => s.base_price))
+      : 0;
+    const imageUrl = item.portfolio && item.portfolio.length > 0 
+      ? item.portfolio[0].image_url 
+      : item.profile_image_url || 'https://via.placeholder.com/150';
     
-    <View style={styles.ratedInfo}>
-      <View style={styles.ratedTopRow}>
-        {renderStars(item.rating)}
-      </View>
-      
-      <Text style={styles.ratedName} numberOfLines={1}>{item.name}</Text>
-      
-      <View style={styles.ratedLocationRow}>
-        <Icon name="place" size={14} color={COLORS.text.secondary} />
-        <Text style={styles.ratedLocation} numberOfLines={1}>{item.location.city}</Text>
-      </View>
-      
-      <View style={styles.ratedBottomRow}>
-        <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{item.pricing.hourlyRate.toLocaleString()}</Text> <Text style={styles.ratedPerHour}>Per hour</Text></Text>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
+    return (
+      <TouchableOpacity 
+        style={styles.ratedCard} 
+        onPress={() => navigateToPhotographerDetails(item.id)}
+      >
+        <View style={styles.ratedImageContainer}>
+          <Image 
+            source={{ uri: imageUrl }} 
+            style={styles.ratedImage} 
+          />
+          <TouchableOpacity style={styles.ratedHeartIcon}>
+            <Icon name="favorite-border" size={16} color="#FF6D38" />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.ratedInfo}>
+          <View style={styles.ratedTopRow}>
+            {renderStars(item.rating || 0)}
+          </View>
+          
+          <Text style={styles.ratedName} numberOfLines={1}>Photographer {item.id.slice(0, 8)}</Text>
+          
+          <View style={styles.ratedLocationRow}>
+            <Icon name="place" size={14} color={COLORS.text.secondary} />
+            <Text style={styles.ratedLocation} numberOfLines={1}>Available</Text>
+          </View>
+          
+          <View style={styles.ratedBottomRow}>
+            <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{minPrice?.toLocaleString() || 'N/A'}</Text> <Text style={styles.ratedPerHour}>Per session</Text></Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  } else {
+    // Studio data structure (existing logic)
+    return (
+      <TouchableOpacity 
+        style={styles.ratedCard} 
+        onPress={() => navigateToStudioDetails(item.id)}
+      >
+        <View style={styles.ratedImageContainer}>
+          <Image 
+            source={{ uri: item.images?.[0] || 'https://via.placeholder.com/150' }} 
+            style={styles.ratedImage} 
+          />
+          <TouchableOpacity style={styles.ratedHeartIcon}>
+            <Icon name="favorite-border" size={16} color="#FF6D38" />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.ratedInfo}>
+          <View style={styles.ratedTopRow}>
+            {renderStars(item.average_rating || 0)}
+          </View>
+          
+          <Text style={styles.ratedName} numberOfLines={1}>{item.name}</Text>
+          
+          <View style={styles.ratedLocationRow}>
+            <Icon name="place" size={14} color={COLORS.text.secondary} />
+            <Text style={styles.ratedLocation} numberOfLines={1}>{item.location?.city || 'Location not specified'}</Text>
+          </View>
+          
+          <View style={styles.ratedBottomRow}>
+            <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{item.pricing?.hourly_rate?.toLocaleString() || 'N/A'}</Text> <Text style={styles.ratedPerHour}>Per hour</Text></Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+};
 
 
   const renderWhuChooseCard =({item, index}: {item: whyChoose, index: number }) => (
@@ -255,16 +351,16 @@ const renderRated = ({ item }: { item: Studio }) => (
           </View>
   )
 
-  const renderGridCard = ({ item }: { item: Studio }) => (
-    <TouchableOpacity style={styles.gridCard} onPress={() => navigateToStudioDetails(item.id)}>
-      <Image source={{ uri: item.images[0] }} style={styles.gridImage} />
-      <View style={styles.gridInfo}>
-        <Text style={styles.gridName} numberOfLines={1}>{item.name}</Text>
-        <Text style={styles.gridLocation} numberOfLines={1}>{item.location.city}</Text>
-        <Text style={styles.gridPrice} numberOfLines={1}>From ₹{item.pricing.hourlyRate}/hour</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  // const renderGridCard = ({ item }: { item: Studio }) => (
+  //   <TouchableOpacity style={styles.gridCard} onPress={() => navigateToStudioDetails(item.id)}>
+  //     <Image source={{ uri: item.images[0] }} style={styles.gridImage} />
+  //     <View style={styles.gridInfo}>
+  //       <Text style={styles.gridName} numberOfLines={1}>{item.name}</Text>
+  //       <Text style={styles.gridLocation} numberOfLines={1}>{item.location.city}</Text>
+  //       <Text style={styles.gridPrice} numberOfLines={1}>From ₹{item.pricing.hourlyRate}/hour</Text>
+  //     </View>
+  //   </TouchableOpacity>
+  // );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -336,22 +432,30 @@ const renderRated = ({ item }: { item: Studio }) => (
           />
         </View>
 
-        {/* Recommended for you */}
+        {/* Recommended Studios for you */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended for you</Text>
+            <Text style={styles.sectionTitle}>Recommended Studios for you</Text>
           </View>
-          <FlatList
-            data={mockStudios}
-            renderItem={renderRecommendCard}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.studioList}
-          />
+          {studiosState.loading ? (
+            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+          ) : studiosError ? (
+            <Text style={{ color: 'red', textAlign: 'center', marginVertical: 20 }}>
+              Error loading studios: {studiosError}
+            </Text>
+          ) : (
+            <FlatList
+               data={studiosState.search.results as Studio[]}
+               renderItem={renderRecommendCard}
+               keyExtractor={(item) => item.id}
+               horizontal
+               showsHorizontalScrollIndicator={false}
+               contentContainerStyle={styles.studioList}
+             />
+          )}
         </View>
 
-        {/* Browse Studios */}
+        {/* Browse Photographers */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Rated Photographers</Text>
@@ -359,14 +463,22 @@ const renderRated = ({ item }: { item: Studio }) => (
               <Text style={styles.viewAllButton}>View All</Text>
             </TouchableOpacity> */}
           </View>
-          <FlatList
-            data={mockStudios}
-            renderItem={renderRated}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.studioList}
-          />
+          {photographersState.loading ? (
+            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+          ) : photographersError ? (
+            <Text style={{ color: 'red', textAlign: 'center', marginVertical: 20 }}>
+              Error loading photographers: {photographersError}
+            </Text>
+          ) : (
+            <FlatList
+              data={photographersState.search.items}
+              renderItem={renderRated}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.studioList}
+            />
+          )}
         </View>
 
         {/* Why Choose Book My Shoot? */}

@@ -1,6 +1,7 @@
 import type { BookingHistoryItem, BookingAcceptItem, BookingRejectItem } from '../../types/api';
 
 export type BookingsState = {
+  [x: string]: never[];
   items: BookingHistoryItem[];
   loading: boolean;
   creating?: boolean;

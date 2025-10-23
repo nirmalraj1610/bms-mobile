@@ -17,6 +17,17 @@ import type {
   StudioCreateResponse,
   BookingAcceptResponse,
   BookingRejectResponse,
+  PhotographersSearchResponse,
+  PhotographerDetailResponse,
+  photographerReviewCreateResponse,
+  photographerCreateResponse,
+  PhotographerServicePayload,
+  PhotographerServiceResponse,
+  PhotographerServiceListResponse,
+  PhotographerServiceUpdatePayload,
+  PhotographerProfileResponse,
+  PhotographerPortfolioUploadResponse,
+  PhotographerPortfolioUploadPayload,
 } from '../types/api';
 
 // Auth
@@ -70,6 +81,84 @@ export async function studioFavorite(payload: { studio_id: string; action: 'add'
 
 export async function studioAvailability(id: string, date?: string) {
   return apiFetch<StudioAvailabilityResponse>(`/studio-availability/${id}`, { method: 'GET', query: { date }, auth: false });
+}
+
+// Photographers
+export async function photographersSearch(query?: Record<string, string | number | boolean>) {
+  return apiFetch<PhotographersSearchResponse>('/photographer-search', { method: 'GET', query, auth: false });
+}
+
+export async function photographerDetail(id: string) {
+  return apiFetch<PhotographerDetailResponse>(`/photographer-detail/${id}`, { method: 'GET', auth: false });
+}
+
+export async function photographerAvailability(id: string, date?: string) {
+  return apiFetch<any>(`/photographer-availability`, { method: 'GET', query: { photographer_id: id, date }, auth: false });
+}
+
+export async function photographerBookingCreate(payload: { booking_id: string; photographer_id: string; service_id: string }) {
+  return apiFetch<BookingCreateResponse>('/booking-photographer', { method: 'POST', body: payload });
+}
+
+export async function photographerReviewCreate(payload: { booking_id: string; photographer_id: string; rating: number; comment?: string }) {
+  return apiFetch<photographerReviewCreateResponse>('/photographerReview-create', { method: 'POST', body: payload });
+}
+
+export async function photographerCreate(payload: {
+  name: string;
+  description: string;
+  location: object; 
+  pricing: object;  
+  amenities: string[];
+}) {
+  return apiFetch<photographerCreateResponse>('/photographer-create', { method: 'POST', body: payload });
+}
+
+export async function postPhotographerService(
+  payload: PhotographerServicePayload
+): Promise<PhotographerServiceResponse> {
+  return apiFetch<PhotographerServiceResponse>('/photographer-services-create', {
+    method: 'POST',
+    body: payload,
+  });
+}
+
+export async function getPhotographerServicesApi(
+  photographerId: string
+): Promise<PhotographerServiceListResponse> {
+  return apiFetch<PhotographerServiceListResponse>(
+    `/photographer-services-list?photographer_id=${photographerId}`,
+    { method: 'GET', auth: false }
+  );
+}
+
+export const photographerServices = getPhotographerServicesApi;
+
+export async function updatePhotographerServiceApi(
+  payload: PhotographerServiceUpdatePayload
+): Promise<PhotographerServiceResponse> {
+  return apiFetch<PhotographerServiceResponse>('/photographer-services-update', {
+    method: 'PUT',
+    body: payload,
+  });
+}
+
+export async function getPhotographerProfileApi(
+  photographerId: string
+): Promise<PhotographerProfileResponse> {
+  return apiFetch<PhotographerProfileResponse>(
+    `/photographer-profile?photographer_id=${photographerId}`,
+    { method: 'GET', auth: false }
+  );
+}
+
+export async function createPhotographerPortfolioApi(
+  payload: PhotographerPortfolioUploadPayload
+): Promise<PhotographerPortfolioUploadResponse> {
+  return apiFetch<PhotographerPortfolioUploadResponse>('/photographer-portfolio-upload', {
+    method: 'POST',
+    body: payload,
+  });
 }
 
 // Booking
