@@ -67,7 +67,7 @@ const ProfileScreen: React.FC = () => {
         const profileRoot = res?.profile ?? res?.customer ?? res;
         const cp = profileRoot?.customer_profiles ?? {};
         const nameParts = (profileRoot?.full_name ?? "").split(" ");
-        setFullProfileData(res);
+        setFullProfileData(profileRoot);
         setProfile({
           firstName: nameParts[0] || "",
           lastName: nameParts.slice(1).join(" ") || "",
@@ -147,13 +147,13 @@ const ProfileScreen: React.FC = () => {
                           </View>
                           </TouchableOpacity>
                           <View style={styles.userDetailOutline}>
-                          <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text> <Text style={fullProfileData?.kyc_status == "pending" ? styles.userNotVerified : styles.userVerified}>{fullProfileData?.kyc_status == "pending" ? "Not Verified" : "Verified" }</Text>
+                          <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text> <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text>
                           </View>
                           <View style={styles.userDetailOutline}>
-                          <Text style={styles.userEmail}>U{fullProfileData?.email}</Text> <Text style={fullProfileData?.email_verified ? styles.userVerified : styles.userNotVerified}>{fullProfileData?.email_verified ? "Verified" : "Not Verified" }</Text>
+                          <Text style={styles.userEmail}>{fullProfileData?.email}</Text> <Text style={styles.userStatus}>{fullProfileData?.email_verified ? "✅" : "❌" }</Text>
                           </View>
                           <View style={styles.userDetailOutline}>
-                          <Text style={styles.userPhone}>{fullProfileData?.phone}</Text> <Text style={fullProfileData?.phone_verified ? styles.userVerified : styles.userNotVerified}>{fullProfileData?.phone_verified ? "Verified" : "Not Verified" }</Text>
+                          <Text style={styles.userPhone}>+91 {fullProfileData?.phone}</Text> <Text style={styles.userStatus}>{fullProfileData?.phone_verified ? "✅" : "❌" }</Text>
                           </View>
       </View>     
 
@@ -523,8 +523,8 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   profileImageOutline: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     borderRadius: 60, // makes it circular
     borderWidth: 2,
     borderColor: '#034833', // green outline
@@ -538,8 +538,8 @@ const styles = StyleSheet.create({
     elevation: 5, // Android shadow
   },
   profileImage: {
-    width: 110,
-    height: 110,
+    width: 90,
+    height: 90,
     borderRadius: 55,
   },
   cameraOutline: {
@@ -557,54 +557,54 @@ const styles = StyleSheet.create({
     width: 22
   },
   userDetailOutline: {
-    flexDirection: 'row',
-    justifyContent: "space-between",
-    alignItems: 'center',
-    marginBottom: 5
-  },
-     userName: {
-    color: '#101010',
-    fontSize: 16,
-    marginRight: 6,
-    fontWeight: "800",
-    marginBottom: 5,
-  },
-  userRole: {
-    color: '#101010',
-    fontSize: 14,
-    marginRight: 6,
-    fontWeight: "600",
-  },
-  userEmail: {
-    color: '#101010',
-    fontSize: 14,
-    marginRight: 6,
-    fontWeight: "600",
-  },
-  userPhone: {
-    color: '#101010',
-    fontSize: 14,
-    marginRight: 6,
-    fontWeight: "600",
-  },
-  userVerified: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    backgroundColor: '#034833',
-    padding: 5,
-    borderRadius: 10,
-    textAlign: 'center',
-    fontWeight: "400",
-  },
-  userNotVerified: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    backgroundColor: '#DC3545',
-    padding: 5,
-    borderRadius: 10,
-    textAlign: 'center',
-    fontWeight: "400",
-  },
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  backgroundColor: '#FFFFFF',
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  borderRadius: 10,
+  marginBottom: 8,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.05,
+  shadowRadius: 2,
+  elevation: 1, // light Android shadow
+},
+
+userName: {
+  color: '#101010',
+  fontSize: 16,
+  fontWeight: '700',
+  marginRight: 6,
+},
+
+userRole: {
+  color: '#6C757D',
+  fontSize: 14,
+  fontWeight: '500',
+  marginRight: 6,
+},
+
+userEmail: {
+  color: '#101010',
+  fontSize: 14,
+  fontWeight: '600',
+  marginRight: 6,
+  flexShrink: 1,
+},
+
+userPhone: {
+  color: '#101010',
+  fontSize: 14,
+  fontWeight: '600',
+  marginRight: 6,
+  flexShrink: 1,
+},
+
+userStatus: {
+  fontSize: 10,
+},
 });
 
 export default ProfileScreen;
