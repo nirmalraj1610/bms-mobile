@@ -141,7 +141,7 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
   const handleBookNow = async () => {
     if (!selectedService) return Alert.alert('Error', 'Please select a service');
     if (!selectedDate || !selectedSlot) return Alert.alert('Error', 'Please select a date and time slot');
-    if (!photographer?.id) return Alert.alert('Error', 'Photographer information missing');
+    if (!photographerId) return Alert.alert('Error', 'Photographer information missing');
     if (!ENV.RAZORPAY_KEY_ID) return Alert.alert('Error', 'Missing Razorpay key');
     if (totalAmount <= 0) return Alert.alert('Error', 'Invalid booking amount');
 
@@ -174,6 +174,8 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
           };
 
           const result = await dispatch(createPhotographerBooking(bookingPayload));
+          console.log(result, 'resultttssssssssssssssssttttttt');
+          
           if (createPhotographerBooking.fulfilled.match(result)) {
             Alert.alert(
               'Booking Successful!',

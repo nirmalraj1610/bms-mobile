@@ -96,7 +96,7 @@ export const createphotographers = createAsyncThunk(
 );
 
 export const createPhotographerBooking = createAsyncThunk(
-  'photographers/booking',
+  'booking-photographer',
   async (payload: { 
     photographer_id: string; 
     service_id: string; 

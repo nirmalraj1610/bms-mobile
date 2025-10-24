@@ -7,6 +7,7 @@ import {
   photographerAvailability,
   createPhotographerBooking
 } from '../../lib/api';
+import { PhotographerBookingCreateResponse } from '../../types/api';
 
 export const searchphotographers = async (query?: Record<string, string | number | boolean>) => {
   return photographersSearch(query);
@@ -134,6 +135,6 @@ export const createPhotographerBookingService = async (payload: {
   start_time: string; 
   end_time: string; 
   total_amount: number 
-}) => {
+}): Promise<PhotographerBookingCreateResponse> => {
   return createPhotographerBooking(payload);
 };

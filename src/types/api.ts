@@ -91,6 +91,10 @@ export interface BookingCreateResponse {
   booking: Booking;
 }
 
+export interface PhotographerBookingCreateResponse {
+  message: string;
+  booking: Booking;
+}
 export interface BookingCancelResponse {
   message: string;
   booking: { id: string; status: string };
