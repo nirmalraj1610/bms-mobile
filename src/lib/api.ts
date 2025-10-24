@@ -100,6 +100,17 @@ export async function photographerBookingCreate(payload: { booking_id: string; p
   return apiFetch<BookingCreateResponse>('/booking-photographer', { method: 'POST', body: payload });
 }
 
+export async function createPhotographerBooking(payload: { 
+  photographer_id: string; 
+  service_id: string; 
+  booking_date: string; 
+  start_time: string; 
+  end_time: string; 
+  total_amount: number 
+}) {
+  return apiFetch<BookingCreateResponse>('/photographer-booking-create', { method: 'POST', body: payload });
+}
+
 export async function photographerReviewCreate(payload: { booking_id: string; photographer_id: string; rating: number; comment?: string }) {
   return apiFetch<photographerReviewCreateResponse>('/photographerReview-create', { method: 'POST', body: payload });
 }

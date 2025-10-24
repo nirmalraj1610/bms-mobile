@@ -24,7 +24,20 @@ export type photographersState = {
     error: string | null;
     photographer: photographerCreateResponse | null;
   };
+  booking: {
+    loading: boolean;
+    error: string | null;
+    success: boolean;
+  };
 };
 
 export type ToggleFavoritePayload = { photographer_id: string; action: 'add' | 'remove' };
 export type ReviewCreatePayload = { booking_id: string; photographer_id: string; rating: number; comment?: string };
+export type PhotographerBookingPayload = { 
+  photographer_id: string; 
+  service_id: string; 
+  booking_date: string; 
+  start_time: string; 
+  end_time: string; 
+  total_amount: number 
+};

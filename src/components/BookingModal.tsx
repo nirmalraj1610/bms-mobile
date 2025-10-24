@@ -40,9 +40,9 @@ interface CalendarDay {
 const { width } = Dimensions.get('window');
 
 const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio }) => {
-  console.log('BookingModal - Received studio prop:', studio);
-  console.log('BookingModal - Studio ID:', studio?.id);
-  console.log('BookingModal - Studio type:', typeof studio?.id);
+  // console.log('BookingModal - Received studio prop:', studio);
+  // console.log('BookingModal - Studio ID:', studio?.id);
+  // console.log('BookingModal - Studio type:', typeof studio?.id);
   
   const dispatch = useAppDispatch();
   const availabilityState = useAppSelector(state => state.studios.availability);
@@ -167,12 +167,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   };
 
   const handleDateSelect = async (date: string) => {
-    console.log('=== BookingModal Date Selection Debug ===');
-    console.log('Selected date:', date);
-    console.log('Studio object received:', studio);
-    console.log('Studio object type:', typeof studio);
-    console.log('Studio object keys:', studio ? Object.keys(studio) : 'null');
-    console.log('Full studio object JSON:', JSON.stringify(studio, null, 2));
+    // console.log('=== BookingModal Date Selection Debug ===');
+    // console.log('Selected date:', date);
+    // console.log('Studio object received:', studio);
+    // console.log('Studio object type:', typeof studio);
+    // console.log('Studio object keys:', studio ? Object.keys(studio) : 'null');
+    // console.log('Full studio object JSON:', JSON.stringify(studio, null, 2));
     
     setSelectedDate(date);
     setShowTimeSlots(true);
@@ -221,7 +221,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
       return;
     }
     
-    console.log('BookingModal - Dispatching studioAvailabilityThunk with studio_id:', studioIdString, 'date:', date);
+    // console.log('BookingModal - Dispatching studioAvailabilityThunk with studio_id:', studioIdString, 'date:', date);
     
     try {
       const result = await dispatch(studioAvailabilityThunk({ studio_id: studioIdString, date }));
@@ -315,11 +315,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
               start_time: selectedSlot.start_time,
               end_time: selectedSlot.end_time,
               total_amount: totalAmount,
-              payment_id: data.razorpay_payment_id,
-              payment_signature: data.razorpay_signature,
             };
 
             const result = await dispatch(doCreateBooking(bookingPayload));
+            console.log('Booking creation result:', result);
             
             if (doCreateBooking.fulfilled.match(result)) {
               Alert.alert(
@@ -343,7 +342,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
             } else {
               Alert.alert(
                 'Booking Failed', 
-                'Payment was successful but booking creation failed. Please contact support with payment ID: ' + data.razorpay_payment_id
+                'Payment was successful but booking creation failed. Please contact support with Razorpay payment ID: ' + data.razorpay_payment_id
               );
             }
           } catch (bookingError) {

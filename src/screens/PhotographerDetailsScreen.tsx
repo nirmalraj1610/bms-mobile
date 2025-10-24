@@ -25,6 +25,7 @@ import {
   createReview,
 } from '../features/photographers/photographersSlice';
 import { getBookings } from '../features/bookings/bookingsSlice';
+import PhotographerBookingModal from '../components/PhotographerBookingModal';
 
 const PhotographerDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
@@ -38,9 +39,9 @@ const PhotographerDetailsScreen: React.FC = () => {
   const bookingsState = useSelector((state: RootState) => state.bookings);
   
   const photographer = photographersState?.detail?.photographer;
-  const services = photographersState?.services?.services || [];
+  const services = photographersState?.services?.items || [];
   const timeSlots = photographersState?.availability?.timeSlots || [];
-  const userBookings = bookingsState?.bookings || [];
+  const userBookings = bookingsState?.items || [];
   
   const isLoadingDetail = !!photographersState?.detail?.loading;
   const isLoadingServices = !!photographersState?.services?.loading;
@@ -51,6 +52,7 @@ const PhotographerDetailsScreen: React.FC = () => {
   // Local state
   const [activeTab, setActiveTab] = useState<'overview' | 'services' | 'reviews' | 'policies'>('overview');
   const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
   const [selectedService, setSelectedService] = useState<any>(null);
@@ -116,21 +118,13 @@ const PhotographerDetailsScreen: React.FC = () => {
   };
 
   const handleBookNow = () => {
-    if (!selectedStudioBooking) {
-      Alert.alert('Error', 'Please select a studio booking first');
-      return;
-    }
-    if (!selectedDate || !selectedTimeSlot) {
-      Alert.alert('Error', 'Please select date and time');
-      return;
-    }
     if (services.length > 0 && !selectedService) {
       Alert.alert('Error', 'Please select a service');
       return;
     }
 
-    // Navigate to booking confirmation or payment
-    Alert.alert('Success', 'Booking functionality will be implemented with payment integration');
+    // Open the booking modal for date/time selection
+    setShowBookingModal(true);
   };
 
   const handleSubmitReview = async () => {
@@ -235,7 +229,7 @@ const PhotographerDetailsScreen: React.FC = () => {
       </SafeAreaView>
     </Modal>
   );
-
+  console.log('photographerphotographerphotographer', photographer);
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -297,6 +291,30 @@ const PhotographerDetailsScreen: React.FC = () => {
             ) : (
               <Text style={styles.noDataText}>No services available</Text>
             )}
+            
+            {/* Selected Service Summary */}
+            {selectedService && (
+              <View style={styles.selectionSummary}>
+                <Text style={styles.selectionText}>
+                  Selected Service: {selectedService.title} (₹{selectedService.base_price || selectedService.hourly_rate})
+                </Text>
+              </View>
+            )}
+
+            {/* Book Photographer Button */}
+            <TouchableOpacity
+              style={[
+                styles.bookButton,
+                !selectedService && styles.disabledButton
+              ]}
+              onPress={handleBookNow}
+              disabled={!selectedService}
+            >
+              <Text style={[
+                styles.bookButtonText,
+                !selectedService && styles.disabledButtonText
+              ]}>Book Photographer</Text>
+            </TouchableOpacity>
           </View>
         );
 
@@ -417,14 +435,14 @@ const PhotographerDetailsScreen: React.FC = () => {
             <Text style={styles.reviewText}>({photographer?.total_reviews || 0} Reviews)</Text>
           </View>
           <Text style={styles.priceText}>
-            Starting at ₹{photographer?.services && photographer.services.length > 0 
-              ? Math.min(...photographer.services.map(s => s.base_price)).toString()
+            Starting at ₹{services && services.length > 0 
+              ? Math.min(...services.map(s => s.base_price)).toString()
               : '0'}
           </Text>
         </View>
 
         {/* Studio Booking Selection */}
-        <View style={styles.bookingSection}>
+        {/* <View style={styles.bookingSection}>
           <Text style={styles.sectionTitle}>Select Studio Booking</Text>
           {isLoadingBookings ? (
             <ActivityIndicator size="small" color={COLORS.primary} />
@@ -451,7 +469,7 @@ const PhotographerDetailsScreen: React.FC = () => {
           ) : (
             <Text style={styles.noDataText}>No studio bookings found. Book a studio first.</Text>
           )}
-        </View>
+        </View> */}
 
         {/* Tabs */}
         <View style={styles.tabsContainer}>
@@ -472,42 +490,20 @@ const PhotographerDetailsScreen: React.FC = () => {
         <View style={styles.tabContent}>
           {renderTabContent()}
         </View>
-
-        {/* Booking Actions */}
-        <View style={styles.bookingActions}>
-          <TouchableOpacity
-            style={styles.calendarButton}
-            onPress={() => setShowCalendarModal(true)}
-            disabled={!selectedStudioBooking}
-          >
-            <Icon name="calendar-today" size={20} color={COLORS.background} />
-            <Text style={styles.calendarButtonText}>Select Date & Time</Text>
-          </TouchableOpacity>
-
-          {selectedDate && selectedTimeSlot && (
-            <View style={styles.selectionSummary}>
-              <Text style={styles.selectionText}>
-                Selected: {selectedDate} at {selectedTimeSlot}
-              </Text>
-              {selectedService && (
-                <Text style={styles.selectionText}>
-                  Service: {selectedService.title} (₹{selectedService.base_price || selectedService.hourly_rate})
-                </Text>
-              )}
-            </View>
-          )}
-
-          <TouchableOpacity
-            style={[styles.bookButton, (!selectedStudioBooking || !selectedDate || !selectedTimeSlot) && styles.disabledButton]}
-            onPress={handleBookNow}
-            disabled={!selectedStudioBooking || !selectedDate || !selectedTimeSlot}
-          >
-            <Text style={styles.bookButtonText}>Book Photographer</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
 
       {renderCalendarModal()}
+      
+      {photographer && (
+        <PhotographerBookingModal
+          visible={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          photographer={photographer}
+          services={services}
+          photographerId={photographerId}
+          selectedService={selectedService}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -807,9 +803,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  bookingActions: {
-    paddingHorizontal: 16,
-  },
   calendarButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
@@ -849,6 +842,9 @@ const styles = StyleSheet.create({
     color: COLORS.background,
     fontSize: 16,
     fontWeight: '700',
+  },
+  disabledButtonText: {
+    color: '#999',
   },
   // Modal styles
   modalContainer: {

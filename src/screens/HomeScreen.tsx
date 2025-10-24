@@ -279,7 +279,7 @@ const renderRated = ({ item }: { item: any }) => {
             {renderStars(item.rating || 0)}
           </View>
           
-          <Text style={styles.ratedName} numberOfLines={1}>Photographer {item.id.slice(0, 8)}</Text>
+          <Text style={styles.ratedName} numberOfLines={1}>Photographer </Text>
           
           <View style={styles.ratedLocationRow}>
             <Icon name="place" size={14} color={COLORS.text.secondary} />

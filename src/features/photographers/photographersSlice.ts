@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { photographersState } from './photographers.types';
-import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi , createphotographer } from './photographers.service';
+import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi , createphotographer, createPhotographerBookingService } from './photographers.service';
 
 const initialState: photographersState = {
   search: { items: [], total: 0, loading: false, error: null },
@@ -12,6 +12,11 @@ const initialState: photographersState = {
     loading: false,
     error: null,
     photographer: null,
+  },
+  booking: {
+    loading: false,
+    error: null,
+    success: false,
   },
 };
 
@@ -86,6 +91,25 @@ export const createphotographers = createAsyncThunk(
       return res;
     } catch (err: any) {
       return rejectWithValue(err?.error || 'Failed to create photographer');
+    }
+  }
+);
+
+export const createPhotographerBooking = createAsyncThunk(
+  'photographers/booking',
+  async (payload: { 
+    photographer_id: string; 
+    service_id: string; 
+    booking_date: string; 
+    start_time: string; 
+    end_time: string; 
+    total_amount: number 
+  }, { rejectWithValue }) => {
+    try {
+      const res = await createPhotographerBookingService(payload);
+      return res;
+    } catch (err: any) {
+      return rejectWithValue(err?.error || 'Failed to create photographer booking');
     }
   }
 );
@@ -183,6 +207,21 @@ const photographersSlice = createSlice({
       .addCase(getPhotographerAvailability.rejected, (state, action) => {
         state.availability.loading = false;
         state.availability.error = (action.payload as string) || 'Failed to load photographer availability';
+      })
+      // Booking
+      .addCase(createPhotographerBooking.pending, (state) => {
+        state.booking.loading = true;
+        state.booking.error = null;
+        state.booking.success = false;
+      })
+      .addCase(createPhotographerBooking.fulfilled, (state, action) => {
+        state.booking.loading = false;
+        state.booking.success = true;
+      })
+      .addCase(createPhotographerBooking.rejected, (state, action) => {
+        state.booking.loading = false;
+        state.booking.error = (action.payload as string) || 'Failed to create photographer booking';
+        state.booking.success = false;
       });
   },
 });
