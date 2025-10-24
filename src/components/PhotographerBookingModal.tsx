@@ -207,15 +207,21 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Book Photographer</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Icon name="close" size={24} color={COLORS.text.primary} />
-            </TouchableOpacity>
-          </View>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Icon name="close" size={24} color={COLORS.text.primary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Book Photographer</Text>
+          <View style={styles.placeholder} />
+        </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.photographerInfo}>
@@ -314,18 +320,39 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
             </View>
           )}
         </View>
-      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContainer: { backgroundColor: COLORS.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.text.primary },
-  closeButton: { padding: 5 },
-  content: { padding: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  closeButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  placeholder: {
+    width: 40,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
   photographerInfo: { marginBottom: 20 },
   photographerName: { fontSize: 18, fontWeight: 'bold', color: COLORS.text.primary },
   photographerBio: { fontSize: 14, color: COLORS.text.secondary },

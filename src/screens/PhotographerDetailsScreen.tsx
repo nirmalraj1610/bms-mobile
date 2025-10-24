@@ -61,6 +61,8 @@ const PhotographerDetailsScreen: React.FC = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
 
+
+
   // Load data on mount
   useEffect(() => {
     if (!photographerId) return;
@@ -117,15 +119,7 @@ const PhotographerDetailsScreen: React.FC = () => {
     );
   };
 
-  const handleBookNow = () => {
-    if (services.length > 0 && !selectedService) {
-      Alert.alert('Error', 'Please select a service');
-      return;
-    }
 
-    // Open the booking modal for date/time selection
-    setShowBookingModal(true);
-  };
 
   const handleSubmitReview = async () => {
     if (!reviewComment.trim()) {
@@ -303,17 +297,10 @@ const PhotographerDetailsScreen: React.FC = () => {
 
             {/* Book Photographer Button */}
             <TouchableOpacity
-              style={[
-                styles.bookButton,
-                !selectedService && styles.disabledButton
-              ]}
-              onPress={handleBookNow}
-              disabled={!selectedService}
+              style={styles.bookButton}
+              onPress={() => setShowBookingModal(true)}
             >
-              <Text style={[
-                styles.bookButtonText,
-                !selectedService && styles.disabledButtonText
-              ]}>Book Photographer</Text>
+              <Text style={styles.bookButtonText}>Book Photographer</Text>
             </TouchableOpacity>
           </View>
         );
@@ -494,16 +481,15 @@ const PhotographerDetailsScreen: React.FC = () => {
 
       {renderCalendarModal()}
       
-      {photographer && (
-        <PhotographerBookingModal
-          visible={showBookingModal}
-          onClose={() => setShowBookingModal(false)}
-          photographer={photographer}
-          services={services}
-          photographerId={photographerId}
-          selectedService={selectedService}
-        />
-      )}
+      {/* Booking Modal */}
+      <PhotographerBookingModal
+        visible={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        photographer={photographer}
+        services={services}
+        photographerId={photographerId}
+        selectedService={selectedService}
+      />
     </SafeAreaView>
   );
 };
