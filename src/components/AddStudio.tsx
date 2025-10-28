@@ -331,6 +331,7 @@ const AddStudioComponent = () => {
       )
     );
   };
+  const selectedAmenities = amenities.filter(a => a.selected);
 
   // --- Render Item Function ---
   const renderAmenity = ({ item }: any) => (
@@ -356,6 +357,8 @@ const AddStudioComponent = () => {
       )
     );
   };
+
+  const selectedEquipments = equipments.filter(a => a.selected);
 
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
@@ -459,6 +462,7 @@ const AddStudioComponent = () => {
           <TextInput
             style={styles.input}
             placeholderTextColor={'#898787'}
+            keyboardType="number-pad"
             placeholder="Enter the pincode"
             value={basicInfo.pinCode}
             onChangeText={(text) =>
@@ -733,11 +737,11 @@ const AddStudioComponent = () => {
             </View>
             <View style={styles.row}>
               <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Min Booking Hours</Text>
-              <Text style={styles.listInformation} >{' : '} {details.minBookingHours} Hours</Text>
+              <Text style={styles.listInformation} >{' : '} {details.minBookingHours}</Text>
             </View>
             <View style={styles.row}>
               <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Max Booking Hours</Text>
-              <Text style={styles.listInformation} >{' : '} {details.maxBookingHours} Hours</Text>
+              <Text style={styles.listInformation} >{' : '} {details.maxBookingHours}</Text>
             </View>
             <View style={styles.row}>
               <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Contact Phone</Text>
@@ -749,8 +753,45 @@ const AddStudioComponent = () => {
             </View>
 
             {/* amenities view */}
-            <Text style={styles.title}>Selected Amenities (0)</Text>
-            <Text style={styles.title}>Selected Equipment (0)</Text>
+            <Text style={styles.title}>
+              Selected Amenities ({selectedAmenities.length})
+            </Text>
+
+            {selectedAmenities.length > 0 ? (
+              <View>
+                {selectedAmenities.map(item => (
+                  <Text key={item.id} style={styles.listInformation}>
+                    • {item.name}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text style={{ ...styles.listInformation, fontSize: 12 }}>No amenities selected</Text>
+            )}
+            <Text style={styles.title}>
+              Selected Equipments ({selectedEquipments.length})
+            </Text>
+
+            {selectedEquipments.length > 0 ? (
+              <View>
+                {selectedEquipments.map(item => (
+                  <Text key={item.id} style={styles.listInformation}>
+                    • {item.name}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text style={{ ...styles.listInformation, fontSize: 12 }}>No amenities selected</Text>
+            )}
+
+            <View style={styles.noteTextOutline}>
+              <Icon
+              name={"info"}
+              size={24}
+              color={'#101010'}
+            />
+              <Text style={styles.noteText}>Your studio listing will be reviewed by our team before going live. You'll receive an email notification once approved.</Text>
+            </View>
           </View>}
 
 
@@ -810,6 +851,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     fontSize: 18,
+    lineHeight: 30
   },
   input: {
     borderWidth: 1,
@@ -1011,5 +1053,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: "#1B4332",
+  },
+  noteTextOutline: {
+    textAlign: 'center',
+    backgroundColor: '#F2F5EC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    marginBottom: 20,
+    marginTop: 40,
+    paddingVertical: 10
+  },
+  noteText: {
+    textAlign: 'center',
+    color: '#101010',
+    marginTop: 5,
+    fontWeight: '500',
+    fontSize: 14
   },
 });
