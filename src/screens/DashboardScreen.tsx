@@ -1,101 +1,105 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  StatusBar,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Picker } from '@react-native-picker/picker';
 import { COLORS } from '../constants';
-
-// Dummy components for each tab
-const MyStudios = () => <Text style={styles.contentText}>My Studios Component</Text>;
-const Bookings = () => <Text style={styles.contentText}>Bookings Component</Text>;
-const AddStudio = () => <Text style={styles.contentText}>Add Studio Component</Text>;
-const ManageEquipments = () => <Text style={styles.contentText}>Manage Equipments Component</Text>;
+import { DashboardComponent } from '../components/Dashboard';
+import { MyStudioComponent } from '../components/MyStudio';
+import { BookingsComponent } from '../components/Bookings';
+import { ManageEquipmentComponent } from '../components/ManageEquipment';
+import AddStudioComponent from '../components/AddStudio';
 
 const DashboardScreen: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'studios' | 'bookings' | 'add' | 'equipments'>('studios');
+  const [selectedMenu, setSelectedMenu] = useState('Dashboard');
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'studios':
-        return <MyStudios />;
-      case 'bookings':
-        return <Bookings />;
-      case 'add':
-        return <AddStudio />;
-      case 'equipments':
-        return <ManageEquipments />;
-      default:
-        return null;
-    }
+  const menus = [
+    'Dashboard',
+    'My Studios',
+    'Bookings',
+    'Add Studio',
+    'Manage Equipments',
+  ];
+
+  const iconMap = {
+    Dashboard: "menu",
+    "My Studios": "business",
+    Bookings: "event",
+    "Add Studio": "add-circle-outline",
+    "Manage Equipments": "build", // default/fallback example
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => setActiveTab('studios')}>
-          <MaterialIcons
-            name="business"
-            size={26}
-            color={activeTab === 'studios' ? '#000000' : '#525050'}
-          />
-          <Text
-            style={[
-              styles.tabLabel,
-              { color: activeTab === 'studios' ? '#000000' : '#525050' },
-            ]}
-          >
-            My Studios
-          </Text>
-        </TouchableOpacity>
+      {/* HEADER */}
+      <View style={styles.headerOutline}>
+        <View style={styles.headerTopRow}>
+          {/* Left: Logo + Welcome */}
+          <View style={styles.headerLeft}>
+            <Image
+              source={require('../assets/images/logoo.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.welcomeText}>
+              Hello <Text style={styles.userName}>Jana!</Text>
+            </Text>
+          </View>
 
-        <TouchableOpacity style={styles.tabItem} onPress={() => setActiveTab('bookings')}>
-          <MaterialIcons
-            name="event"
-            size={26}
-            color={activeTab === 'bookings' ? '#000000' : '#525050'}
-          />
-          <Text
-            style={[
-              styles.tabLabel,
-              { color: activeTab === 'bookings' ? '#000000' : '#525050' },
-            ]}
-          >
-            Bookings
-          </Text>
-        </TouchableOpacity>
+          {/* Right: Notifications + Location */}
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.notificationIconOutline}>
+              <Icon name="notifications" size={20} color="#034833" />
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.tabItem} onPress={() => setActiveTab('add')}>
-          <MaterialIcons
-            name="add-circle-outline"
-            size={28}
-            color={activeTab === 'add' ? '#000000' : '#525050'}
-          />
-          <Text
-            style={[
-              styles.tabLabel,
-              { color: activeTab === 'add' ? '#000000' : '#525050' },
-            ]}
-          >
-            Add Studio
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.tabItem} onPress={() => setActiveTab('equipments')}>
-          <MaterialIcons
-            name="build"
-            size={26}
-            color={activeTab === 'equipments' ? '#000000' : '#525050'}
-          />
-          <Text
-            style={[
-              styles.tabLabel,
-              { color: activeTab === 'equipments' ? '#000000' : '#525050' },
-            ]}
-          >
-            Equipments
-          </Text>
-        </TouchableOpacity>
+            <View style={styles.locationContainer}>
+              <Text style={styles.locationLabel}>Current Location</Text>
+              <View style={styles.locationRow}>
+                <Icon name="location-on" size={16} color="#FF6B35" />
+                <Text style={styles.locationText}>Chennai</Text>
+              </View>
+            </View>
+          </View>
+        </View>
       </View>
-      <View style={styles.contentContainer}>{renderContent()}</View>
+
+      {/* MAIN CONTENT */}
+      <View style={styles.bottomContainer}>
+        {/* Menu Selector */}
+        <View style={styles.menuOutline}>
+          <View style={styles.menuRow}>
+            <Icon name="menu" size={18} color="#2F2F2F" />
+            <Text style={styles.menuLabel}>Menu</Text>
+          </View>
+          <View style={styles.pickerWrapper}>
+            <Icon name={iconMap[selectedMenu] || "menu"} size={18} color="#FFFFFF" />
+            <Picker
+              selectedValue={selectedMenu}
+              onValueChange={(value) => setSelectedMenu(value)}
+              dropdownIconColor="#FFFFFF"
+              style={styles.picker}
+            >
+              {menus.map((menu, index) => (
+                <Picker.Item key={index} label={menu} value={menu} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+        {selectedMenu === "Dashboard" && <DashboardComponent />}
+        {selectedMenu === "My Studios" && <MyStudioComponent onPressAddStudio={(i) => setSelectedMenu(i)} />}
+        {selectedMenu === "Bookings" && <BookingsComponent />}
+        {selectedMenu === "Manage Equipments" && <ManageEquipmentComponent />}
+        {selectedMenu === "Add Studio" && <AddStudioComponent />}
+      </View>
     </SafeAreaView>
   );
 };
@@ -107,33 +111,99 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  headerOutline: {
+    backgroundColor: COLORS.surface,
+    padding: 16,
+    borderBottomRightRadius: 25,
+    borderBottomLeftRadius: 25,
   },
-  contentText: {
-    fontSize: 18,
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  headerLogo: {
+    height: 50,
+    width: 64,
+    marginBottom: 6,
+  },
+  welcomeText: {
     fontWeight: '600',
+    fontSize: 18,
     color: COLORS.text.primary,
   },
-  tabBar: {
-    margin: 15,
-    borderRadius: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#D9D9D9',
-    paddingVertical: 10,
-    borderWidth:1,
-    borderColor: '#595656'
+  userName: {
+    color: '#FF6B35',
   },
-  tabItem: {
-    alignItems: 'center',
+  headerRight: {
+    alignItems: 'flex-end',
   },
-  tabLabel: {
+  notificationIconOutline: {
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#034833',
+    marginBottom: 8,
+  },
+  locationContainer: {
+    alignItems: 'flex-end',
+  },
+  locationLabel: {
     fontSize: 12,
-    marginTop: 4,
-    fontWeight: '500',
+    color: COLORS.text.secondary,
+    marginBottom: 2,
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#FF6B35',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+
+  /* MENU SECTION */
+  bottomContainer: {
+    padding: 20,
+  },
+  menuOutline: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#034833',
+    paddingLeft: 12,
+    marginBottom: 10
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 5
+  },
+  menuLabel: {
+    fontSize: 15,
+    color: '#2F2F2F',
+    marginLeft: 6,
+  },
+  pickerWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    backgroundColor: '#034833',
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  picker: {
+    color: '#FFFFFF',
+    width: '100%',
+  },
+
 });

@@ -16,6 +16,7 @@ import { Picker } from "@react-native-picker/picker";
 import { updateProfile } from "../features/profile/profileSlice";
 import { useDispatch } from "react-redux";
 import { getUserProfile } from "../lib/api";
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -57,6 +58,7 @@ const ProfileScreen: React.FC = () => {
   const [selectedDocType, setSelectedDocType] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // --- API Call to Fetch Profile ---
   useEffect(() => {
@@ -102,6 +104,7 @@ const ProfileScreen: React.FC = () => {
     } catch (err: any) {
     } finally {
       setLoading(false);
+      setIsEditing(false)
     }
   };
 
@@ -121,213 +124,265 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <>
-    {/* Loading */}
-    {loading ?
+      {/* Loading */}
+      {loading ?
         <View style={styles.loading}>
           <ActivityIndicator size="large" color="#034833" />
           <Text style={styles.loadingText}>Loading....</Text>
         </View> :
 
-    <>
-      {loggedInUser ? 
-    <View style={styles.container}> 
-    <View style={styles.profileImageContainer}>
-      <TouchableOpacity onPress={handleProfilePick} style={styles.profileImageOutline}>
-      <Image
-                            source={ selectedProfile ? {uri: selectedProfile?.uri} : require('../assets/images/logoo.png')} 
-                            style={styles.profileImage}
-                            resizeMode="cover"
-                          />
-                          <View style={styles.cameraOutline}>
-                            <Image
-                            source={require('../assets/images/camera.png')} 
-                            style={styles.camera}
-                            resizeMode="contain"
-                          />
-                          </View>
-                          </TouchableOpacity>
-                          <View style={styles.userDetailOutline}>
-                          <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text>
-                           {/* <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text> */}
-                          </View>
-                          {/* <View style={styles.userDetailOutline}>
+        <>
+          {loggedInUser ?
+            <View style={styles.container}>
+              <View style={styles.profileImageContainer}>
+                <TouchableOpacity onPress={handleProfilePick} style={styles.profileImageOutline}>
+                  <Image
+                    source={selectedProfile ? { uri: selectedProfile?.uri } : require('../assets/images/logoo.png')}
+                    style={styles.profileImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.cameraOutline}>
+                    <Image
+                      source={require('../assets/images/camera.png')}
+                      style={styles.camera}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.userDetailOutline}>
+                  <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text>
+                  {/* <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text> */}
+                </View>
+                {/* <View style={styles.userDetailOutline}>
                           <Text style={styles.userEmail}>{fullProfileData?.email}</Text> <Text style={styles.userStatus}>{fullProfileData?.email_verified ? "✅" : "❌" }</Text>
                           </View>
                           <View style={styles.userDetailOutline}>
                           <Text style={styles.userPhone}>+91 {fullProfileData?.phone}</Text> <Text style={styles.userStatus}>{fullProfileData?.phone_verified ? "✅" : "❌" }</Text>
                           </View> */}
-      </View>     
+              </View>
 
-      {/* Tabs */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === "personal" && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab("personal")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "personal" && styles.activeTabText,
-            ]}
-          >
-            Personal Info
-          </Text>
-        </TouchableOpacity>
+              {/* Tabs */}
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.tab,
+                    activeTab === "personal" && styles.activeTab,
+                  ]}
+                  onPress={() => setActiveTab("personal")}
+                >
+                  <Text
+                    style={[
+                      styles.tabText,
+                      activeTab === "personal" && styles.activeTabText,
+                    ]}
+                  >
+                    Personal Info
+                  </Text>
+                </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === "verification" && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab("verification")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "verification" && styles.activeTabText,
-            ]}
-          >
-            Verification
-          </Text>
-        </TouchableOpacity>
-      </View>
-      
+                <TouchableOpacity
+                  style={[
+                    styles.tab,
+                    activeTab === "verification" && styles.activeTab,
+                  ]}
+                  onPress={() => setActiveTab("verification")}
+                >
+                  <Text
+                    style={[
+                      styles.tabText,
+                      activeTab === "verification" && styles.activeTabText,
+                    ]}
+                  >
+                    Verification
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-      {/* PERSONAL INFO TAB */}
-      {activeTab === "personal" && !loading && (
-        <ScrollView contentContainerStyle={styles.formContainer}>
-          <Text style={styles.labelText} >First Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="First Name"
-            value={profile.firstName}
-            onChangeText={(text) =>
-              setProfile({ ...profile, firstName: text })
-            }
-          />
-          <Text style={styles.labelText} >Last Name</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Last Name"
-            value={profile.lastName}
-            onChangeText={(text) =>
-              setProfile({ ...profile, lastName: text })
-            }
-          />
-          <Text style={styles.labelText} >Email</Text>
+              {/* PERSONAL INFO TAB */}
+              {activeTab === "personal" && !loading && (
+                <ScrollView>
+                  <View style={{ backgroundColor: isEditing ? '#FFFFFF' : "#f5f5f5", padding: 16 }}>
+                    <View style={styles.editHeader}>
+                      <Text style={styles.sectionTitle}>Personal Information</Text>
+                      <TouchableOpacity style={styles.editIconOutline} onPress={() => setIsEditing(!isEditing)}>
+                        <Icon
+                          name={isEditing ? "save" : "edit"}
+                          size={22}
+                          color="#FFFFFF"
+                        />
 
-          <TextInput
-            style={[styles.input, styles.readOnly]}
-            placeholder="Email"
-            editable={false}
-            value={profile.email}
-          />
+                      </TouchableOpacity>
+                    </View>
 
-          <Text style={styles.labelText} >Phone Number</Text>
+                    {/* If not editing – just show info */}
+                    {!isEditing ? (
+                      <>
+                        <Text style={styles.infoLabel}>First Name</Text>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoValue}>{profile.firstName || '-'}</Text>
+                        </View>
+                        <Text style={styles.infoLabel}>Last Name</Text>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoValue}>{profile.lastName || '-'}</Text>
+                        </View>
+                        <Text style={styles.infoLabel}>Email</Text>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoValue}>{profile.email || '-'}</Text>
+                        </View>
+                        <Text style={styles.infoLabel}>Phone Number</Text>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoValue}>{profile.phone || '-'}</Text>
+                        </View>
+                        <Text style={styles.infoLabel}>Location</Text>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoValue}>{profile.location || '-'}</Text>
+                        </View>
+                        <Text style={styles.infoLabel}>About</Text>
+                        <View style={styles.infoRow}>
+                          <Text style={styles.infoValue}>{profile.description || '-'}</Text>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        {/* Editable Mode */}
+                        <Text style={styles.labelText} >First Name</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholderTextColor={'#898787'}
+                          placeholder="First Name"
+                          value={profile.firstName}
+                          onChangeText={(text) =>
+                            setProfile({ ...profile, firstName: text })
+                          }
+                        />
+                        <Text style={styles.labelText} >Last Name</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            keyboardType="phone-pad"
-            value={profile.phone}
-            onChangeText={(text) =>
-              setProfile({ ...profile, phone: text })
-            }
-          />
+                        <TextInput
+                          style={styles.input}
+                          placeholderTextColor={'#898787'}
+                          placeholder="Last Name"
+                          value={profile.lastName}
+                          onChangeText={(text) =>
+                            setProfile({ ...profile, lastName: text })
+                          }
+                        />
+                        <Text style={styles.labelText} >Email (Read Only)</Text>
 
-          {/* Dropdown */}
-          <Text style={styles.labelText} >Location</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={profile.location} // Must match one of Picker.Item values
-              onValueChange={(value) => setProfile({ ...profile, location: value })}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Choose location" value="" />
-              {locations.map((loc, index) => (
-                <Picker.Item key={index} label={loc} value={loc} />
-              ))}
-            </Picker>
-          </View>
+                        <TextInput
+                          style={[styles.input, styles.readOnly]}
+                          placeholderTextColor={'#898787'}
+                          placeholder="Email"
+                          editable={false}
+                          value={profile.email}
+                        />
 
-          <Text style={styles.labelText} >About</Text>
+                        <Text style={styles.labelText} >Phone Number</Text>
 
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Tell us about yourself and your photography style..."
-            multiline
-            placeholderTextColor={'#BABABA'}
-            value={profile.description}
-            onChangeText={(text) =>
-              setProfile({ ...profile, description: text })
-            }
-          />
+                        <TextInput
+                          style={styles.input}
+                          placeholderTextColor={'#898787'}
+                          placeholder="Phone Number"
+                          keyboardType="phone-pad"
+                          value={profile.phone}
+                          onChangeText={(text) =>
+                            setProfile({ ...profile, phone: text })
+                          }
+                        />
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Save Changes</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      )}
+                        {/* Dropdown */}
+                        <Text style={styles.labelText} >Location</Text>
+                        <View style={styles.pickerWrapper}>
+                          <Picker
+                            selectedValue={profile.location} // Must match one of Picker.Item values
+                            onValueChange={(value) => setProfile({ ...profile, location: value })}
+                            dropdownIconColor="#034833" // Color of the arrow
+                            style={{ color: '#101010' }} // Color of the selected text
+                          >
+                            <Picker.Item label="Choose location" value="" />
+                            {locations.map((loc, index) => (
+                              <Picker.Item key={index} label={loc} value={loc} />
+                            ))}
+                          </Picker>
+                        </View>
 
-      {/* VERIFICATION TAB */}
-      {activeTab === "verification" && !loading && (
-        <ScrollView contentContainerStyle={styles.formContainer}>
-          <Text style={styles.labelText} >Select Document Type</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={selectedDocType} // Must match one of Picker.Item values
-              onValueChange={(value) => setSelectedDocType(value)}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Choose document type" value="" />
-              <Picker.Item label="Aadhar Card" value="aadhar" />
-              <Picker.Item label="Voter ID" value="voter" />
-              <Picker.Item label="PAN Card" value="pan" />
-              <Picker.Item label="Passport" value="passport" />
-              <Picker.Item label="Driving Licence" value="licence" />
-            </Picker>
-          </View>
+                        <Text style={styles.labelText} >About</Text>
 
-          <Text style={styles.labelText} >{selectedFile ? 'Selected Document' : 'Select Document'}</Text>
+                        <TextInput
+                          style={[styles.input, styles.textArea]}
+                          placeholderTextColor={'#898787'}
+                          placeholder="Tell us about yourself and your photography style..."
+                          multiline
+                          placeholderTextColor={'#BABABA'}
+                          value={profile.description}
+                          onChangeText={(text) =>
+                            setProfile({ ...profile, description: text })
+                          }
+                        />
 
-          <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-            <Image
-                            source={selectedFile ? {uri: selectedFile?.uri} : require('../assets/images/camera.png')} 
-                            style={selectedFile ? styles.selectedImage : styles.placeholderImage}
-                            resizeMode={selectedFile ? "cover" : 'contain'}
-                          />
-            <Text style={styles.uploadText}>
-              {selectedFile ? selectedFile.fileName : "Select Document"}
-            </Text>
-          </TouchableOpacity>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                          <Text style={styles.saveButtonText}>Save Changes</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+                </ScrollView>
+              )}
 
-          <TouchableOpacity style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>Submit for Verification</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      )}
-    </View> :
-    <View style={styles.logoutUserContainer}>
-      
-      <View style={styles.tempButtonsContainer}>
-        
-        <TouchableOpacity style={styles.tempButton} onPress={navigateToLogin}>
-          <Text style={styles.tempButtonText}>Login</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
-          <Text style={[styles.tempButtonText, styles.signUpButtonText]}>SignUp</Text>
-        </TouchableOpacity>
-      </View>
-      </View>
-}
-    </> }
+              {/* VERIFICATION TAB */}
+              {activeTab === "verification" && !loading && (
+                <ScrollView contentContainerStyle={{ padding: 16 }}>
+                  <Text style={styles.labelText} >Select Document Type</Text>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={selectedDocType} // Must match one of Picker.Item values
+                      onValueChange={(value) => setSelectedDocType(value)}
+                      dropdownIconColor="#034833" // Color of the arrow
+                      style={{ color: '#101010' }} // Color of the selected text
+                    >
+                      <Picker.Item label="Choose document type" value="" />
+                      <Picker.Item label="Aadhar Card" value="aadhar" />
+                      <Picker.Item label="Voter ID" value="voter" />
+                      <Picker.Item label="PAN Card" value="pan" />
+                      <Picker.Item label="Passport" value="passport" />
+                      <Picker.Item label="Driving Licence" value="licence" />
+                    </Picker>
+                  </View>
+
+                  <Text style={styles.labelText} >{selectedFile ? 'Selected Document' : 'Select Document'}</Text>
+
+                  <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                    <Image
+                      source={selectedFile ? { uri: selectedFile?.uri } : require('../assets/images/camera.png')}
+                      style={selectedFile ? styles.selectedImage : styles.placeholderImage}
+                      resizeMode={selectedFile ? "cover" : 'contain'}
+                    />
+                    <Text style={styles.uploadText}>
+                      {selectedFile ? selectedFile.fileName : "Select Document"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.submitButton}>
+                    <Text style={styles.submitButtonText}>Submit for Verification</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              )}
+            </View> :
+            <View style={styles.logoutUserContainer}>
+
+              <View style={styles.tempButtonsContainer}>
+
+                <TouchableOpacity style={styles.tempButton} onPress={navigateToLogin}>
+                  <Text style={styles.tempButtonText}>Login</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
+                  <Text style={[styles.tempButtonText, styles.signUpButtonText]}>SignUp</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          }
+        </>}
     </>
   );
 };
@@ -433,9 +488,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  formContainer: {
-    padding: 16,
-  },
   input: {
     borderWidth: 1,
     borderColor: "#BABABA",
@@ -443,8 +495,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
-    fontSize: 15,
+    fontSize: 14,
     backgroundColor: "#ffffff",
+    fontWeight: '600',
   },
   readOnly: {
     backgroundColor: "#f5f5f5",
@@ -477,8 +530,8 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 6,
   },
-   labelText: {
-    color: '#BABABA',
+  labelText: {
+    color: '#6C757D',
     fontSize: 15,
     fontWeight: "500",
     marginBottom: 6,
@@ -519,7 +572,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 10
   },
- profileImageContainer: {
+  profileImageContainer: {
     alignItems: 'center',
     marginVertical: 10,
   },
@@ -559,54 +612,96 @@ const styles = StyleSheet.create({
     width: 20
   },
   userDetailOutline: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  backgroundColor: '#FFFFFF',
-  paddingVertical: 8,
-  paddingHorizontal: 12,
-  borderRadius: 10,
-  marginBottom: 8,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.05,
-  shadowRadius: 2,
-  elevation: 1, // light Android shadow
-},
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1, // light Android shadow
+  },
 
-userName: {
-  color: '#101010',
-  fontSize: 16,
-  fontWeight: '700',
-  marginRight: 6,
-},
+  userName: {
+    color: '#101010',
+    fontSize: 16,
+    fontWeight: '700',
+    marginRight: 6,
+  },
 
-userRole: {
-  color: '#6C757D',
-  fontSize: 14,
-  fontWeight: '500',
-  marginRight: 6,
-},
+  userRole: {
+    color: '#6C757D',
+    fontSize: 14,
+    fontWeight: '500',
+    marginRight: 6,
+  },
 
-userEmail: {
-  color: '#101010',
-  fontSize: 14,
-  fontWeight: '600',
-  marginRight: 6,
-  flexShrink: 1,
-},
+  userEmail: {
+    color: '#101010',
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 6,
+    flexShrink: 1,
+  },
 
-userPhone: {
-  color: '#101010',
-  fontSize: 14,
-  fontWeight: '600',
-  marginRight: 6,
-  flexShrink: 1,
-},
+  userPhone: {
+    color: '#101010',
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 6,
+    flexShrink: 1,
+  },
 
-userStatus: {
-  fontSize: 10,
-},
+  userStatus: {
+    fontSize: 10,
+  },
+  editHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#034833',
+  },
+
+  editIconOutline: {
+    padding: 5,
+    backgroundColor: '#034833',
+    borderWidth: 1,
+    borderRadius: 100
+  },
+  infoRow: {
+    borderWidth: 1,
+    borderColor: "#BABABA",
+    color: '#101010',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    fontSize: 15,
+    backgroundColor: "#ffffff",
+  },
+
+  infoLabel: {
+    color: '#6C757D',
+    fontSize: 15,
+    fontWeight: "500",
+    marginBottom: 6,
+  },
+
+  infoValue: {
+    color: '#101010',
+    fontSize: 15,
+    fontWeight: '600',
+  },
 });
 
 export default ProfileScreen;
