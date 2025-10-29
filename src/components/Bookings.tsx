@@ -11,7 +11,7 @@ export const BookingsComponent = () => {
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [showStartPicker, setShowStartPicker] = useState(false);
     const [showEndPicker, setShowEndPicker] = useState(false);
-    const [selectedStudio, setSelectedStudio] = useState(false);
+    const [selectedStudio, setSelectedStudio] = useState('');
     const [startdate, setStartdate] = useState(new Date());
     const [enddate, setEnddate] = useState(new Date());
     const onFilterPress = () => {
@@ -196,7 +196,7 @@ export const BookingsComponent = () => {
                     dropdownIconColor="#034833" // Color of the arrow
                     style={{ color: '#101010' }} // Color of the selected text
                 >
-                    <Picker.Item label="Select studio" value="" />
+                    <Picker.Item label="Select a studio" value="" />
                     {studioList.map((studio, index) => (
                         <Picker.Item key={index} label={studio} value={studio} />
                     ))}

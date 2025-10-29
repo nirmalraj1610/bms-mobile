@@ -142,11 +142,11 @@ const ProfileScreen: React.FC = () => {
                     resizeMode="cover"
                   />
                   <View style={styles.cameraOutline}>
-                    <Image
-                      source={require('../assets/images/camera.png')}
-                      style={styles.camera}
-                      resizeMode="contain"
-                    />
+                    <Icon
+                          name={"edit"}
+                          size={22}
+                          color='#034833'
+                        />
                   </View>
                 </TouchableOpacity>
                 <View style={styles.userDetailOutline}>
@@ -313,7 +313,6 @@ const ProfileScreen: React.FC = () => {
                           placeholderTextColor={'#898787'}
                           placeholder="Tell us about yourself and your photography style..."
                           multiline
-                          placeholderTextColor={'#BABABA'}
                           value={profile.description}
                           onChangeText={(text) =>
                             setProfile({ ...profile, description: text })
@@ -349,9 +348,9 @@ const ProfileScreen: React.FC = () => {
                     </Picker>
                   </View>
 
-                  <Text style={styles.labelText} >{selectedFile ? 'Selected Document' : 'Select Document'}</Text>
+                  <Text style={styles.labelText} >Select a Document</Text>
 
-                  <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                  {/* <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
                     <Image
                       source={selectedFile ? { uri: selectedFile?.uri } : require('../assets/images/camera.png')}
                       style={selectedFile ? styles.selectedImage : styles.placeholderImage}
@@ -360,7 +359,24 @@ const ProfileScreen: React.FC = () => {
                     <Text style={styles.uploadText}>
                       {selectedFile ? selectedFile.fileName : "Select Document"}
                     </Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
+                  {selectedFile ? 
+                                          <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                                              <Image
+                                                  source={{ uri: selectedFile?.uri }}
+                                                  style={styles.selectedImage}
+                                                  resizeMode={"cover"}
+                                              />
+                                          </TouchableOpacity> :
+                                          <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                                                        <Icon name="cloud-upload" size={28} color="#034833" />
+                                                        <Text style={styles.uploadTextHeader}>Upload Document Image</Text>
+                                                        <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
+                                                        <Text style={styles.supportedFilesText}>
+                                                          Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
+                                                        </Text>
+                                                        <Text style={styles.chooseFilesText}>Choose File</Text>
+                                                      </TouchableOpacity>}
 
                   <TouchableOpacity style={styles.submitButton}>
                     <Text style={styles.submitButtonText}>Submit for Verification</Text>
@@ -540,7 +556,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     width: '100%',
     height: 200,
-    borderColor: '#034833',
+    borderColor: "#BABABA",
     borderRadius: 10,
     marginBottom: 16,
     paddingHorizontal: 16,
@@ -548,10 +564,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  uploadText: {
-    color: "#101010",
-    marginTop: 10
-  },
+      uploadTextHeader: {
+        fontWeight: "600",
+        color: "#101010",
+        fontSize: 16,
+        marginTop: 10,
+    },
+    uploadTextDesc: {
+        fontSize: 13,
+        color: "#555",
+        marginTop: 5,
+    },
+    supportedFilesText: {
+        fontSize: 12,
+        color: "#777",
+        marginTop: 5,
+        textAlign: "center",
+    },
+    chooseFilesText: {
+        marginTop: 10,
+        fontWeight: "bold",
+        color: "#034833",
+    },
   submitButton: {
     backgroundColor: "#034833",
     paddingVertical: 14,
@@ -577,39 +611,30 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   profileImageOutline: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     marginBottom: 10,
-    borderRadius: 60, // makes it circular
-    borderWidth: 2,
+    borderRadius: 100, // makes it circular
+    borderWidth: 1,
     borderColor: '#034833', // green outline
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3.84,
-    elevation: 5, // Android shadow
   },
   profileImage: {
-    width: 95,
-    height: 95,
+    width: 115,
+    height: 115,
     borderRadius: 55,
   },
   cameraOutline: {
     backgroundColor: '#fff',
     borderRadius: 100,
-    borderColor: '#000',
+    borderColor: '#101010',
     borderWidth: 1,
-    padding: 5,
+    padding: 4,
     position: 'absolute',
     right: 3,
     bottom: 3
-  },
-  camera: {
-    height: 20,
-    width: 20
   },
   userDetailOutline: {
     flexDirection: 'row',

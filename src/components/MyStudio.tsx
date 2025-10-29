@@ -96,9 +96,9 @@ export const MyStudioComponent = ({
 
                     {/* Action Buttons */}
                     <View style={styles.actionsContainer}>
-                        {/* Manage Button (Solid Dark Green) */}
-                        <TouchableOpacity style={[styles.actionButton, styles.manageButton, { backgroundColor: primaryColor }]}>
-                            <Text style={styles.manageButtonText}>Manage</Text>
+                        {/* Edit Button (Bordered)  */}
+                        <TouchableOpacity style={[styles.actionButton, styles.viewButton, { borderColor: primaryColor }]}>
+                            <Text style={styles.viewButtonText}>Edit</Text>
                         </TouchableOpacity>
 
                         {/* View Button (Bordered) */}
@@ -106,6 +106,10 @@ export const MyStudioComponent = ({
                             <Text style={[styles.viewButtonText, { color: primaryColor }]}>View</Text>
                         </TouchableOpacity>
                     </View>
+                    {/* Manage Button (Solid Dark Green) */}
+                        <TouchableOpacity style={[styles.actionButton, styles.manageButton, { backgroundColor: primaryColor }]}>
+                            <Text style={styles.manageButtonText}>Manage</Text>
+                        </TouchableOpacity>
                 </View>
             </View>
         );
@@ -299,7 +303,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     manageButton: {
-        marginRight: 5,
+        marginHorizontal: 15,
+        marginBottom: 10
     },
     manageButtonText: {
         color: '#fff',
