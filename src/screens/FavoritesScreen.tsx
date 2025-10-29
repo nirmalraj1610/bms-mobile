@@ -1,33 +1,52 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../constants';
-import { mockFavoriteStudios } from '../utils/mockData';
+import { RootState, AppDispatch } from '../store/store';
+import { loadFavoritesThunk } from '../features/studios/studiosSlice';
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState('');
+  
+  // Get favorites data from Redux store
+  const { favorites: favoritesState } = useSelector((state: RootState) => state.studios);
+  const favorites = favoritesState.items;
+  const loading = favoritesState.loading;
+  const error = favoritesState.error;
 
-  // Map favorites mock into list-friendly shape for this screen
+  // Load favorites when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      dispatch(loadFavoritesThunk());
+    }, [dispatch])
+  );
+
+  // Map favorites from Redux state into list-friendly shape for this screen
   const items = useMemo(
     () =>
-      mockFavoriteStudios.map((s) => ({
-        id: s.id,
-        name: s.name,
-        thumbnail: s.images?.[0],
-        location: { city: s.location.city },
-        average_rating: s.rating,
-        total_reviews: s.reviewCount,
-      })),
-    []
+      favorites.map((favorite) => {
+        const studio = favorite.studios;
+        return {
+          id: studio.id,
+          name: studio.name,
+          thumbnail: studio.images?.[0],
+          location: { city: studio.location.city },
+          average_rating: studio.average_rating || 0,
+          total_reviews: studio.reviews?.length || 0,
+        };
+      }),
+    [favorites]
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
-    return items.filter((i) =>
+    return items.filter((i: any) =>
       [i.name || '', i.location?.city || ''].some((t) => t.toLowerCase().includes(q))
     );
   }, [items, query]);
@@ -150,14 +169,33 @@ const FavoritesScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <FlatList
-            contentContainerStyle={styles.listContainer}
-            data={filtered}
-            keyExtractor={(i) => i.id}
-            renderItem={renderItem}
-            ListHeaderComponent={<View style={{ height: 8 }} />}
-            ListFooterComponent={<View style={{ height: 24 }} />}
-          />
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.success} />
+              <Text style={styles.loadingText}>Loading your favorites...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Icon name="error-outline" size={48} color={COLORS.text.secondary} />
+              <Text style={styles.errorTitle}>Unable to load favorites</Text>
+              <Text style={styles.errorSubtitle}>Please check your connection and try again</Text>
+              <TouchableOpacity 
+                style={styles.retryBtn}
+                onPress={() => dispatch(loadFavoritesThunk())}
+              >
+                <Text style={styles.retryBtnText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <FlatList
+              contentContainerStyle={styles.listContainer}
+              data={filtered}
+              keyExtractor={(i) => i.id}
+              renderItem={renderItem}
+              ListHeaderComponent={<View style={{ height: 8 }} />}
+              ListFooterComponent={<View style={{ height: 24 }} />}
+            />
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -352,6 +390,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.text.secondary,
     marginLeft: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: COLORS.text.secondary,
+    marginTop: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text.primary,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  errorSubtitle: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryBtn: {
+    marginTop: 20,
+    backgroundColor: COLORS.success,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  retryBtnText: {
+    color: COLORS.background,
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 
