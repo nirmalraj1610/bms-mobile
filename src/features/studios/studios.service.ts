@@ -1,4 +1,4 @@
-import { studiosSearch, studioDetail, studioAvailability, studioFavorite, reviewCreate, StudioCreate } from '../../lib/api';
+import { studiosSearch, studioDetail, studioAvailability, studioFavorite, studioFavorites, reviewCreate, StudioCreate } from '../../lib/api';
 import type { StudiosSearchQuery, AvailabilityPayload, ReviewCreatePayload, StudioCreatePayload, ToggleFavoritePayload } from './studios.types';
 
 export const searchStudios = async (query: StudiosSearchQuery) => {
@@ -29,6 +29,10 @@ export const getStudioAvailability = async (payload: AvailabilityPayload) => {
 
 export const toggleFavoriteStudio = async (payload: ToggleFavoritePayload) => {
   return studioFavorite({ studio_id: payload.studio_id, action: payload.action });
+};
+
+export const getFavoriteStudios = async () => {
+  return studioFavorites();
 };
 
 export const createStudioReview = async (payload: ReviewCreatePayload) => {

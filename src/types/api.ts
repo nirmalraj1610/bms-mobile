@@ -84,6 +84,10 @@ export interface Booking {
   total_amount?: number;
   status: string;
   created_at?: string;
+  booking_type?: string;
+  photographer_id?: string;
+  service_id?: string;
+  updated_at?: string;
 }
 
 export interface BookingCreateResponse {

@@ -1,73 +1,115 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
-
-// Mock booking data
-const mockBookings = [
-  {
-    id: '1',
-    studioName: 'Rez Photography',
-    date: 'Monday, Dec 11',
-    time: '2:00 PM',
-    status: 'Confirmed',
-    image: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400',
-    isFavorite: true,
-  },
-  {
-    id: '2',
-    studioName: 'Mk Studioz',
-    date: 'Tue, Sep 24',
-    time: '5:00 PM',
-    status: 'Completed',
-    image: 'https://images.unsplash.com/photo-1606800052052-a08af7148866?w=400',
-
-    isFavorite: true,
-  },
-];
-
-const mockPastBookings = [
-  {
-    id: '3',
-    studioName: 'JD Capture',
-    date: 'Tue, Sep 24',
-    time: '5:00 PM',
-    status: 'Completed',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-    isFavorite: true,
-  },
-];
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getBookings } from '../features/bookings/bookingsSlice';
+import type { BookingHistoryItem } from '../types/api';
 
 const BookingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
   const [query, setQuery] = useState('');
 
+  // Get booking data from Redux store
+  const { items: bookings, loading, error } = useAppSelector((state) => state.bookings);
+
+  // Fetch bookings on component mount
+  useEffect(() => {
+    dispatch(getBookings({}));
+  }, [dispatch]);
+
+  // Helper function to format date and time
+  const formatDateTime = (booking: BookingHistoryItem) => {
+    const date = new Date(booking.booking_date);
+    const startTime = booking.start_time;
+    
+    const formattedDate = date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+    
+    return {
+      date: formattedDate,
+      time: startTime
+    };
+  };
+console.log('bookings:', bookings);
+
+  // Transform API data to match component expectations
+  const transformedBookings = useMemo(() => {
+    return bookings.map((booking: BookingHistoryItem) => {
+      const { date, time } = formatDateTime(booking);
+      return {
+        id: booking.id,
+        studioName: booking.studios?.name || 'Unknown Studio',
+        date,
+        time,
+        status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+        bookingType: booking.booking_type || 'studio', // Handle booking_type from API
+        image: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400', // Default image
+        isFavorite: false, // You can implement favorites logic later
+      };
+    });
+  }, [bookings]);
+
+  // Filter bookings based on search query
   const filteredBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return mockBookings;
-    return mockBookings.filter((booking) =>
-      booking.studioName.toLowerCase().includes(q)
+    if (!q) {
+      return transformedBookings.filter(booking => 
+        booking.status === 'Confirmed' || booking.status === 'Pending'
+      );
+    }
+    return transformedBookings.filter((booking) =>
+      booking.studioName.toLowerCase().includes(q) &&
+      (booking.status === 'Confirmed' || booking.status === 'Pending')
     );
-  }, [query]);
+  }, [query, transformedBookings]);
 
   const filteredPastBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return mockPastBookings;
-    return mockPastBookings.filter((booking) =>
-      booking.studioName.toLowerCase().includes(q)
+    if (!q) {
+      return transformedBookings.filter(booking => 
+        booking.status === 'Completed' || booking.status === 'Cancelled'
+      );
+    }
+    return transformedBookings.filter((booking) =>
+      booking.studioName.toLowerCase().includes(q) &&
+      (booking.status === 'Completed' || booking.status === 'Cancelled')
     );
-  }, [query]);
+  }, [query, transformedBookings]);
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyles = (status: string) => {
     switch (status) {
+      case 'Pending':
+        return {
+          backgroundColor: '#FFFFFF',
+          color: COLORS.bg, // Green text
+          borderColor: COLORS.bg,
+          borderWidth: 1,
+        };
+      case 'Cancelled':
+        return {
+          backgroundColor: COLORS.error, // Green background
+          color: '#FFFFFF', // White text
+          borderWidth: 0,
+        };
       case 'Confirmed':
-        return COLORS.background;
-      case 'Completed':
-        return COLORS.background;
+        return {
+          backgroundColor: COLORS.bg, // Green background
+          color: '#FFFFFF', // White text
+          borderWidth: 0,
+        };
       default:
-        return COLORS.text.secondary;
+        return {
+          backgroundColor: COLORS.bg,
+          color: COLORS.text.secondary,
+          borderWidth: 0,
+        };
     }
   };
 
@@ -75,7 +117,7 @@ const BookingScreen: React.FC = () => {
     <TouchableOpacity style={styles.card}>
       <Image source={{ uri: item.image }} style={styles.cardImage} />
       <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
+        {/* <View style={styles.cardHeader}>
           <TouchableOpacity>
             <Icon 
               name="favorite" 
@@ -83,13 +125,16 @@ const BookingScreen: React.FC = () => {
               color={item.isFavorite ? COLORS.favColor : COLORS.text.secondary} 
             />
           </TouchableOpacity>
-        </View>
+        </View> */}
           {/* <Text style={styles.studioName}>{item.studioName}</Text> */}
         <Text style={styles.dateTime1}>{item.studioName}</Text>
         <Text style={styles.dateTime}>{item.date} {item.time}</Text>
+        <Text style={styles.bookingType}>
+          Booking type : {item.bookingType === 'studio' ? 'Studio Booking' : 'Photographer Booking'}
+        </Text>
 
         <View style={styles.statusContainer}>
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+          <Text style={[styles.statusText, getStatusStyles(item.status)]}>
             {item.status}
           </Text>
         </View>
@@ -129,32 +174,61 @@ const BookingScreen: React.FC = () => {
             </View>
           </View>
 
+        {/* Loading State */}
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.bg} />
+            <Text style={styles.loadingText}>Loading bookings...</Text>
+          </View>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Error loading bookings: {error}</Text>
+            <TouchableOpacity 
+              style={styles.retryButton}
+              onPress={() => dispatch(getBookings({}))}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Upcoming Bookings */}
-        <FlatList
-          data={filteredBookings}
-          renderItem={renderBookingItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            filteredBookings.length > 0 ? null : (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No upcoming bookings found</Text>
-              </View>
-            )
-          }
-          ListFooterComponent={
-            <View>
-              {/* Past Sessions Section */}
-              <Text style={styles.sectionTitle}>Past Sessions</Text>
-              {filteredPastBookings.map((item) => (
-                <View key={item.id}>
-                  {renderBookingItem({ item })}
+        {!loading && !error && (
+          <FlatList
+            data={filteredBookings}
+            renderItem={renderBookingItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              filteredBookings.length > 0 ? null : (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyText}>No upcoming bookings found</Text>
                 </View>
-              ))}
-            </View>
-          }
-        />
+              )
+            }
+            ListFooterComponent={
+              <View>
+                {/* Past Sessions Section */}
+                <Text style={styles.sectionTitle}>Past Sessions</Text>
+                {filteredPastBookings.length > 0 ? (
+                  filteredPastBookings.map((item) => (
+                    <View key={item.id}>
+                      {renderBookingItem({ item })}
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyText}>No past sessions found</Text>
+                  </View>
+                )}
+              </View>
+            }
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -286,6 +360,13 @@ const styles = StyleSheet.create({
 
     marginTop: 4,
   },
+  bookingType: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginTop: 4,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
   statusContainer: {
     alignSelf: 'flex-end',
     // marginTop: 8,
@@ -297,7 +378,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 8,
-    backgroundColor: COLORS.bg,
   },
   sectionTitle: {
     fontSize: 18,
@@ -313,6 +393,41 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: COLORS.text.secondary,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    marginTop: 12,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: COLORS.bg,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: COLORS.background,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

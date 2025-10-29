@@ -12,6 +12,7 @@ import {
   getStudioDetails,
   getStudioAvailability,
   toggleFavoriteStudio,
+  getFavoriteStudios,
   createStudioReview,
   createStudio,
 } from './studios.service';
@@ -67,12 +68,31 @@ export const studioAvailabilityThunk = createAsyncThunk('studios/availability', 
   }
 });
 
-export const toggleFavoriteThunk = createAsyncThunk('studios/toggleFavorite', async (payload: ToggleFavoritePayload, { rejectWithValue }) => {
+export const toggleFavoriteThunk = createAsyncThunk('studios/toggleFavorite', async (payload: ToggleFavoritePayload, { rejectWithValue, getState }) => {
   try {
     const res = await toggleFavoriteStudio(payload);
-    return { ...res, studio_id: payload.studio_id, action: payload.action };
+    const result = { ...res, studio_id: payload.studio_id, action: payload.action };
+    return result;
   } catch (err: any) {
+    // Handle duplicate key constraint error
+    if (err?.error?.includes('duplicate key value violates unique constraint') || err?.error?.includes('studio_favorites_customer_id_studio_id_key')) {
+      // If it's a duplicate error and we were trying to add, treat it as success
+      if (payload.action === 'add') {
+        return { message: 'Already favorited', studio_id: payload.studio_id, action: payload.action };
+      }
+    }
+    
     return rejectWithValue(err?.error || 'Failed to toggle favorite');
+  }
+});
+
+export const loadFavoritesThunk = createAsyncThunk('studios/loadFavorites', async (_, { rejectWithValue }) => {
+  try {
+    const res = await getFavoriteStudios();
+    const favorites = res.favorites || [];
+    return favorites;
+  } catch (err: any) {
+    return rejectWithValue(err?.error || 'Failed to load favorites');
   }
 });
 
@@ -160,29 +180,61 @@ const studiosSlice = createSlice({
       })
       .addCase(toggleFavoriteThunk.fulfilled, (state, action) => {
         state.favorites.loading = false;
-        const studioId: string = (action.payload as any)?.studio_id;
-        const actionType: 'add' | 'remove' = (action.payload as any)?.action;
-        const setFav = actionType === 'add';
-        if (setFav) {
-          const fromDetail = state.detail.data
-            ? {
-                id: state.detail.data.id,
-                name: state.detail.data.name,
-                location: { city: state.detail.data.location?.city },
-                average_rating: state.detail.data.average_rating,
-              }
-            : undefined;
-          const exists = state.favorites.items.find((s) => s.id === studioId);
-          if (!exists && fromDetail) {
-            state.favorites.items.push(fromDetail as any);
+        const { studio_id, action: actionType } = action.payload;
+        
+        if (actionType === 'add') {
+          // Try to get studio data from detail page first
+          let studioData = state.detail.data;
+          let studioSummary: any = null;
+          
+          if (studioData) {
+            // Convert StudioDetail to StudioSummary format
+            studioSummary = {
+              id: studioData.id,
+              name: studioData.name,
+              description: studioData.description,
+              location: studioData.location,
+              pricing: studioData.pricing,
+              amenities: studioData.amenities,
+              status: studioData.status,
+              average_rating: studioData.average_rating,
+              total_reviews: studioData.total_reviews,
+              owner: studioData.customers ? { full_name: studioData.customers.full_name } : undefined
+            };
+          } else {
+            // If not on detail page, try to get from search results
+            studioSummary = state.search.results.find(studio => studio.id === studio_id);
           }
-        } else {
-          state.favorites.items = state.favorites.items.filter((s) => s.id !== studioId);
+          
+          // If still no data, create a minimal studio object
+          if (!studioSummary) {
+            studioSummary = { id: studio_id, name: 'Unknown Studio' };
+          }
+          
+          // Only add if not already in favorites
+          const isAlreadyFavorite = state.favorites.items.some(fav => fav.id === studio_id);
+          if (!isAlreadyFavorite) {
+            state.favorites.items.push(studioSummary);
+          }
+        } else if (actionType === 'remove') {
+          state.favorites.items = state.favorites.items.filter(fav => fav.id !== studio_id);
         }
       })
       .addCase(toggleFavoriteThunk.rejected, (state, action) => {
         state.favorites.loading = false;
         state.favorites.error = (action.payload as string) || action.error.message || 'Failed to toggle favorite';
+      })
+      .addCase(loadFavoritesThunk.pending, (state) => {
+        state.favorites.loading = true;
+        state.favorites.error = null;
+      })
+      .addCase(loadFavoritesThunk.fulfilled, (state, action) => {
+        state.favorites.loading = false;
+        state.favorites.items = action.payload;
+      })
+      .addCase(loadFavoritesThunk.rejected, (state, action) => {
+        state.favorites.loading = false;
+        state.favorites.error = (action.payload as string) || action.error.message || 'Failed to load favorites';
       })
       .addCase(createReviewThunk.pending, (state) => {
         state.reviewCreate.loading = true;

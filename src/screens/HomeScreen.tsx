@@ -24,7 +24,7 @@ import { PhotographerSummary } from '../types/api';
 import { ImageSourcePropType } from 'react-native';
 import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 import { RootState, AppDispatch } from '../store/store';
-import { studiosSearchThunk } from '../features/studios/studiosSlice';
+import { studiosSearchThunk, toggleFavoriteThunk, loadFavoritesThunk } from '../features/studios/studiosSlice';
 import { getphotographersSearch } from '../features/photographers/photographersSlice';
 
 const { width } = Dimensions.get('window');
@@ -42,8 +42,6 @@ const HomeScreen: React.FC = () => {
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
   const photographersState = useSelector((state: RootState) => state.photographers);
-  console.log('studiosState', studiosState);
-  console.log('photographersState', photographersState);
 
   // Get studios and photographers data
   const studiosError = studiosState.searchError;
@@ -69,9 +67,13 @@ const HomeScreen: React.FC = () => {
       page: 1,
       limit: 10
     }));
+    
+    dispatch(loadFavoritesThunk());
   }, [dispatch]);
 
-  const handleScrollEnd = (event: any) => {
+
+
+  const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const width = event.nativeEvent.layoutMeasurement.width;
     const index = Math.round(offsetX / width);
@@ -92,6 +94,20 @@ const HomeScreen: React.FC = () => {
 
   const navigateToBrowse = () => {
     navigation.navigate('Browse');
+  };
+
+  const handleToggleFavorite = (studioId: string) => {
+    const isFavorited = isStudioFavorited(studioId);
+    const action = isFavorited ? 'remove' : 'add';
+    
+    dispatch(toggleFavoriteThunk({
+      studio_id: studioId,
+      action: action
+    }));
+  };
+
+  const isStudioFavorited = (studioId: string) => {
+    return studiosState.favorites.items.some(studio => studio.id === studioId);
   };
 
   const tabImages = {
@@ -219,8 +235,15 @@ const HomeScreen: React.FC = () => {
         </View>
         
         {/* Heart Icon */}
-        <TouchableOpacity style={styles.heartIcon}>
-          <Icon name="favorite-border" size={14} color="#FF6D38" />
+        <TouchableOpacity 
+          style={styles.heartIcon}
+          onPress={() => handleToggleFavorite(item.id)}
+        >
+          <Icon 
+            name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
+            size={14} 
+            color="#FF6D38" 
+          />
         </TouchableOpacity>
       </View>
       
@@ -304,8 +327,15 @@ const renderRated = ({ item }: { item: any }) => {
             source={{ uri: item.images?.[0] || 'https://via.placeholder.com/150' }} 
             style={styles.ratedImage} 
           />
-          <TouchableOpacity style={styles.ratedHeartIcon}>
-            <Icon name="favorite-border" size={16} color="#FF6D38" />
+          <TouchableOpacity 
+            style={styles.ratedHeartIcon}
+            onPress={() => handleToggleFavorite(item.id)}
+          >
+            <Icon 
+              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
+              size={16} 
+              color="#FF6D38" 
+            />
           </TouchableOpacity>
         </View>
         
@@ -493,7 +523,7 @@ const renderRated = ({ item }: { item: any }) => {
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.studioList}
-            onMomentumScrollEnd={handleScrollEnd}
+            onMomentumScrollEnd={handleScroll}
           />
           <View style={styles.dotsRow}>
             {whyChooseData.map((item, index)  => (
