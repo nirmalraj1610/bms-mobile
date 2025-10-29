@@ -6,7 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../constants';
 import { RootState, AppDispatch } from '../store/store';
-import { loadFavoritesThunk } from '../features/studios/studiosSlice';
+import { loadFavoritesThunk, toggleFavoriteThunk } from '../features/studios/studiosSlice';
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -25,6 +25,26 @@ const FavoritesScreen: React.FC = () => {
       dispatch(loadFavoritesThunk());
     }, [dispatch])
   );
+
+  // Favorite toggle functionality
+  const handleToggleFavorite = (studioId: string) => {
+    const isFavorited = isStudioFavorited(studioId);
+    const action = isFavorited ? 'remove' : 'add';
+    
+    dispatch(toggleFavoriteThunk({
+      studio_id: studioId,
+      action: action
+    }));
+  };
+
+  const isStudioFavorited = (studioId: string) => {
+    return favorites.some((favorite: any) => {
+      // Handle different data structures for studio_id
+      return favorite.studio_id === studioId || 
+             favorite.id === studioId ||
+             (favorite.studios && favorite.studios.id === studioId);
+    });
+  };
 
   // Map favorites from Redux state into list-friendly shape for this screen
   const items = useMemo(
@@ -87,9 +107,13 @@ const FavoritesScreen: React.FC = () => {
       <View style={styles.cardBody}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
-          <View>
-            <Icon name="favorite" size={22} color={COLORS.favColor} />
-          </View>
+          <TouchableOpacity onPress={() => handleToggleFavorite(item.id)}>
+            <Icon 
+              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
+              size={22} 
+              color={COLORS.favColor} 
+            />
+          </TouchableOpacity>
         </View>
         <View style={styles.ratingRow}>
           {renderStars(item.average_rating)}
