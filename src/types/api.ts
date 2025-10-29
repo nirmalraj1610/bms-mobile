@@ -16,6 +16,7 @@ export interface AuthResponse {
 }
 
 export interface StudioSummary {
+  [x: string]: string;
   id: string;
   name: string;
   description?: string;

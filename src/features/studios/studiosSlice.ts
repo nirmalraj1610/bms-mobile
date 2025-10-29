@@ -88,10 +88,24 @@ export const toggleFavoriteThunk = createAsyncThunk('studios/toggleFavorite', as
 
 export const loadFavoritesThunk = createAsyncThunk('studios/loadFavorites', async (_, { rejectWithValue }) => {
   try {
+    console.log('=== loadFavoritesThunk Debug ===');
+    console.log('Calling getFavoriteStudios API...');
     const res = await getFavoriteStudios();
+    console.log('API Response:', res);
     const favorites = res.favorites || [];
+    console.log('Extracted favorites:', favorites);
+    console.log('Favorites count:', favorites.length);
     return favorites;
   } catch (err: any) {
+    console.log('loadFavoritesThunk Error:', err);
+    
+    // Handle authentication errors gracefully
+    if (err?.status === 401 || err?.error?.includes('unauthorized') || err?.error?.includes('authentication')) {
+      console.log('Authentication error detected, user not logged in');
+      // Return empty array instead of rejecting for auth errors
+      return [];
+    }
+    
     return rejectWithValue(err?.error || 'Failed to load favorites');
   }
 });
@@ -183,41 +197,19 @@ const studiosSlice = createSlice({
         const { studio_id, action: actionType } = action.payload;
         
         if (actionType === 'add') {
-          // Try to get studio data from detail page first
-          let studioData = state.detail.data;
-          let studioSummary: any = null;
-          
-          if (studioData) {
-            // Convert StudioDetail to StudioSummary format
-            studioSummary = {
-              id: studioData.id,
-              name: studioData.name,
-              description: studioData.description,
-              location: studioData.location,
-              pricing: studioData.pricing,
-              amenities: studioData.amenities,
-              status: studioData.status,
-              average_rating: studioData.average_rating,
-              total_reviews: studioData.total_reviews,
-              owner: studioData.customers ? { full_name: studioData.customers.full_name } : undefined
-            };
-          } else {
-            // If not on detail page, try to get from search results
-            studioSummary = state.search.results.find(studio => studio.id === studio_id);
-          }
-          
-          // If still no data, create a minimal studio object
-          if (!studioSummary) {
-            studioSummary = { id: studio_id, name: 'Unknown Studio' };
-          }
-          
           // Only add if not already in favorites
-          const isAlreadyFavorite = state.favorites.items.some(fav => fav.id === studio_id);
+          const isAlreadyFavorite = state.favorites.items.some(fav => (fav as any).studio_id === studio_id);
           if (!isAlreadyFavorite) {
-            state.favorites.items.push(studioSummary);
+            // Create a favorite record in the same format as the API
+            const favoriteRecord = {
+              id: `temp-${Date.now()}`, // Temporary ID until we reload from API
+              studio_id: studio_id,
+              customer_id: 'current-user' // This will be updated when we reload from API
+            };
+            state.favorites.items.push(favoriteRecord as any);
           }
         } else if (actionType === 'remove') {
-          state.favorites.items = state.favorites.items.filter(fav => fav.id !== studio_id);
+          state.favorites.items = state.favorites.items.filter((fav: any) => (fav as any).studio_id !== studio_id);
         }
       })
       .addCase(toggleFavoriteThunk.rejected, (state, action) => {
@@ -230,7 +222,11 @@ const studiosSlice = createSlice({
       })
       .addCase(loadFavoritesThunk.fulfilled, (state, action) => {
         state.favorites.loading = false;
+        console.log('=== loadFavoritesThunk.fulfilled Debug ===');
+        console.log('Payload received:', action.payload);
+        console.log('Setting favorites.items to:', action.payload);
         state.favorites.items = action.payload;
+        console.log('Updated favorites state:', state.favorites.items);
       })
       .addCase(loadFavoritesThunk.rejected, (state, action) => {
         state.favorites.loading = false;

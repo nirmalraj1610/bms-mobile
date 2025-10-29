@@ -13,10 +13,11 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, CITIES, FEATURES } from '../constants';
 import { mockStudios } from '../utils/mockData';
 import { Studio, Feature } from '../types';
@@ -42,13 +43,35 @@ const HomeScreen: React.FC = () => {
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
   const photographersState = useSelector((state: RootState) => state.photographers);
+console.log(studiosState,'studiooooooo');
 
   // Get studios and photographers data
   const studiosError = studiosState.searchError;
   const photographersError = photographersState.searchError;
 
+  // Helper function to check if user is authenticated
+  const checkAuthAndLoadFavorites = async () => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      console.log('=== Auth Check Debug ===');
+      console.log('Token exists:', !!token);
+      
+      if (token) {
+        console.log('User is authenticated, loading favorites...');
+        dispatch(loadFavoritesThunk());
+      } else {
+        console.log('User not authenticated, skipping favorites loading');
+      }
+    } catch (error) {
+      console.log('Error checking authentication:', error);
+    }
+  };
+
   // Fetch data on component mount
   useEffect(() => {
+    console.log('=== HomeScreen useEffect Debug ===');
+    console.log('Component mounted, dispatching initial data fetches...');
+    
     // Fetch studios with basic search parameters
     dispatch(studiosSearchThunk({
       q: '',
@@ -68,8 +91,18 @@ const HomeScreen: React.FC = () => {
       limit: 10
     }));
     
-    dispatch(loadFavoritesThunk());
+    // Check authentication before loading favorites
+    checkAuthAndLoadFavorites();
   }, [dispatch]);
+
+  // Reload favorites when screen comes into focus (e.g., after login)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('=== HomeScreen Focus Effect ===');
+      console.log('Screen focused, checking auth and reloading favorites...');
+      checkAuthAndLoadFavorites();
+    }, [])
+  );
 
 
 
@@ -107,7 +140,7 @@ const HomeScreen: React.FC = () => {
   };
 
   const isStudioFavorited = (studioId: string) => {
-    return studiosState.favorites.items.some(studio => studio.id === studioId);
+    return studiosState.favorites.items.some(studio => studio.studio_id === studioId);
   };
 
   const tabImages = {
@@ -235,16 +268,16 @@ const HomeScreen: React.FC = () => {
         </View>
         
         {/* Heart Icon */}
-        <TouchableOpacity 
-          style={styles.heartIcon}
-          onPress={() => handleToggleFavorite(item.id)}
-        >
-          <Icon 
-            name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
-            size={14} 
-            color="#FF6D38" 
-          />
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.heartIcon}
+            onPress={() => handleToggleFavorite(item.id)}
+          >
+            <Icon 
+              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
+              size={14} 
+              color="#FF6038" 
+            />
+          </TouchableOpacity>
       </View>
       
       <View style={styles.recommendInfo}>
@@ -292,8 +325,15 @@ const renderRated = ({ item }: { item: any }) => {
             source={{ uri: imageUrl }} 
             style={styles.ratedImage} 
           />
-          <TouchableOpacity style={styles.ratedHeartIcon}>
-            <Icon name="favorite-border" size={16} color="#FF6D38" />
+          <TouchableOpacity 
+            style={styles.ratedHeartIcon}
+            onPress={() => handleToggleFavorite(item.id)}
+          >
+            <Icon 
+              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
+              size={16} 
+              color="#FF6D38" 
+            />
           </TouchableOpacity>
         </View>
         
@@ -475,7 +515,7 @@ const renderRated = ({ item }: { item: any }) => {
             </Text>
           ) : (
             <FlatList
-               data={studiosState.search.results as Studio[]}
+               data={studiosState.search.results as unknown as Studio[]}
                renderItem={renderRecommendCard}
                keyExtractor={(item) => item.id}
                horizontal
