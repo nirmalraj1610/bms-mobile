@@ -29,15 +29,28 @@ const FavoritesScreen: React.FC = () => {
   // Map favorites from Redux state into list-friendly shape for this screen
   const items = useMemo(
     () =>
-      favorites.map((favorite) => {
-        const studio = favorite.studios;
+      favorites.map((favorite: any) => {
+        // Handle different possible data structures
+        let studio: any;
+        
+        if (typeof favorite.studios === 'object' && favorite.studios !== null) {
+          // Case 1: studios is an object containing studio data
+          studio = favorite.studios;
+        } else if (typeof favorite.studios === 'string') {
+          // Case 2: studios is a string ID, use favorite data directly
+          studio = favorite;
+        } else {
+          // Case 3: fallback to favorite data directly
+          studio = favorite;
+        }
+        
         return {
-          id: studio.id,
-          name: studio.name,
-          thumbnail: studio.images?.[0],
-          location: { city: studio.location.city },
-          average_rating: studio.average_rating || 0,
-          total_reviews: studio.reviews?.length || 0,
+          id: studio?.id || favorite?.studio_id || favorite?.id || 'unknown',
+          name: studio?.name || 'Unknown Studio',
+          thumbnail: studio?.images?.[0] || null,
+          location: { city: studio?.location?.city || 'Unknown Location' },
+          average_rating: studio?.average_rating || 0,
+          total_reviews: studio?.reviews?.length || studio?.total_reviews || 0,
         };
       }),
     [favorites]
