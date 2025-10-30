@@ -11,13 +11,13 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';
 import { COLORS } from '../constants';
-import { DashboardComponent } from '../components/Dashboard';
-import { MyStudioComponent } from '../components/MyStudio';
-import { BookingsComponent } from '../components/Bookings';
-import { ManageEquipmentComponent } from '../components/ManageEquipment';
-import AddStudioComponent from '../components/AddStudio';
+import { DashboardComponent } from '../components/studioOwner/Dashboard';
+import { MyStudioComponent } from '../components/studioOwner/MyStudio';
+import { BookingsComponent } from '../components/studioOwner/Bookings';
+import { ManageEquipmentComponent } from '../components/studioOwner/ManageEquipment';
+import AddStudioComponent from '../components/studioOwner/AddStudio';
 
-const DashboardScreen: React.FC = () => {
+const StudioDashboardScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
 
   const menus = [
@@ -29,11 +29,11 @@ const DashboardScreen: React.FC = () => {
   ];
 
   const iconMap = {
-    Dashboard: "menu",
-    "My Studios": "business",
-    Bookings: "event",
-    "Add Studio": "add-circle-outline",
-    "Manage Equipments": "build", // default/fallback example
+    Dashboard: "space-dashboard",
+    "My Studios": "photo-camera",
+    Bookings: "calendar-month",
+    "Add Studio": "add-business",
+    "Manage Equipments": "handyman", // default/fallback example
   };
 
   return (
@@ -104,7 +104,7 @@ const DashboardScreen: React.FC = () => {
   );
 };
 
-export default DashboardScreen;
+export default StudioDashboardScreen;
 
 const styles = StyleSheet.create({
   container: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -11,11 +11,13 @@ import ProfileScreen from '../screens/ProfileScreen';
 import { MainTabParamList } from '../types';
 import { COLORS } from '../constants';
 import BookingScreen from '../screens/BookingScreen';
-import DashboardScreen from '../screens/DashboardScreen';
+import StudioDashboardScreen from '../screens/StudioDashboardScreen';
+import PhotographerDashboardScreen from '../screens/PhotographerDashboardScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainTabNavigator: React.FC = () => {
+  const [currentUser, setCurrentuser] = useState('photographer') // user or studioOwner or photographer
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -63,11 +65,11 @@ const MainTabNavigator: React.FC = () => {
         component={BookingScreen} 
         options={{ title: 'Bookings' }}
       />
-      <Tab.Screen 
+      {currentUser !== 'user' && <Tab.Screen 
         name="Dashboard" 
-        component={DashboardScreen} 
+        component={currentUser === 'studioOwner' ? StudioDashboardScreen : PhotographerDashboardScreen} 
         options={{ title: 'Dashboard' }}
-      />
+      />}
       <Tab.Screen 
         name="Favorites" 
         component={FavoritesScreen} 

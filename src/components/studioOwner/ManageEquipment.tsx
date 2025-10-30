@@ -98,7 +98,7 @@ export const ManageEquipmentComponent = () => {
             dayPrice: '1500',
             avaliable: '2',
             condition: 'Good',
-            image: 'https://img.freepik.com/premium-vector/realistic-spotlight-design-illustration_176411-1504.jpg'
+            image: 'https://3.imimg.com/data3/VH/BQ/GLADMIN-119035/photo-studio-equipment-250x250.jpg'
         },
     ];
 
@@ -167,8 +167,8 @@ export const ManageEquipmentComponent = () => {
                         <Text style={styles.studioName}>{item.equipment} <Text style={styles.equipmentType}>({item.equipmentType})</Text></Text>
                         <Text style={styles.studioDesc}>{item.desc}</Text>
                         <Text style={styles.avaliable}>Price range:</Text>
-                        <Text style={styles.avaliable}>Per hour: <Text style={styles.price}>{item.hourPrice}</Text></Text>
-                        <Text style={styles.avaliable}>Per Day: <Text style={styles.price}>{item.dayPrice}</Text></Text>
+                        <Text style={styles.avaliable}>Per hour: <Text style={styles.price}>₹ {item.hourPrice}</Text></Text>
+                        <Text style={styles.avaliable}>Per Day: <Text style={styles.price}>₹ {item.dayPrice}</Text></Text>
                         <Text style={styles.avaliable}>Avaliable: <Text style={styles.price}>{item.avaliable} pieces</Text></Text>
                         <Text style={styles.avaliable}>Condition: <Text style={styles.price}>{item.condition}</Text></Text>
                     </View>
@@ -350,6 +350,7 @@ export const ManageEquipmentComponent = () => {
                         <TextInput
                             style={styles.input}
                             placeholderTextColor={'#898787'}
+                            keyboardType="number-pad"
                             placeholder="e.g., 6"
                             value={addStudio.availableQuantity}
                             onChangeText={(text) =>
@@ -361,6 +362,7 @@ export const ManageEquipmentComponent = () => {
                         <TextInput
                             style={styles.input}
                             placeholderTextColor={'#898787'}
+                            keyboardType="number-pad"
                             placeholder="e.g., 300"
                             value={addStudio.hourlyRate}
                             onChangeText={(text) =>
@@ -372,6 +374,7 @@ export const ManageEquipmentComponent = () => {
                         <TextInput
                             style={styles.input}
                             placeholderTextColor={'#898787'}
+                            keyboardType="number-pad"
                             placeholder="e.g., 5000"
                             value={addStudio.dailyRate}
                             onChangeText={(text) =>

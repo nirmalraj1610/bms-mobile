@@ -14,9 +14,8 @@ export const DashboardComponent = () => {
         {
             id: '1',
             bookingId: 'BMS001',
-            date: '25-09-2024',
-            name: 'Priya Sharma',
             studio: 'Studio Elite Mumbai',
+            date: '25-09-2024',
             time: '2:00 PM - 6:00 PM',
             price: '10,000',
             status: 'Pending',
@@ -25,9 +24,8 @@ export const DashboardComponent = () => {
         {
             id: '2',
             bookingId: 'BMS002',
-            date: '25-09-2024',
-            name: 'Priya Sharma',
             studio: 'Studio Elite Mumbai',
+            date: '25-09-2024',
             time: '2:00 PM - 6:00 PM',
             price: '8,000',
             status: 'Confirmed',
@@ -36,9 +34,8 @@ export const DashboardComponent = () => {
         {
             id: '3',
             bookingId: 'BMS003',
-            date: '25-09-2024',
-            name: 'Priya Sharma',
             studio: 'Studio Elite Mumbai',
+            date: '25-09-2024',
             time: '2:00 PM - 6:00 PM',
             price: '8,000',
             status: 'Completed',
@@ -50,10 +47,12 @@ export const DashboardComponent = () => {
         let statusColor = '#FE9A55'; // default Pending orange
         if (item.status === 'Confirmed') statusColor = '#FFC107'; // yellow
         if (item.status === 'Completed') statusColor = '#0D6EFD'; // blue
+        if (item.status === 'Cancelled') statusColor = '#DC3545'; // red
 
         let statusTextColor = '#FFFFFF'; // default Pending orange
         if (item.status === 'Confirmed') statusTextColor = '#2F2F2F'; // yellow
         if (item.status === 'Completed') statusTextColor = '#FFFFFF'; // blue
+        if (item.status === 'Cancelled') statusTextColor = '#FFFFFF'; // white
 
         return (
             <View style={styles.card}>
@@ -69,9 +68,8 @@ export const DashboardComponent = () => {
                         <Text style={styles.bookingId}>
                             Booking ID: {item.bookingId}
                         </Text>
+                        <Text style={styles.name}>{item.studio}</Text>
                         <Text style={styles.date}>{item.date}</Text>
-                        <Text style={styles.name}>{item.name}</Text>
-                        <Text style={styles.studio}>{item.studio}</Text>
                         <Text style={styles.time}>{item.time}</Text>
                         <Text style={styles.price}>₹{item.price}</Text>
 
@@ -84,11 +82,11 @@ export const DashboardComponent = () => {
                             )}
                             {item.status === 'Confirmed' && (
                                 <>
-                                    <TouchableOpacity style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Decline</Text>
-                                    </TouchableOpacity>
                                     <TouchableOpacity style={styles.acceptBtn}>
                                         <Text style={styles.acceptText}>Accept</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.declineBtn}>
+                                        <Text style={styles.declineText}>Decline</Text>
                                     </TouchableOpacity>
                                 </>
                             )}
@@ -104,43 +102,35 @@ export const DashboardComponent = () => {
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>
-                    <Icon name="storefront" size={32} color="#2F2F2F" />
+                    <Icon name="camera-alt" size={32} color="#2F2F2F" />
                     <View>
-                        <Text style={styles.bgCountText}>3</Text>
-                        <Text style={styles.bgText}>Active Studios</Text>
+                        <Text style={styles.bgCountText}>24</Text>
+                        <Text style={styles.bgText}>Total Bookings</Text>
                     </View>
                 </View>
 
                 <View style={styles.bgImageCard}>
-                    <Icon name="camera-alt" size={32} color="#2F2F2F" />
+                    <Icon name="currency-rupee" size={32} color="#2F2F2F" />
                     <View>
-                        <Text style={styles.bgCountText}>156</Text>
-                        <Text style={styles.bgText}>Total Bookings</Text>
+                        <Text style={styles.bgCountText}>₹65,000</Text>
+                        <Text style={styles.bgText}>Total Spent</Text>
                     </View>
                 </View>
             </View>
             {/* Dashboard views two */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>
-                    <Icon name="account-balance-wallet" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>₹425,000</Text>
-                        <Text style={styles.bgText}>Total Earnings</Text>
-                    </View>
-                </View>
-
-                <View style={styles.bgImageCard}>
-                    <Icon name="pending-actions" size={32} color="#2F2F2F" />
+                    <Icon name="favorite" size={32} color="#2F2F2F" />
                     <View>
                         <Text style={styles.bgCountText}>8</Text>
-                        <Text style={styles.bgText}>Pending Requests</Text>
+                        <Text style={styles.bgText}>Favorite Studios</Text>
                     </View>
                 </View>
             </View>
             {/* Menu renders here*/}
 
             <View style={styles.header}>
-                <Text style={styles.title}>Recent Booking Requests</Text>
+                <Text style={styles.title}>Recent Booking</Text>
                 <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
                     <Icon name="filter-list" size={24} color="#1B4332" />
                     <Text style={styles.addButtonText}>Filter</Text>
@@ -270,10 +260,6 @@ const styles = StyleSheet.create({
         color: '#034833',
         marginTop: 2,
     },
-    studio: {
-        fontSize: 12,
-        color: '#2F2F2F',
-    },
     time: {
         fontSize: 12,
         color: '#2F2F2F',
@@ -303,14 +289,13 @@ const styles = StyleSheet.create({
     },
     declineBtn: {
         borderWidth: 1,
-        borderColor: '#034833',
+        borderColor: '#DC3545',
         paddingHorizontal: 20,
         paddingVertical: 6,
         borderRadius: 6,
-        marginRight: 8,
     },
     declineText: {
-        color: '#034833',
+        color: '#DC3545',
         fontSize: 12,
         fontWeight: '600',
     },
@@ -319,6 +304,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 6,
         borderRadius: 6,
+        marginRight: 8,
     },
     acceptText: {
         color: '#fff',

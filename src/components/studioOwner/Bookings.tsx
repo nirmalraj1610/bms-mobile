@@ -91,10 +91,12 @@ export const BookingsComponent = () => {
         let statusColor = '#FE9A55'; // default Pending orange
         if (item.status === 'Confirmed') statusColor = '#FFC107'; // yellow
         if (item.status === 'Completed') statusColor = '#0D6EFD'; // blue
+        if (item.status === 'Cancelled') statusColor = '#DC3545'; // red
 
         let statusTextColor = '#FFFFFF'; // default Pending orange
         if (item.status === 'Confirmed') statusTextColor = '#2F2F2F'; // yellow
         if (item.status === 'Completed') statusTextColor = '#FFFFFF'; // blue
+        if (item.status === 'Cancelled') statusTextColor = '#FFFFFF'; // white
 
         return (
             <View style={styles.card}>
@@ -110,12 +112,12 @@ export const BookingsComponent = () => {
                         <Text style={styles.bookingId}>
                             Booking ID: {item.bookingId}
                         </Text>
+                        <Text style={styles.time}>Booked on :<Text style={{fontWeight: '600'}}>  {item.bookedOn} </Text></Text>
                         <Text style={styles.name}>{item.name}</Text>
-                        <Text style={styles.studio}>Studio : {item.studio}</Text>
-                        <Text style={styles.date}>Date : {item.date}</Text>
-                        <Text style={styles.time}>Time : {item.time}</Text>
-                        <Text style={styles.time}>Phone : {item.phone}</Text>
-                        <Text style={styles.time}>Booked on : {item.bookedOn}</Text>
+                        <Text style={styles.studio}>{item.studio}</Text>
+                        <Text style={styles.date}>{item.date}</Text>
+                        <Text style={styles.time}>{item.time}</Text>
+                        <Text style={styles.time}>{item.phone}</Text>
                         <Text style={styles.price}> <Text style={{ ...styles.price, color: '#2F2F2F', fontSize: 14 }}>Total price : </Text>₹{item.price}</Text>
                         <View style={styles.paymentOutline}>
                             <Text style={styles.paid}> <Text style={{ ...styles.paid, color: '#2F2F2F', fontSize: 12 }}>Paid : </Text>₹{item.paid}</Text>
@@ -163,7 +165,7 @@ export const BookingsComponent = () => {
             {/* Dashboard views two */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>
-                    <Icon name="account-balance-wallet" size={32} color="#2F2F2F" />
+                    <Icon name="currency-rupee" size={32} color="#2F2F2F" />
                     <View>
                         <Text style={styles.bgCountText}>₹30,000</Text>
                         <Text style={styles.bgText}>Total Earnings</Text>
@@ -202,6 +204,8 @@ export const BookingsComponent = () => {
                     ))}
                 </Picker>
             </View>
+
+            <Text style={styles.labelText} >Select date range</Text>
 
             <View style={styles.timeRow}>
                 <TouchableOpacity
@@ -371,7 +375,7 @@ const styles = StyleSheet.create({
         color: '#2F2F2F',
     },
     name: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: '700',
         color: '#034833',
         marginTop: 2,
