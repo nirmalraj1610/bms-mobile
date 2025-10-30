@@ -7,6 +7,7 @@ import { COLORS } from '../constants';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getBookings } from '../features/bookings/bookingsSlice';
 import type { BookingHistoryItem } from '../types/api';
+import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 const BookingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -93,55 +94,114 @@ console.log('bookings:', bookings);
       case 'Pending':
         return {
           backgroundColor: '#FFFFFF',
-          color: COLORS.bg, // Green text
           borderColor: COLORS.bg,
           borderWidth: 1,
         };
       case 'Cancelled':
         return {
-          backgroundColor: COLORS.error, // Green background
-          color: '#FFFFFF', // White text
+          backgroundColor: COLORS.error,
           borderWidth: 0,
         };
       case 'Confirmed':
         return {
-          backgroundColor: COLORS.bg, // Green background
-          color: '#FFFFFF', // White text
+          backgroundColor: '#FFC107',
           borderWidth: 0,
         };
       default:
         return {
           backgroundColor: COLORS.bg,
-          color: COLORS.text.secondary,
           borderWidth: 0,
+        };
+    }
+  };
+
+  const getStatusTextStyles = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return {
+          color: COLORS.bg,
+        };
+      case 'Cancelled':
+        return {
+          color: '#FFFFFF',
+        };
+      case 'Confirmed':
+        return {
+          color: '#000000',
+        };
+      default:
+        return {
+          color: COLORS.text.secondary,
         };
     }
   };
 
   const renderBookingItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
-      <View style={styles.cardContent}>
-        {/* <View style={styles.cardHeader}>
-          <TouchableOpacity>
-            <Icon 
-              name="favorite" 
-              size={20} 
-              color={item.isFavorite ? COLORS.favColor : COLORS.text.secondary} 
-            />
-          </TouchableOpacity>
-        </View> */}
-          {/* <Text style={styles.studioName}>{item.studioName}</Text> */}
-        <Text style={styles.dateTime1}>{item.studioName}</Text>
-        <Text style={styles.dateTime}>{item.date} {item.time}</Text>
-        <Text style={styles.bookingType}>
-          Booking type : {item.bookingType === 'studio' ? 'Studio Booking' : 'Photographer Booking'}
-        </Text>
+      <View style={styles.cardMainContent}>
+        {/* Left Section - Image and Price */}
+        <View style={styles.leftSection}>
+          <Image source={{ uri: item.image }} style={styles.cardImage} />
+          <Text style={styles.priceText}>₹{item.price || '200'}</Text>
+        </View>
 
-        <View style={styles.statusContainer}>
-          <Text style={[styles.statusText, getStatusStyles(item.status)]}>
-            {item.status}
-          </Text>
+        {/* Middle Section - Main Content */}
+        <View style={styles.middleSection}>
+          <Text style={styles.studioName}>{item.studioName}</Text>
+          
+          <View style={styles.locationRow}>
+            <Icon name="location-on" size={16} color={COLORS.text.secondary} />
+            <Text style={styles.locationText}>{item.location || 'chennai'}</Text>
+          </View>
+          
+          <View style={styles.dateRow}>
+            <Icon name="calendar-today" size={16} color={COLORS.text.secondary} />
+            <Text style={styles.dateText}>{item.date}</Text>
+          </View>
+          
+          <View style={styles.timeRow}>
+            <Icon name="access-time" size={16} color={COLORS.text.secondary} />
+            <Text style={styles.timeText}>{item.time}</Text>
+          </View>
+
+          <View style={styles.studioTag}>
+            <Text style={styles.studioTagText}>Studio</Text>
+          </View>
+
+          {/* <Text style={styles.bookingId}>Booking ID: {item.bookingId || '1349c3e1-55a9-4cce-8154-a0ca17f84d03'}</Text>
+          <Text style={styles.bookedOn}>Booked on: {item.bookedOn || '2025-10-29T12:44:18.429259+00:00'}</Text> */}
+        </View>
+
+        {/* Right Section - Status and Action Buttons */}
+        <View style={styles.rightSection}>
+          <View style={[styles.statusBadge, getStatusStyles(item.status)]}>
+            <Text style={[styles.statusBadgeText, getStatusTextStyles(item.status)]}>
+              {item.status}
+            </Text>
+          </View>
+
+          {/* Conditional buttons for confirmed bookings only */}
+          {item.status === 'Confirmed' && (
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity style={styles.rescheduleButton}>
+                <Icon name="schedule" size={14} color={COLORS.text.primary} />
+                <Text style={styles.rescheduleButtonText}>Reschedule</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.checkInButton}>
+                <Icon name="login" size={14} color={COLORS.background} />
+                <Text style={styles.checkInButtonText}>Check IN</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.viewStudioButton}>
+                <Text style={styles.viewStudioButtonText}>View Studio</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -356,28 +416,44 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   card: {
-    flexDirection: 'row',
-    // backgroundColor: COLORS.bg2,
+    backgroundColor: COLORS.background,
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    padding: 16,
+    marginBottom: 16,
     elevation: 2,
-    shadowColor: '#ffffffff',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#F0F2F5',
   },
-  cardImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 12,
-    marginRight: 12,
+  cardMainContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
-  cardContent: {
+  leftSection: {
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  cardImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  priceText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text.primary,
+  },
+  middleSection: {
     flex: 1,
-    justifyContent: 'space-between',
+    paddingRight: 12,
+  },
+  rightSection: {
+    alignItems: 'flex-end',
+    minWidth: 120,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -385,47 +461,146 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   studioName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: COLORS.text.primary,
-    flex: 1,
-  },
-  dateTime: {
-    fontSize: 13,
-    color: COLORS.text.secondary,
-    marginBottom: 20,
-    // marginTop: 4,
-
-    
-    
-
-  },
-  dateTime1: {
-    fontSize: 16,
-    color: COLORS.text.primary,
-
-    fontWeight: '700',
-
-    marginTop: 4,
-  },
-  bookingType: {
-    fontSize: 12,
-    color: COLORS.text.secondary,
-    marginTop: 4,
     marginBottom: 8,
-    fontWeight: '500',
   },
-  statusContainer: {
-    alignSelf: 'flex-end',
-    // marginTop: 8,
-    marginRight:15,
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
+  locationText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    marginLeft: 4,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  dateText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    marginLeft: 4,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  timeText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    marginLeft: 4,
+  },
+  studioTag: {
+    backgroundColor: '#E8F5E8',
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  studioTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2E7D32',
+  },
+  bookingId: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginBottom: 4,
+  },
+  bookedOn: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionButtonsContainer: {
+    gap: 8,
+    alignItems: 'flex-end',
+  },
+  rescheduleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffffff',
+    borderWidth: 1,
+    borderColor: '#ffcc00ff',
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    gap: 4,
+    minWidth: 100,
+    elevation: 1,
+
+  },
+  rescheduleButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.black,
+  },
+  cancelButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#ff0000ff',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    minWidth: 100,
+    elevation: 1,
+    
+  },
+  cancelButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#ff0000ff',
+  },
+  checkInButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.bg,
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 4,
+    minWidth: 100,
+  },
+  checkInButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.background,
+  },
+  viewStudioButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: COLORS.text.secondary,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    minWidth: 100,
+  },
+  viewStudioButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text.secondary,
   },
   sectionTitle: {
     fontSize: 18,
