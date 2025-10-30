@@ -14,8 +14,14 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { launchImageLibrary } from "react-native-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useDispatch } from "react-redux";
+import { createStudio } from "../../features/studios/studios.service";
+import { createStudioThunk } from "../../features/studios/studiosSlice";
+import { useNavigation } from "@react-navigation/native";
 
 const AddStudioComponent = () => {
+  const dispatch = useDispatch();
+  const navigation = useNavigation<any>();
   const [selectedTab, setSelectedTab] = useState(1);
   const flatListRef = useRef<FlatList>(null);
   const [selectedFile, setSelectedFile] = useState([]);
@@ -37,6 +43,7 @@ const AddStudioComponent = () => {
     studioType: "",
     studioDesc: "",
     studioAddress: "",
+    state: "",
     city: "",
     pinCode: "",
     landMark: "",
@@ -89,6 +96,81 @@ const AddStudioComponent = () => {
     { id: 15, name: "Lens Cleaning Kit", selected: false },
   ]);
 
+  const clearAllStates = () => {
+    // clear days value
+    setDays([
+    { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
+    { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
+    { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
+    { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
+    { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
+    { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
+    { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
+  ]);
+
+  // clear basic info
+  setBasicInfo({
+    studioName: "",
+    studioType: "",
+    studioDesc: "",
+    studioAddress: "",
+    state: "",
+    city: "",
+    pinCode: "",
+    landMark: "",
+  });
+
+  // clear details value
+  setDetails({
+    studioSize: "",
+    maximumPeople: "",
+    minBookingHours: "",
+    maxBookingHours: "",
+    basePrice: "",
+    weekendPrice: "",
+    overtimePrice: "",
+    securityDeposit: "",
+    contactPhone: "",
+    alternatePhone: "",
+  });
+
+  // clear amenities values
+  setAmenities([
+    { id: 1, name: "Professional Lighting Setup", selected: false },
+    { id: 2, name: "Props & Accessories", selected: false },
+    { id: 3, name: "Makeup Station", selected: false },
+    { id: 4, name: "Changing Room", selected: false },
+    { id: 5, name: "Air Conditioning", selected: false },
+    { id: 6, name: "Parking Available", selected: false },
+    { id: 7, name: "Refreshments", selected: false },
+    { id: 8, name: "Sound System", selected: false },
+    { id: 9, name: "Green Screen", selected: false },
+    { id: 10, name: "Cyclorama Wall", selected: false },
+    { id: 11, name: "Natural Light", selected: false },
+    { id: 12, name: "Storage Space", selected: false },
+    { id: 13, name: "Client Lounge", selected: false },
+  ]);
+
+  // clear equipments values
+  setEquipments([
+    { id: 1, name: "Canon DSLR Cameras", selected: false },
+    { id: 2, name: "Sony Mirrorless Cameras", selected: false },
+    { id: 3, name: "Nikon Professional Cameras", selected: false },
+    { id: 4, name: "Profoto Flash Systems", selected: false },
+    { id: 5, name: "Godox LED Lights", selected: false },
+    { id: 6, name: "Softbox Light Modifiers", selected: false },
+    { id: 7, name: "Reflectors & Diffusers", selected: false },
+    { id: 8, name: "Tripods & Stands", selected: false },
+    { id: 9, name: "Backdrop Support System", selected: false },
+    { id: 10, name: "Light Meters", selected: false },
+    { id: 11, name: "Wireless Triggers", selected: false },
+    { id: 12, name: "Extension Cords & Power", selected: false },
+    { id: 13, name: "Sandbags & Clamps", selected: false },
+    { id: 14, name: "Memory Cards", selected: false },
+    { id: 15, name: "Lens Cleaning Kit", selected: false },
+  ]);
+  }
+
   const [images, setImages] = useState({
     cancellationPolicy: "",
     paymentPolicy: "",
@@ -104,26 +186,19 @@ const AddStudioComponent = () => {
     "Multi-purpose studio",
   ]
 
-  const studioCity = [
-    "Mumbai",
-    "Delhi",
-    "Bangalore",
-    "Chennai",
-    "hyderabad",
-    "Pune",
-  ]
   const minBookingHours = [
-    "1 Hour",
-    "2 Hours",
-    "3 Hours",
-    "4 Hours",
-  ]
+    { label: "1 Hour", value: "1" },
+    { label: "2 Hours", value: "2" },
+    { label: "3 Hours", value: "3" },
+    { label: "4 Hours", value: "4" },
+  ];
+
   const maxBookingHours = [
-    "8 Hour",
-    "10 Hours",
-    "12 Hours",
-    "24 Hours",
-  ]
+    { label: "8 Hours", value: "8" },
+    { label: "10 Hours", value: "10" },
+    { label: "12 Hours", value: "12" },
+    { label: "24 Hours", value: "24" },
+  ];
 
   const cancellationPolicy = [
     "Free cancellation upto 24 hours",
@@ -145,6 +220,78 @@ const AddStudioComponent = () => {
     { id: 4, name: "Images" },
     { id: 5, name: "Review Your Studio Listing" },
   ];
+
+  const onSubmitPress = async () => {
+    const payload = {
+      name: basicInfo?.studioName?.trim() || "",
+      description: basicInfo?.studioDesc?.trim() || "",
+      location: {
+        address: basicInfo?.studioAddress?.trim() || "",
+        city: basicInfo?.city?.trim() || "",
+        state: basicInfo?.state?.trim() || "",
+        pincode: Number(basicInfo?.pinCode) || 0,
+        coordinates: {
+          lat: 19.076,  // TODO: replace with actual user-selected coordinates if available
+          lng: 72.8777
+        }
+      },
+      pricing: {
+        hourly_rate: Number(details?.basePrice) || 0,
+        minimum_hours: Number(details?.minBookingHours) || 0,
+        maximum_hours: Number(details?.maxBookingHours) || 0,
+        extra_hour_rate: Number(details?.overtimePrice) || 0,
+        weekend_multiplier: Number(details?.weekendPrice) || 0
+      },
+      amenities: selectedAmenities?.map(item => item?.name) || [],
+      studio_type: basicInfo?.studioType || "",
+      details: {
+        size: Number(details?.studioSize) || 0,
+        capacity: Number(details?.maximumPeople) || 0,
+        contact_phone: details?.contactPhone?.trim() || "",
+        alternate_phone: details?.alternatePhone?.trim() || ""
+      },
+      policies: {
+        cancellation: images?.cancellationPolicy?.trim() || "",
+        payment: images?.paymentPolicy?.trim() || "",
+        rules: images?.additionalRules?.trim() || ""
+      },
+      operating_hours: buildOperatingHoursPayload(days),
+      equipment: selectedEquipments?.map(item => item?.name) || []
+    };
+
+    console.log("📦 Final Payload:", JSON.stringify(payload, null, 2));
+
+    try{
+        const response = await dispatch(createStudioThunk(payload)).unwrap(); // 👈 unwrap() to get actual resolved value
+        clearAllStates();
+        navigation.navigate('Home');
+        console.log("✅ Studio Created Successfully:", response);
+  } catch (error) {
+    console.error("❌ Error submitting studio:", error);
+  }
+};
+
+
+  const buildOperatingHoursPayload = (days: any[]) => {
+    const result: any = {};
+
+    days.forEach((day) => {
+      const key = day.name.toLowerCase(); // "Monday" → "monday"
+
+      result[key] = {
+        open: day.openTime
+          ? new Date(day.openTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
+          : null,
+        close: day.closeTime
+          ? new Date(day.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
+          : null,
+        closed: !day.selected, // if unchecked → closed = true
+      };
+    });
+
+    return result;
+  };
+
 
   const toggleDay = (id: number) => {
     setDays((prev) =>
@@ -424,40 +571,48 @@ const AddStudioComponent = () => {
               ))}
             </Picker>
           </View>
-          <Text style={styles.labelText} >Studio Description<Text style={styles.required}> *</Text></Text>
+          <Text style={styles.labelText} >Description<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={{ ...styles.input, ...styles.textArea }}
             placeholderTextColor={'#898787'}
+            multiline
             placeholder="Describe your studio , its unique features and what make it special..."
             value={basicInfo.studioDesc}
             onChangeText={(text) =>
               setBasicInfo({ ...basicInfo, studioDesc: text })
             }
           />
-          <Text style={styles.labelText} >Studio Address<Text style={styles.required}> *</Text></Text>
+          <Text style={styles.labelText} >Full Address<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={{ ...styles.input, ...styles.textArea }}
             placeholderTextColor={'#898787'}
-            placeholder="Enter the complete studio adress"
+            placeholder="Enter the complete studio adress..."
+            multiline
             value={basicInfo.studioAddress}
             onChangeText={(text) =>
               setBasicInfo({ ...basicInfo, studioAddress: text })
             }
           />
+          <Text style={styles.labelText} >State<Text style={styles.required}> *</Text></Text>
+          <TextInput
+            style={styles.input}
+            placeholderTextColor={'#898787'}
+            placeholder="Enter the state"
+            value={basicInfo.state}
+            onChangeText={(text) =>
+              setBasicInfo({ ...basicInfo, state: text })
+            }
+          />
           <Text style={styles.labelText} >City<Text style={styles.required}> *</Text></Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={basicInfo.city} // Must match one of Picker.Item values
-              onValueChange={(value) => setBasicInfo({ ...basicInfo, city: value })}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Select studio city" value="" />
-              {studioCity.map((city, index) => (
-                <Picker.Item key={index} label={city} value={city} />
-              ))}
-            </Picker>
-          </View>
+          <TextInput
+            style={styles.input}
+            placeholderTextColor={'#898787'}
+            placeholder="Enter the city"
+            value={basicInfo.city}
+            onChangeText={(text) =>
+              setBasicInfo({ ...basicInfo, city: text })
+            }
+          />
           <Text style={styles.labelText} >Pin Code<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={styles.input}
@@ -513,7 +668,7 @@ const AddStudioComponent = () => {
             >
               <Picker.Item label="Select min hours" value="" />
               {minBookingHours.map((minHours, index) => (
-                <Picker.Item key={index} label={minHours} value={minHours} />
+                <Picker.Item key={index} label={minHours.label} value={minHours.value} />
               ))}
             </Picker>
           </View>
@@ -527,7 +682,7 @@ const AddStudioComponent = () => {
             >
               <Picker.Item label="Select max hours" value="" />
               {maxBookingHours.map((maxHours, index) => (
-                <Picker.Item key={index} label={maxHours} value={maxHours} />
+                <Picker.Item key={index} label={maxHours.label} value={maxHours.value} />
               ))}
             </Picker>
           </View>
@@ -685,6 +840,7 @@ const AddStudioComponent = () => {
           <TextInput
             style={{ ...styles.input, ...styles.textArea }}
             placeholderTextColor={'#898787'}
+            multiline
             placeholder="Any additional rules, restrictions, or policies for your studio"
             value={images.additionalRules}
             onChangeText={(text) =>
@@ -705,12 +861,16 @@ const AddStudioComponent = () => {
               <Text style={styles.listInformation} >{' : '} {basicInfo.studioType}</Text>
             </View>
             <View style={styles.row}>
+              <Text style={{ ...styles.listInformation, minWidth: '30%' }} >State</Text>
+              <Text style={styles.listInformation} >{' : '} {basicInfo.state}</Text>
+            </View>
+            <View style={styles.row}>
               <Text style={{ ...styles.listInformation, minWidth: '30%' }} >City</Text>
               <Text style={styles.listInformation} >{' : '} {basicInfo.city}</Text>
             </View>
             <View style={styles.row}>
               <Text style={{ ...styles.listInformation, minWidth: '30%' }} >Studio Size</Text>
-              <Text style={styles.listInformation} >{' : '} {details.studioSize}</Text>
+              <Text style={styles.listInformation} >{' : '} {details.studioSize} sq ft</Text>
             </View>
             <View style={styles.row}>
               <Text style={{ ...styles.listInformation, minWidth: '30%' }} >Capacity</Text>
@@ -719,38 +879,86 @@ const AddStudioComponent = () => {
 
             {/* price and details view */}
             <Text style={styles.title}>Pricing and Booking</Text>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Base  Price (per Hour)</Text>
-              <Text style={styles.listInformation} >{' : '} ₹{details.basePrice}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Weekend Price (per Hour)</Text>
-              <Text style={styles.listInformation} >{' : '} ₹{details.weekendPrice}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Security Deposit</Text>
-              <Text style={styles.listInformation} >{' : '} ₹{details.securityDeposit}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Overtime Price (per Hour)</Text>
-              <Text style={styles.listInformation} >{' : '} ₹{details.overtimePrice}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Min Booking Hours</Text>
-              <Text style={styles.listInformation} >{' : '} {details.minBookingHours}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Max Booking Hours</Text>
-              <Text style={styles.listInformation} >{' : '} {details.maxBookingHours}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Contact Phone</Text>
-              <Text style={styles.listInformation} >{' : '} {details.contactPhone}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '60%' }} >Alternate Phone</Text>
-              <Text style={styles.listInformation} >{' : '} {details.alternatePhone}</Text>
-            </View>
+            {details.basePrice ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Base Price (per Hour)
+                </Text>
+                <Text style={styles.listInformation}>{' : '} ₹{details.basePrice}</Text>
+              </View>
+            ) : null}
+
+            {details.weekendPrice ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Weekend Price (per Hour)
+                </Text>
+                <Text style={styles.listInformation}>{' : '} ₹{details.weekendPrice}</Text>
+              </View>
+            ) : null}
+
+            {details.securityDeposit ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Security Deposit
+                </Text>
+                <Text style={styles.listInformation}>{' : '} ₹{details.securityDeposit}</Text>
+              </View>
+            ) : null}
+
+            {details.overtimePrice ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Overtime Price (per Hour)
+                </Text>
+                <Text style={styles.listInformation}>{' : '} ₹{details.overtimePrice}</Text>
+              </View>
+            ) : null}
+
+            {details.minBookingHours ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Min Booking Hours
+                </Text>
+                <Text style={styles.listInformation}>
+                  {' : '} {details.minBookingHours} hours
+                </Text>
+              </View>
+            ) : null}
+
+            {details.maxBookingHours ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Max Booking Hours
+                </Text>
+                <Text style={styles.listInformation}>
+                  {' : '} {details.maxBookingHours} hours
+                </Text>
+              </View>
+            ) : null}
+
+            {details.contactPhone ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Contact Phone
+                </Text>
+                <Text style={styles.listInformation}>
+                  {' : '} +91 {details.contactPhone}
+                </Text>
+              </View>
+            ) : null}
+
+            {details.alternatePhone ? (
+              <View style={styles.row}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                  Alternate Phone
+                </Text>
+                <Text style={styles.listInformation}>
+                  {' : '} +91 {details.alternatePhone}
+                </Text>
+              </View>
+            ) : null}
+
 
             {/* amenities view */}
             <Text style={styles.title}>
@@ -786,10 +994,10 @@ const AddStudioComponent = () => {
 
             <View style={styles.noteTextOutline}>
               <Icon
-              name={"info"}
-              size={24}
-              color={'#101010'}
-            />
+                name={"info"}
+                size={24}
+                color={'#101010'}
+              />
               <Text style={styles.noteText}>Your studio listing will be reviewed by our team before going live. You'll receive an email notification once approved.</Text>
             </View>
           </View>}
@@ -816,7 +1024,7 @@ const AddStudioComponent = () => {
           }
 
           {selectedTab == tabs.length &&
-            <TouchableOpacity style={styles.previousButton}>
+            <TouchableOpacity onPress={onSubmitPress} style={styles.previousButton}>
               <Icon name={"check"} size={16} color="#FFFFFF" />
               <Text style={[styles.previousText, { marginLeft: 5 }]}>Submit for review</Text>
             </TouchableOpacity>
