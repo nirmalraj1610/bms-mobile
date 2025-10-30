@@ -93,9 +93,8 @@ console.log('bookings:', bookings);
     switch (status) {
       case 'Pending':
         return {
-          backgroundColor: '#FFFFFF',
-          borderColor: COLORS.bg,
-          borderWidth: 1,
+          backgroundColor: '#9E9E9E',
+          borderWidth: 0,
         };
       case 'Cancelled':
         return {
@@ -119,7 +118,7 @@ console.log('bookings:', bookings);
     switch (status) {
       case 'Pending':
         return {
-          color: COLORS.bg,
+          color: '#FFFFFF',
         };
       case 'Cancelled':
         return {
@@ -175,12 +174,16 @@ console.log('bookings:', bookings);
         {/* Right Section - Status and Action Buttons */}
         <View style={styles.rightSection}>
           <View style={[styles.statusBadge, getStatusStyles(item.status)]}>
+          
             <Text style={[styles.statusBadgeText, getStatusTextStyles(item.status)]}>
+                {/* {item.status === 'Cancelled' && (
+              <Icon name="close" size={14} color="#FFFFFF" style={styles.iconStyle} />
+            )} */}
               {item.status}
             </Text>
           </View>
 
-          {/* Conditional buttons for confirmed bookings only */}
+          {/* Conditional buttons based on status */}
           {item.status === 'Confirmed' && (
             <View style={styles.actionButtonsContainer}>
               <TouchableOpacity style={styles.rescheduleButton}>
@@ -197,6 +200,29 @@ console.log('bookings:', bookings);
                 <Text style={styles.checkInButtonText}>Check IN</Text>
               </TouchableOpacity>
               
+              <TouchableOpacity style={styles.viewStudioButton}>
+                <Text style={styles.viewStudioButtonText}>View Studio</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Buttons for pending bookings */}
+          {item.status === 'Pending' && (
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity style={styles.selectEquipmentButton}>
+                {/* <Icon name="build" size={14} color="#00BCD4" /> */}
+                <Text style={styles.selectEquipmentButtonText}>Select{'\n'}Equipment</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.viewStudioButton}>
+                <Text style={styles.viewStudioButtonText}>View Studio</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Buttons for cancelled bookings */}
+          {item.status === 'Cancelled' && (
+            <View style={styles.actionButtonsContainer}>
               <TouchableOpacity style={styles.viewStudioButton}>
                 <Text style={styles.viewStudioButtonText}>View Studio</Text>
               </TouchableOpacity>
@@ -453,7 +479,7 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     alignItems: 'flex-end',
-    minWidth: 120,
+    minWidth: 100,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -519,6 +545,8 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
   },
   statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -527,6 +555,11 @@ const styles = StyleSheet.create({
   statusBadgeText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  iconStyle: {
+   
+    marginRight: 4,
+    marginTop: 10,
   },
   actionButtonsContainer: {
     gap: 8,
@@ -601,6 +634,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.text.secondary,
+  },
+  selectEquipmentButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#00BCD4',
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    gap: 4,
+    minWidth: 100,
+    minHeight: 50,
+  },
+  selectEquipmentButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#00BCD4',
+    textAlign: 'center',
+    lineHeight: 16,
   },
   sectionTitle: {
     fontSize: 18,
