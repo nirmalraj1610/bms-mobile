@@ -12,6 +12,7 @@ const BookingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
   const [query, setQuery] = useState('');
+  const [selectedBookingType, setSelectedBookingType] = useState<'studio' | 'photographer'>('studio');
 
   // Get booking data from Redux store
   const { items: bookings, loading, error } = useAppSelector((state) => state.bookings);
@@ -56,32 +57,36 @@ console.log('bookings:', bookings);
     });
   }, [bookings]);
 
-  // Filter bookings based on search query
+  // Filter bookings based on search query and booking type
   const filteredBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) {
       return transformedBookings.filter(booking => 
-        booking.status === 'Confirmed' || booking.status === 'Pending'
+        (booking.status === 'Confirmed' || booking.status === 'Pending') &&
+        booking.bookingType === selectedBookingType
       );
     }
     return transformedBookings.filter((booking) =>
       booking.studioName.toLowerCase().includes(q) &&
-      (booking.status === 'Confirmed' || booking.status === 'Pending')
+      (booking.status === 'Confirmed' || booking.status === 'Pending') &&
+      booking.bookingType === selectedBookingType
     );
-  }, [query, transformedBookings]);
+  }, [query, transformedBookings, selectedBookingType]);
 
   const filteredPastBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) {
       return transformedBookings.filter(booking => 
-        booking.status === 'Completed' || booking.status === 'Cancelled'
+        (booking.status === 'Completed' || booking.status === 'Cancelled') &&
+        booking.bookingType === selectedBookingType
       );
     }
     return transformedBookings.filter((booking) =>
       booking.studioName.toLowerCase().includes(q) &&
-      (booking.status === 'Completed' || booking.status === 'Cancelled')
+      (booking.status === 'Completed' || booking.status === 'Cancelled') &&
+      booking.bookingType === selectedBookingType
     );
-  }, [query, transformedBookings]);
+  }, [query, transformedBookings, selectedBookingType]);
 
   const getStatusStyles = (status: string) => {
     switch (status) {
@@ -173,6 +178,49 @@ console.log('bookings:', bookings);
               </TouchableOpacity>
             </View>
           </View>
+
+        {/* Booking Type Toggle */}
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              selectedBookingType === 'studio' && styles.toggleButtonActive
+            ]}
+            onPress={() => setSelectedBookingType('studio')}
+          >
+            <Icon 
+              name="business" 
+              size={16} 
+              color={selectedBookingType === 'studio' ? COLORS.background : COLORS.text.secondary} 
+            />
+            <Text style={[
+              styles.toggleButtonText,
+              selectedBookingType === 'studio' && styles.toggleButtonTextActive
+            ]}>
+              Studio 
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              selectedBookingType === 'photographer' && styles.toggleButtonActive
+            ]}
+            onPress={() => setSelectedBookingType('photographer')}
+          >
+            <Icon 
+              name="camera-alt" 
+              size={16} 
+              color={selectedBookingType === 'photographer' ? COLORS.background : COLORS.text.secondary} 
+            />
+            <Text style={[
+              styles.toggleButtonText,
+              selectedBookingType === 'photographer' && styles.toggleButtonTextActive
+            ]}>
+              Photographer
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Loading State */}
         {loading && (
@@ -428,6 +476,43 @@ const styles = StyleSheet.create({
     color: COLORS.background,
     fontSize: 14,
     fontWeight: '600',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: 25,
+    borderColor: COLORS.bg,
+    borderWidth: 1,
+    padding: 8,
+    marginTop: 16,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  toggleButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: 'transparent',
+  },
+  toggleButtonActive: {
+    backgroundColor: COLORS.bg,
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text.secondary,
+    marginLeft: 6,
+  },
+  toggleButtonTextActive: {
+    color: COLORS.background,
   },
 });
 
