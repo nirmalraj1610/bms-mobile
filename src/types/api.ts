@@ -422,3 +422,19 @@ export interface PhotographerPortfolioUploadPayload {
   category: string;
   featured: boolean;
 }
+
+export interface Equipment {
+  id: string;
+  item_name: string;
+  item_type: string;
+  description?: string;
+  rental_price_hourly: number;
+  rental_price_daily?: number;
+  available_quantity: number;
+  specifications?: any;
+  studio_id: string;
+  available: boolean;
+  created_at: string;
+  updated_at: string;
+  selectedQuantity?: number;
+}

@@ -6,7 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getBookings } from '../features/bookings/bookingsSlice';
-import type { BookingHistoryItem } from '../types/api';
+import { getStudioEquipmentThunk } from '../features/studios/studiosSlice';
+import type { BookingHistoryItem, Equipment } from '../types/api';
+import EquipmentSelectionModal from '../components/EquipmentSelectionModal';
 import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 const BookingScreen: React.FC = () => {
@@ -14,9 +16,17 @@ const BookingScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const [query, setQuery] = useState('');
   const [selectedBookingType, setSelectedBookingType] = useState<'studio' | 'photographer'>('studio');
+  
+  // Equipment selection state
+  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
+  const [selectedBookingForEquipment, setSelectedBookingForEquipment] = useState<any>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<any[]>([]);
 
   // Get booking data from Redux store
   const { items: bookings, loading, error } = useAppSelector((state) => state.bookings);
+  
+  // Get equipment data from Redux store
+  const equipmentState = useAppSelector((state) => state.studios.equipment);
 
   // Fetch bookings on component mount
   useEffect(() => {
@@ -135,6 +145,33 @@ console.log('bookings:', bookings);
     }
   };
 
+  // Equipment selection handler
+  const handleSelectEquipment = (booking: any) => {
+    console.log('🔧 Select Equipment clicked for booking:', booking);
+    
+    // Find the original booking data to get studio_id
+    const originalBooking = bookings.find(b => b.id === booking.id);
+    console.log('📍 Original booking data:', originalBooking);
+    
+    if (originalBooking?.studios?.id) {
+      console.log('✅ Studio ID found:', originalBooking.studios.id);
+      console.log('📡 Dispatching getStudioEquipmentThunk...');
+      
+      setSelectedBookingForEquipment(booking);
+      
+      dispatch(getStudioEquipmentThunk({ 
+        studio_id: originalBooking.studios.id, 
+        available_only: true 
+      }));
+      
+      setShowEquipmentModal(true);
+      console.log('✅ Equipment modal should now be visible');
+    } else {
+      console.log('❌ No studio ID found in booking data');
+      console.log('📊 Available booking data:', originalBooking);
+    }
+  };
+
   const renderBookingItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.card}>
       <View style={styles.cardMainContent}>
@@ -209,7 +246,10 @@ console.log('bookings:', bookings);
           {/* Buttons for pending bookings */}
           {item.status === 'Pending' && (
             <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity style={styles.selectEquipmentButton}>
+              <TouchableOpacity 
+                style={styles.selectEquipmentButton}
+                onPress={() => handleSelectEquipment(item)}
+              >
                 {/* <Icon name="build" size={14} color="#00BCD4" /> */}
                 <Text style={styles.selectEquipmentButtonText}>Select{'\n'}Equipment</Text>
               </TouchableOpacity>
@@ -364,6 +404,27 @@ console.log('bookings:', bookings);
           />
         )}
       </View>
+
+      {/* Equipment Selection Modal */}
+      <EquipmentSelectionModal
+        visible={showEquipmentModal}
+        equipment={equipmentState.equipment}
+        loading={equipmentState.loading}
+        selectedEquipment={selectedEquipment}
+        onClose={() => {
+          console.log('🚪 Closing equipment modal');
+          setShowEquipmentModal(false);
+          setSelectedBookingForEquipment(null);
+        }}
+        onSelectEquipment={(equipment: Equipment, quantity: number) => {
+          console.log('✅ Equipment selected:', equipment, 'Quantity:', quantity);
+          setSelectedEquipment([...selectedEquipment, { ...equipment, selectedQuantity: quantity }]);
+        }}
+        onRemoveEquipment={(equipmentId: string) => {
+          console.log('❌ Removing equipment:', equipmentId);
+          setSelectedEquipment(selectedEquipment.filter(eq => eq.id !== equipmentId));
+        }}
+      />
     </SafeAreaView>
   );
 };

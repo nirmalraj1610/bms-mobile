@@ -11,6 +11,7 @@ import {
   searchStudios,
   getStudioDetails,
   getStudioAvailability,
+  getStudioEquipment,
   toggleFavoriteStudio,
   getFavoriteStudios,
   createStudioReview,
@@ -24,6 +25,7 @@ const initialState: StudiosState = {
   favorites: { loading: false, error: null, items: [] },
   reviewCreate: { loading: false, error: null, success: false },
   studioCreate: { loading: false, error: null, created_id: null },
+  equipment: { loading: false, error: null, equipment: [] },
 };
 
 export const studiosSearchThunk = createAsyncThunk('studios/search', async (query: StudiosSearchQuery, { rejectWithValue }) => {
@@ -127,6 +129,27 @@ export const createStudioThunk = createAsyncThunk('studios/createStudio', async 
     return rejectWithValue(err?.error || 'Failed to create studio');
   }
 });
+
+export const getStudioEquipmentThunk = createAsyncThunk(
+  'studios/getEquipment', 
+  async (payload: { studio_id: string; available_only?: boolean }, { rejectWithValue }) => {
+    try {
+      console.log('🔧 getStudioEquipmentThunk called with payload:', payload);
+      
+      const res = await getStudioEquipment(payload.studio_id, payload.available_only);
+      console.log('📡 API response received:', res);
+      
+      // The API returns { equipment: [...] } according to the provided format
+      const equipmentData = res.equipment || [];
+      console.log('✅ Equipment data extracted:', equipmentData);
+      
+      return equipmentData;
+    } catch (err: any) {
+      console.error('❌ getStudioEquipmentThunk error:', err);
+      return rejectWithValue(err?.error || 'Failed to load studio equipment');
+    }
+  }
+);
 
 const studiosSlice = createSlice({
   name: 'studios',
@@ -257,6 +280,18 @@ const studiosSlice = createSlice({
       .addCase(createStudioThunk.rejected, (state, action) => {
         state.studioCreate.loading = false;
         state.studioCreate.error = (action.payload as string) || action.error.message || 'Failed to create studio';
+      })
+      .addCase(getStudioEquipmentThunk.pending, (state) => {
+        state.equipment.loading = true;
+        state.equipment.error = null;
+      })
+      .addCase(getStudioEquipmentThunk.fulfilled, (state, action) => {
+        state.equipment.loading = false;
+        state.equipment.equipment = action.payload;
+      })
+      .addCase(getStudioEquipmentThunk.rejected, (state, action) => {
+        state.equipment.loading = false;
+        state.equipment.error = (action.payload as string) || action.error.message || 'Failed to load equipment';
       });
   },
 });

@@ -83,6 +83,14 @@ export async function studioAvailability(id: string, date?: string) {
   return apiFetch<StudioAvailabilityResponse>(`/studio-availability/studios/${id}`, { method: 'GET', query: { date }, auth: false });
 }
 
+export async function studioEquipmentList(studio_id: string, available_only?: boolean) {
+  const query: Record<string, string | boolean> = { studio_id };
+  if (available_only !== undefined) {
+    query.available_only = available_only;
+  }
+  return apiFetch<{ equipment: any[] }>('/studio-equipment-list', { method: 'GET', query, auth: false });
+}
+
 // Photographers
 export async function photographersSearch(query?: Record<string, string | number | boolean>) {
   return apiFetch<PhotographersSearchResponse>('/photographer-search', { method: 'GET', query, auth: false });

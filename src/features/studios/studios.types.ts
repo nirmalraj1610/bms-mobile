@@ -36,6 +36,11 @@ export type StudiosState = {
     error: string | null;
     created_id: string | null;
   };
+  equipment: {
+    loading: boolean;
+    error: string | null;
+    equipment: any[];
+  };
 };
 
 export type StudiosSearchQuery = {
