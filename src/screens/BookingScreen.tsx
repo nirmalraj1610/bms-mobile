@@ -418,7 +418,16 @@ console.log('bookings:', bookings);
         }}
         onSelectEquipment={(equipment: Equipment, quantity: number) => {
           console.log('✅ Equipment selected:', equipment, 'Quantity:', quantity);
-          setSelectedEquipment([...selectedEquipment, { ...equipment, selectedQuantity: quantity }]);
+          const existingIndex = selectedEquipment.findIndex(eq => eq.id === equipment.id);
+          if (existingIndex >= 0) {
+            // Update existing equipment quantity
+            const updatedEquipment = [...selectedEquipment];
+            updatedEquipment[existingIndex] = { ...equipment, selectedQuantity: quantity };
+            setSelectedEquipment(updatedEquipment);
+          } else {
+            // Add new equipment
+            setSelectedEquipment([...selectedEquipment, { ...equipment, selectedQuantity: quantity }]);
+          }
         }}
         onRemoveEquipment={(equipmentId: string) => {
           console.log('❌ Removing equipment:', equipmentId);

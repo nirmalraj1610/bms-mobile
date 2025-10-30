@@ -430,7 +430,7 @@ export interface Equipment {
   description?: string;
   rental_price_hourly: number;
   rental_price_daily?: number;
-  available_quantity: number;
+  quantity_available: number;
   specifications?: any;
   studio_id: string;
   available: boolean;

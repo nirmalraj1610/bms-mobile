@@ -45,18 +45,23 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
     console.log('- selectedEquipment:', selectedEquipment);
   }, [visible, equipment, loading, selectedEquipment]);
 
-  const handleQuantityChange = (equipmentId: string, quantity: number) => {
+  const handleQuantityChange = (equipmentId: string, quantity: number, maxQuantity: number) => {
+    const validQuantity = Math.max(0, Math.min(quantity, maxQuantity));
     setQuantities(prev => ({
       ...prev,
-      [equipmentId]: Math.max(0, quantity)
+      [equipmentId]: validQuantity
     }));
   };
 
   const handleAddEquipment = (item: Equipment) => {
     const quantity = quantities[item.id] || 1;
-    if (quantity > 0 && quantity <= item.available_quantity) {
+    if (quantity > 0 && quantity <= item.quantity_available) {
+      console.log('✅ Adding equipment:', item.item_name, 'Quantity:', quantity);
       onSelectEquipment(item, quantity);
-      setQuantities(prev => ({ ...prev, [item.id]: 0 }));
+      // Reset quantity to 1 after adding
+      setQuantities(prev => ({ ...prev, [item.id]: 1 }));
+    } else {
+      console.log('❌ Invalid quantity:', quantity, 'Available:', item.quantity_available);
     }
   };
 
@@ -120,16 +125,16 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
                         )}
                         <View style={styles.priceRow}>
                           <Text style={styles.priceText}>₹{item.rental_price_hourly}/hour</Text>
-                          <Text style={styles.availableText}>
-                            Available: {item.available_quantity}
-                          </Text>
                         </View>
+                        <Text style={styles.availableText}>
+                          Available: {item.quantity_available} units
+                        </Text>
                       </View>
                       
                       <View style={styles.quantityContainer}>
                         <View style={styles.quantityInput}>
                           <TouchableOpacity
-                            onPress={() => handleQuantityChange(item.id, (quantities[item.id] || 1) - 1)}
+                            onPress={() => handleQuantityChange(item.id, (quantities[item.id] || 1) - 1, item.quantity_available)}
                             style={styles.quantityButton}
                           >
                             <Icon name="remove" size={20} color={COLORS.text.primary} />
@@ -137,12 +142,12 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
                           <TextInput
                             style={styles.quantityText}
                             value={String(quantities[item.id] || 1)}
-                            onChangeText={(text) => handleQuantityChange(item.id, parseInt(text) || 0)}
+                            onChangeText={(text) => handleQuantityChange(item.id, parseInt(text) || 0, item.quantity_available)}
                             keyboardType="numeric"
                             textAlign="center"
                           />
                           <TouchableOpacity
-                            onPress={() => handleQuantityChange(item.id, (quantities[item.id] || 1) + 1)}
+                            onPress={() => handleQuantityChange(item.id, (quantities[item.id] || 1) + 1, item.quantity_available)}
                             style={styles.quantityButton}
                           >
                             <Icon name="add" size={20} color={COLORS.text.primary} />
@@ -151,17 +156,10 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
                         
                         <TouchableOpacity
                           onPress={() => handleAddEquipment(item)}
-                          style={[
-                            styles.addButton,
-                            isEquipmentSelected(item.id) && styles.addButtonDisabled
-                          ]}
-                          disabled={isEquipmentSelected(item.id)}
+                          style={styles.addButton}
                         >
-                          <Text style={[
-                            styles.addButtonText,
-                            isEquipmentSelected(item.id) && styles.addButtonTextDisabled
-                          ]}>
-                            {isEquipmentSelected(item.id) ? 'Added' : 'Add'}
+                          <Text style={styles.addButtonText}>
+                            Add
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -170,45 +168,50 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
                 )}
               </View>
 
-              {/* Selected Equipment */}
-              {selectedEquipment.length > 0 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Selected Equipment</Text>
-                  {selectedEquipment.map((item) => (
-                    <View key={item.id} style={styles.selectedCard}>
-                      <View style={styles.selectedInfo}>
-                        <Text style={styles.selectedName}>{item.item_name}</Text>
-                        <Text style={styles.selectedDetails}>
-                          Quantity: {item.selectedQuantity} × ₹{item.rental_price_hourly}/hour
-                        </Text>
-                        <Text style={styles.selectedTotal}>
-                          Total: ₹{(item.rental_price_hourly * (item.selectedQuantity || 0))}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => onRemoveEquipment(item.id)}
-                        style={styles.removeButton}
-                      >
-                        <Icon name="delete" size={20} color={COLORS.error} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                  
-                  <View style={styles.totalContainer}>
-                    <Text style={styles.totalText}>
-                      Total Equipment Cost: ₹{getTotalCost()}/hour
-                    </Text>
-                  </View>
-                </View>
-              )}
             </>
           )}
         </ScrollView>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={onClose} style={styles.doneButton}>
-            <Text style={styles.doneButtonText}>Done</Text>
+        {/* Selected Equipment Summary */}
+        {selectedEquipment.length > 0 && (
+          <View style={styles.selectedSummary}>
+            <Text style={styles.summaryTitle}>Selected Equipment ({selectedEquipment.length} items)</Text>
+            <ScrollView style={styles.selectedList} showsVerticalScrollIndicator={false}>
+              {selectedEquipment.map((item) => (
+                <View key={item.id} style={styles.selectedItem}>
+                  <View style={styles.selectedItemInfo}>
+                    <Text style={styles.selectedItemName}>{item.item_name}</Text>
+                    <Text style={styles.selectedItemDetails}>
+                      {item.selectedQuantity} × ₹{item.rental_price_hourly}/hour = ₹{(item.rental_price_hourly * (item.selectedQuantity || 0))}/hour
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => onRemoveEquipment(item.id)}
+                    style={styles.removeButton}
+                  >
+                    <Icon name="cancel" size={24} color={COLORS.error} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+            
+            <View style={styles.totalSection}>
+              <Text style={styles.totalText}>
+                Total Cost: ₹{selectedEquipment.reduce((total, item) => 
+                  total + (item.rental_price_hourly * (item.selectedQuantity || 0)), 0
+                )}/hour
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.okButton} onPress={onClose}>
+            <Text style={styles.okButtonText}>OK</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -314,6 +317,7 @@ const styles = StyleSheet.create({
   availableText: {
     fontSize: 14,
     color: COLORS.text.secondary,
+    fontWeight: '600',
   },
   quantityContainer: {
     flexDirection: 'row',
@@ -391,29 +395,92 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 8,
   },
-  totalText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.background,
-    textAlign: 'center',
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+  totalSection: {
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: COLORS.black,
-  },
-  doneButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
     alignItems: 'center',
   },
-  doneButtonText: {
+  totalText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  selectedSummary: {
+    backgroundColor: COLORS.background,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.black,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    maxHeight: 200,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text.primary,
+    marginBottom: 12,
+  },
+  selectedList: {
+    maxHeight: 120,
+  },
+  selectedItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor:'white',
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.black,
+  },
+  selectedItemInfo: {
+    flex: 1,
+  },
+  selectedItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  selectedItemDetails: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginTop: 2,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: 'white',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.black,
+  },
+  cancelButtonText: {
+    color: COLORS.text.secondary,
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.background,
   },
+  okButton: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  okButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  }
 });
 
 export default EquipmentSelectionModal;
