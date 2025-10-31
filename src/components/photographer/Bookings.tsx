@@ -6,7 +6,12 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 
 export const BookingsComponent = () => {
-    const filterOptions = ["Pending", "Confirmed", "Completed", "Cancelled"];
+    const filterOptions = [
+  { label: "Pending", value: "pending" },
+  { label: "Confirmed", value: "confirmed" },
+  { label: "Completed", value: "completed" },
+  { label: "Cancelled", value: "cancelled" },
+];
     const [showFilter, setShowFilter] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [showStartPicker, setShowStartPicker] = useState(false);

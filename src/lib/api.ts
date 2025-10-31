@@ -1,4 +1,4 @@
-import { apiFetch, saveToken } from './http';
+import { apiFetch, saveToken, saveUserData } from './http';
 import type {
   AuthResponse,
   StudiosSearchResponse,
@@ -40,12 +40,14 @@ export async function authSignup(payload: {
 }): Promise<AuthResponse> {
   const res = await apiFetch<AuthResponse>('/auth-signup', { method: 'POST', body: payload, auth: false });
   if (res?.session?.access_token) await saveToken(res.session.access_token);
+  if (res?.session?.access_token) await saveUserData(res);
   return res;
 }
 
 export async function authLogin(payload: { email: string; password: string }): Promise<AuthResponse> {
   const res = await apiFetch<AuthResponse>('/auth-login', { method: 'POST', body: payload, auth: false });
   if (res?.session?.access_token) await saveToken(res.session.access_token);
+  if (res?.session?.access_token) await saveUserData(res);
   return res;
 }
 
@@ -73,6 +75,48 @@ export async function studioDetail(id: string) {
 
 export async function studioFavorites() {
   return apiFetch<{ favorites: any[] }>('/studio-favorites', { method: 'GET' });
+}
+
+// ✅ 1️⃣ Base API call with query params
+export async function myStudios(params?: { status?: string; include_stats?: boolean }) {
+  // Build query string dynamically
+  const queryParams = new URLSearchParams();
+
+  if (params?.status) queryParams.append("status", params.status);
+  if (params?.include_stats !== undefined)
+    queryParams.append("include_stats", String(params.include_stats));
+
+  const queryString = queryParams.toString() ? `?${queryParams}` : "";
+
+  return apiFetch<{ studios: any[] }>(`/studio-owner-studios${queryString}`, {
+    method: "GET",
+  });
+}
+
+// ✅ 1️⃣ Base API call with query params
+export async function studiosBookings(params: {
+  studio_id: string; // required
+  status?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  // Build query string dynamically
+  const queryParams = new URLSearchParams();
+
+  if (params?.studio_id) queryParams.append("studio_id", params.studio_id);
+  if (params?.status) queryParams.append("status", params.status);
+  if (params?.from_date) queryParams.append("from_date", params.from_date);
+  if (params?.to_date) queryParams.append("to_date", params.to_date);
+  if (params?.limit !== undefined) queryParams.append("limit", String(params.limit));
+  if (params?.offset !== undefined) queryParams.append("offset", String(params.offset));
+
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+
+  return apiFetch<{ bookings: any[] }>(`/studio-bookings${queryString}`, {
+    method: "GET",
+  });
 }
 
 export async function studioFavorite(payload: { studio_id: string; action: 'add' | 'remove' }) {

@@ -76,6 +76,29 @@ export async function saveToken(accessToken: string) {
   }
 }
 
+export async function saveUserData(userData: object) {
+  try {
+    const userDetails = JSON.stringify(userData);
+    await AsyncStorage.setItem('UserData', userDetails);
+    console.log('✅ User data saved successfully');
+  } catch (error) {
+    console.error('❌ Failed to save user data:', error);
+  }
+}
+
+export async function getUserData() {
+  try {
+    const storedData = await AsyncStorage.getItem('UserData');
+    if (storedData) {
+      return JSON.parse(storedData); // converts back to JS object
+    }
+    return null;
+  } catch (error) {
+    console.error('❌ Failed to get user data:', error);
+    return null;
+  }
+}
+
 export async function clearToken() {
   try {
     await AsyncStorage.removeItem('auth_token');

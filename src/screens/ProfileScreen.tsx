@@ -17,6 +17,7 @@ import { updateProfile } from "../features/profile/profileSlice";
 import { useDispatch } from "react-redux";
 import { getUserProfile } from "../lib/api";
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { clearToken } from "../lib/http";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -62,33 +63,41 @@ const ProfileScreen: React.FC = () => {
 
   // --- API Call to Fetch Profile ---
   useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
-      try {
-        const res: any = await getUserProfile();
-        const profileRoot = res?.profile ?? res?.customer ?? res;
-        const cp = profileRoot?.customer_profiles ?? {};
-        const nameParts = (profileRoot?.full_name ?? "").split(" ");
-        setFullProfileData(profileRoot);
-        setProfile({
-          firstName: nameParts[0] || "",
-          lastName: nameParts.slice(1).join(" ") || "",
-          email: profileRoot?.email || "",
-          phone: profileRoot?.phone || "",
-          location: cp?.address?.city || "",
-          description: cp?.bio || "", // add bio/description
-        });
-        setLoggedInUser(true);
-      } catch (err) {
-        setLoggedInUser(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfile();
   }, []);
 
+  const fetchProfile = async () => {
+    setLoading(true);
+    try {
+      const res: any = await getUserProfile();
+      const profileRoot = res?.profile ?? res?.customer ?? res;
+      const cp = profileRoot?.customer_profiles ?? {};
+      const nameParts = (profileRoot?.full_name ?? "").split(" ");
+      setFullProfileData(profileRoot);
+      setProfile({
+        firstName: nameParts[0] || "",
+        lastName: nameParts.slice(1).join(" ") || "",
+        email: profileRoot?.email || "",
+        phone: profileRoot?.phone || "",
+        location: cp?.address?.city || "",
+        description: cp?.bio || "", // add bio/description
+      });
+      setLoggedInUser(true);
+    } catch (err) {
+      setLoggedInUser(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onLogoutPress = async () => {
+    try {
+      await clearToken();
+      fetchProfile();
+    } catch {
+      return null;
+    }
+  }
 
   // --- Save Changes to API ---
   const handleSave = async () => {
@@ -143,16 +152,19 @@ const ProfileScreen: React.FC = () => {
                   />
                   <View style={styles.cameraOutline}>
                     <Icon
-                          name={"edit"}
-                          size={22}
-                          color='#034833'
-                        />
+                      name={"edit"}
+                      size={22}
+                      color='#034833'
+                    />
                   </View>
                 </TouchableOpacity>
                 <View style={styles.userDetailOutline}>
                   <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text>
                   {/* <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text> */}
                 </View>
+                <TouchableOpacity onPress={onLogoutPress} style={styles.logoutBtn}>
+                  <Text style={styles.logoutBtnText}>Logout</Text>
+                </TouchableOpacity>
                 {/* <View style={styles.userDetailOutline}>
                           <Text style={styles.userEmail}>{fullProfileData?.email}</Text> <Text style={styles.userStatus}>{fullProfileData?.email_verified ? "✅" : "❌" }</Text>
                           </View>
@@ -360,23 +372,23 @@ const ProfileScreen: React.FC = () => {
                       {selectedFile ? selectedFile.fileName : "Select Document"}
                     </Text>
                   </TouchableOpacity> */}
-                  {selectedFile ? 
-                                          <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-                                              <Image
-                                                  source={{ uri: selectedFile?.uri }}
-                                                  style={styles.selectedImage}
-                                                  resizeMode={"cover"}
-                                              />
-                                          </TouchableOpacity> :
-                                          <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-                                                        <Icon name="cloud-upload" size={28} color="#034833" />
-                                                        <Text style={styles.uploadTextHeader}>Upload Document Image</Text>
-                                                        <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
-                                                        <Text style={styles.supportedFilesText}>
-                                                          Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
-                                                        </Text>
-                                                        <Text style={styles.chooseFilesText}>Choose File</Text>
-                                                      </TouchableOpacity>}
+                  {selectedFile ?
+                    <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                      <Image
+                        source={{ uri: selectedFile?.uri }}
+                        style={styles.selectedImage}
+                        resizeMode={"cover"}
+                      />
+                    </TouchableOpacity> :
+                    <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                      <Icon name="cloud-upload" size={28} color="#034833" />
+                      <Text style={styles.uploadTextHeader}>Upload Document Image</Text>
+                      <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
+                      <Text style={styles.supportedFilesText}>
+                        Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
+                      </Text>
+                      <Text style={styles.chooseFilesText}>Choose File</Text>
+                    </TouchableOpacity>}
 
                   <TouchableOpacity style={styles.submitButton}>
                     <Text style={styles.submitButtonText}>Submit for Verification</Text>
@@ -564,28 +576,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-      uploadTextHeader: {
-        fontWeight: "600",
-        color: "#101010",
-        fontSize: 16,
-        marginTop: 10,
-    },
-    uploadTextDesc: {
-        fontSize: 13,
-        color: "#555",
-        marginTop: 5,
-    },
-    supportedFilesText: {
-        fontSize: 12,
-        color: "#777",
-        marginTop: 5,
-        textAlign: "center",
-    },
-    chooseFilesText: {
-        marginTop: 10,
-        fontWeight: "bold",
-        color: "#034833",
-    },
+  uploadTextHeader: {
+    fontWeight: "600",
+    color: "#101010",
+    fontSize: 16,
+    marginTop: 10,
+  },
+  uploadTextDesc: {
+    fontSize: 13,
+    color: "#555",
+    marginTop: 5,
+  },
+  supportedFilesText: {
+    fontSize: 12,
+    color: "#777",
+    marginTop: 5,
+    textAlign: "center",
+  },
+  chooseFilesText: {
+    marginTop: 10,
+    fontWeight: "bold",
+    color: "#034833",
+  },
   submitButton: {
     backgroundColor: "#034833",
     paddingVertical: 14,
@@ -725,6 +737,17 @@ const styles = StyleSheet.create({
   infoValue: {
     color: '#101010',
     fontSize: 15,
+    fontWeight: '600',
+  },
+  logoutBtn: {
+    backgroundColor: '#DC3545',
+    paddingHorizontal: 40,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  logoutBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

@@ -1,4 +1,4 @@
-import { studiosSearch, studioDetail, studioAvailability, studioEquipmentList, studioFavorite, studioFavorites, reviewCreate, StudioCreate } from '../../lib/api';
+import { studiosSearch, studioDetail, studioAvailability, studioEquipmentList, studioFavorite, studioFavorites, reviewCreate, StudioCreate, myStudios, studiosBookings } from '../../lib/api';
 import type { StudiosSearchQuery, AvailabilityPayload, ReviewCreatePayload, StudioCreatePayload, ToggleFavoritePayload } from './studios.types';
 
 export const searchStudios = async (query: StudiosSearchQuery) => {
@@ -42,6 +42,24 @@ export const createStudioReview = async (payload: ReviewCreatePayload) => {
 export const createStudio = async (payload: StudioCreatePayload) => {
   return StudioCreate(payload);
 };
+
+// ✅ 2️⃣ Wrapper function
+export const getMyStudios = async (params?: { status?: string; include_stats?: boolean }) => {
+  return myStudios(params);
+};
+
+// ✅ 2️⃣ Wrapper Function
+export const getStudiosBookings = async (params: {
+  studio_id: string;
+  status?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}) => {
+  return studiosBookings(params);
+};
+
 
 export const getStudioEquipment = async (studio_id: string, available_only?: boolean) => {
   return studioEquipmentList(studio_id, available_only);

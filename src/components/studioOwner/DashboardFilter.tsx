@@ -10,7 +10,7 @@ import {
 
 const DashboardFilterPopup = ({
   visible = false,
-  options = ['Test option'],
+  options = [{label: 'Test option', value: "Testoption"}],
   selectedValue = null,
   onSelect = (i: any) => { },
   onApply = (i: any) => { },
@@ -56,17 +56,17 @@ const DashboardFilterPopup = ({
               <TouchableOpacity
                 style={[
                   styles.optionButton,
-                  tempSelection === item && styles.selectedOption,
+                  tempSelection === item.value && styles.selectedOption,
                 ]}
-                onPress={() => handleSelect(item)}
+                onPress={() => handleSelect(item.value)}
               >
                 <Text
                   style={[
                     styles.optionText,
-                    tempSelection === item && styles.selectedText,
+                    tempSelection === item.value && styles.selectedText,
                   ]}
                 >
-                  {item}
+                  {item.label}
                 </Text>
               </TouchableOpacity>
             )}

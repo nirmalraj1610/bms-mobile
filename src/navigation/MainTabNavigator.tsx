@@ -17,7 +17,7 @@ import PhotographerDashboardScreen from '../screens/PhotographerDashboardScreen'
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainTabNavigator: React.FC = () => {
-  const [currentUser, setCurrentuser] = useState('photographer') // user or studioOwner or photographer
+  const [currentUser, setCurrentuser] = useState('studioOwner') // user or studioOwner or photographer
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

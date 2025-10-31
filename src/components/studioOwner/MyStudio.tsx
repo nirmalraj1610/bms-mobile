@@ -1,17 +1,27 @@
-import { FlatList, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Used for the Add Studio icon and Star icon
 import DashboardFilterPopup from "./DashboardFilter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { loadMyStudioThunk } from "../../features/studios/studiosSlice";
+import ViewStudioModal from "./ViewStudioModal";
 
 
 // --- Main Component ---
 export const MyStudioComponent = ({
     onPressAddStudio = (i: any) => { }
 }) => {
-
-    const filterOptions = ["Pending", "Confirmed", "Completed", "Cancelled"];
+    const dispatch = useDispatch();
+    const studioStatusOptions = [
+        { label: "Pending Approvals", value: "pending_approval" },
+        { label: "Active Studios", value: "active" },
+        { label: "Inactive Studios", value: "inactive" },
+    ];;
     const [showFilter, setShowFilter] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [showViewModal, setShowViewModal] = useState({ status: false, selectedStudio: {} });
     const [selectedFilter, setSelectedFilter] = useState(null);
+    const [studioList, setStudioList] = useState([]);
     const onFilterPress = () => {
         setShowFilter(!showFilter)
     }
@@ -20,52 +30,54 @@ export const MyStudioComponent = ({
         onPressAddStudio('Add Studio')
     }
 
-    // --- Data for the Studio Cards ---
-    const studioData = [
-        {
-            id: '1',
-            name: 'Priya Sharma',
-            studio: 'Studio Elite Mumbai',
-            rating: '4.9',
-            status: 'Active',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg' // Placeholder image
-        },
-        {
-            id: '2',
-            name: 'Priya Sharma',
-            studio: 'Studio Elite Mumbai',
-            rating: '4.9',
-            status: 'Pending',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-        {
-            id: '3',
-            name: 'Priya Sharma',
-            studio: 'Studio Elite Mumbai',
-            rating: '4.9',
-            status: 'Pending',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-        {
-            id: '4',
-            name: 'Priya Sharma',
-            studio: 'Studio Elite Mumbai',
-            rating: '4.9',
-            status: 'Active',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-    ];
+    const onCloseViewModal = () => {
+        setShowViewModal({ status: false, selectedStudio: {} })
+    }
+
+    const onOpenViewModal = (item: any) => {
+        setShowViewModal({ status: true, selectedStudio: item })
+    }
+
+    useEffect(() => {
+
+        fetchStudios();
+    }, [selectedFilter]);
+
+    const fetchStudios = async () => {
+        setIsLoading(true);
+        // { status: "inactive" }
+        let params = { include_stats: true }
+        if (selectedFilter) {
+            params = { ...params, status: selectedFilter, }
+        }
+        try {
+            const studios = await dispatch(loadMyStudioThunk(params)).unwrap(); // ✅ unwrap to get actual data
+            console.log('📦 Studios from API:', studios);
+
+            // response looks like { studios: [ ... ], total: 16 }
+            setStudioList(studios || []);
+        } catch (error) {
+            console.log('❌ Failed to load studios:', error);
+        }
+        finally {
+            setIsLoading(false);
+        }
+    };
+
+    const staticImage = 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg';
 
     // --- Render Item Function for FlatList ---
     const renderStudioCard = ({ item }: any) => {
         // Determine status badge colors based on the image design
-        const isActive = item.status === 'Active';
-        const statusBgColor = isActive ? '#0D6EFD' : '#FE9A55'; // Blue for Active, Orange for Pending
+        let statusBgColor = '#FE9A55'; // default Pending orange
+        if (item.status === 'pending_approval') statusBgColor = '#FE9A55'; // yellow
+        if (item.status === 'active') statusBgColor = '#034833'; // blue
+        if (item.status === 'inactive') statusBgColor = '#DC3545'; // red
 
-        // The dark green color used for primary elements (Manage button, text)
-        const primaryColor = '#034833';
-        // The border color for the View button
-        const secondaryColor = '#E0E0E0';
+        let statusText = 'pending';
+        if (item.status === 'pending_approval') statusText = 'pending'; // yellow
+        if (item.status === 'active') statusText = 'Active'; // blue
+        if (item.status === 'inactive') statusText = 'Inactive'; // red
 
         return (
             <View style={styles.cardContainer}>
@@ -73,102 +85,131 @@ export const MyStudioComponent = ({
                     {/* Studio Image */}
                     <Image
                         // Using a placeholder that simulates the image's structure
-                        source={{ uri: item.image }}
+                        source={{ uri: staticImage }}
                         style={styles.cardImage}
                     />
 
                     {/* Rating Badge */}
                     <View style={styles.ratingBadge}>
                         <Icon name="star" size={18} color="#FF7441" />
-                        <Text style={styles.ratingText}>{item.rating}</Text>
+                        <Text style={styles.ratingText}>{item?.stats?.average_rating}</Text>
                     </View>
 
                     {/* Status Badge */}
                     <View style={[styles.statusBadge, { backgroundColor: statusBgColor }]}>
-                        <Text style={styles.statusText}>{item.status}</Text>
+                        <Text style={styles.statusText}>{statusText}</Text>
                     </View>
 
                     {/* Text Info */}
                     <View style={styles.infoContainer}>
-                        <Text style={[styles.studioName, { color: primaryColor }]}>{item.name}</Text>
-                        <Text style={styles.studioLocation}>{item.studio}</Text>
+                        <Text style={[styles.studioName, { color: '#034833' }]}>{item.name}</Text>
+                        <Text style={styles.studioLocation}>{item.description}</Text>
+                        <Text style={styles.studioLocation}>City : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.location?.city}</Text></Text>
+                        <Text style={styles.studioLocation}>State : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.location?.state}</Text></Text>
+                        <Text style={styles.studioLocation}>Total bookings : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.stats?.total_bookings}</Text></Text>
+                        <Text style={styles.studioLocation}>Pending bookings : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.stats?.pending_bookings}</Text></Text>
+                        <Text style={styles.studioLocation}>hourly rate : <Text style={{ ...styles.studioLocation, fontWeight: '600', color: '#FF7441' }}>₹{item?.pricing?.hourly_rate}</Text></Text>
+                        <Text style={styles.studioLocation}>Total revenue : <Text style={{ ...styles.studioLocation, fontWeight: '600', color: '#FF7441' }}>₹{item?.stats?.total_revenue}</Text></Text>
                     </View>
 
                     {/* Action Buttons */}
                     <View style={styles.actionsContainer}>
                         {/* Edit Button (Bordered)  */}
-                        <TouchableOpacity style={[styles.actionButton, styles.viewButton, { borderColor: primaryColor }]}>
-                            <Text style={styles.viewButtonText}>Edit</Text>
+                        <TouchableOpacity style={[styles.actionButton, styles.editButton]}>
+                            <Text style={styles.editButtonText}>Edit</Text>
                         </TouchableOpacity>
 
                         {/* View Button (Bordered) */}
-                        <TouchableOpacity style={[styles.actionButton, styles.viewButton, { borderColor: primaryColor }]}>
-                            <Text style={[styles.viewButtonText, { color: primaryColor }]}>View</Text>
+                        <TouchableOpacity onPress={() => onOpenViewModal(item)} style={[styles.actionButton, styles.viewButton]}>
+                            <Text style={styles.viewButtonText}>View</Text>
                         </TouchableOpacity>
                     </View>
-                    {/* Manage Button (Solid Dark Green) */}
-                        <TouchableOpacity style={[styles.actionButton, styles.manageButton, { backgroundColor: primaryColor }]}>
-                            <Text style={styles.manageButtonText}>Manage</Text>
-                        </TouchableOpacity>
                 </View>
             </View>
         );
     }
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Dashboard views one */}
-            <View style={styles.statusViewsOutline}>
-                <View style={styles.bgImageCard}>
-                    <Icon name="storefront" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>3</Text>
-                        <Text style={styles.bgText}>Active Studios</Text>
+        <>
+            {isLoading ?
+                <View style={styles.loading}>
+                    <ActivityIndicator size="large" color="#034833" />
+                    <Text style={styles.loadingText}>Loading....</Text>
+                </View> :
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    {/* Dashboard views one */}
+                    <View style={styles.statusViewsOutline}>
+                        <View style={styles.bgImageCard}>
+                            <Icon name="storefront" size={32} color="#2F2F2F" />
+                            <View>
+                                <Text style={styles.bgCountText}>3</Text>
+                                <Text style={styles.bgText}>Active Studios</Text>
+                            </View>
+                        </View>
+                        <View style={styles.bgImageCard}>
+                            <Icon name="pending-actions" size={32} color="#2F2F2F" />
+                            <View>
+                                <Text style={styles.bgCountText}>7</Text>
+                                <Text style={styles.bgText}>Pending Approval</Text>
+                            </View>
+                        </View>
                     </View>
-                </View>
-                <View style={styles.bgImageCard}>
-                    <Icon name="pending-actions" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>7</Text>
-                        <Text style={styles.bgText}>Pending Approval</Text>
+
+                    {/* Header: Title and Add Studio Button */}
+                    <View style={styles.header}>
+                        <Text style={styles.title}>My Studios</Text>
+                        <TouchableOpacity onPress={onAddStudioPress} style={styles.addButton}>
+                            <Icon name="add-circle-outline" size={24} color="#1B4332" />
+                            <Text style={styles.addButtonText}>Add Studio</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
+                            <Icon name="filter-list" size={24} color="#1B4332" />
+                            <Text style={styles.addButtonText}>Filter</Text>
+                        </TouchableOpacity>
                     </View>
-                </View>
-            </View>
 
-            {/* Header: Title and Add Studio Button */}
-            <View style={styles.header}>
-                <Text style={styles.title}>My Studios</Text>
-                <TouchableOpacity onPress={onAddStudioPress} style={styles.addButton}>
-                    <Icon name="add-circle-outline" size={24} color="#1B4332" />
-                    <Text style={styles.addButtonText}>Add Studio</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
-                    <Icon name="filter-list" size={24} color="#1B4332" />
-                    <Text style={styles.addButtonText}>Filter</Text>
-                </TouchableOpacity>
-            </View>
+                    {/* Studio Cards Grid */}
+                    <FlatList
+                        data={studioList}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderStudioCard}
+                        ListEmptyComponent={
+                            <View style={styles.noStudioOutline}>
+                                <Icon name="storefront" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                                <Text style={styles.noStudioText}>
+                                    No studios found
+                                </Text>
+                                <Text style={styles.addStudioDesc}>
+                                    Add your first studio to get started!
+                                </Text>
+                                <TouchableOpacity onPress={onAddStudioPress} style={styles.addStudioBtn}>
+                                    <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
+                                    <Text style={styles.addStudioText}>Add Studio</Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
+                        numColumns={2} // Two columns for the grid layout
+                        columnWrapperStyle={styles.row} // Style for the row wrapper
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.listContent}
+                    />
 
-            {/* Studio Cards Grid */}
-            <FlatList
-                data={studioData}
-                keyExtractor={(item) => item.id}
-                renderItem={renderStudioCard}
-                numColumns={2} // Two columns for the grid layout
-                columnWrapperStyle={styles.row} // Style for the row wrapper
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.listContent}
-            />
-
-            <DashboardFilterPopup
-                visible={showFilter}
-                options={filterOptions}
-                selectedValue={selectedFilter}
-                onSelect={(val) => setSelectedFilter(val)}
-                onApply={(val) => setSelectedFilter(val)}
-                onClear={() => setSelectedFilter(null)}
-                onClose={() => setShowFilter(false)}
-            />
-        </ScrollView>
+                    <DashboardFilterPopup
+                        visible={showFilter}
+                        options={studioStatusOptions}
+                        selectedValue={selectedFilter}
+                        onSelect={(val) => setSelectedFilter(val)}
+                        onApply={(val) => setSelectedFilter(val)}
+                        onClear={() => setSelectedFilter(null)}
+                        onClose={() => setShowFilter(false)}
+                    />
+                    <ViewStudioModal
+                        visible={showViewModal.status}
+                        studio={showViewModal.selectedStudio}
+                        onClose={onCloseViewModal}
+                    />
+                </ScrollView>}
+        </>
     )
 };
 
@@ -302,22 +343,62 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    manageButton: {
-        marginHorizontal: 15,
-        marginBottom: 10
-    },
-    manageButtonText: {
-        color: '#fff',
-        fontWeight: '600',
-        fontSize: 13,
-    },
     viewButton: {
         marginLeft: 5,
-        borderWidth: 1.5,
-        backgroundColor: '#fff',
+        backgroundColor: '#0D6EFD',
     },
     viewButtonText: {
         fontWeight: '600',
         fontSize: 13,
+        color: "#FFFFFF"
+    },
+    editButton: {
+        marginLeft: 5,
+        backgroundColor: '#034833',
+    },
+    editButtonText: {
+        fontWeight: '600',
+        fontSize: 13,
+        color: "#FFFFFF"
+    },
+    addStudioBtn: {
+        marginTop: 10,
+        backgroundColor: '#034833',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 5,
+        borderRadius: 6,
+    },
+    addStudioText: {
+        marginLeft: 10,
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    noStudioText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500'
+    },
+    addStudioDesc: {
+        fontSize: 14,
+        color: '#999',
+        marginTop: 4
+    },
+    noStudioOutline: {
+        alignItems: 'center',
+        marginTop: 40
+    },
+    loading: {
+        marginTop: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 20,
+        color: "#101010",
+        fontWeight: "bold",
+        fontSize: 16,
     },
 });

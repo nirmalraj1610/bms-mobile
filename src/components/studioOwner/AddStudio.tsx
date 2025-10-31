@@ -99,76 +99,76 @@ const AddStudioComponent = () => {
   const clearAllStates = () => {
     // clear days value
     setDays([
-    { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
-    { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
-    { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
-    { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
-    { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
-    { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
-    { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
-  ]);
+      { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
+      { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
+      { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
+      { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
+      { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
+      { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
+      { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
+    ]);
 
-  // clear basic info
-  setBasicInfo({
-    studioName: "",
-    studioType: "",
-    studioDesc: "",
-    studioAddress: "",
-    state: "",
-    city: "",
-    pinCode: "",
-    landMark: "",
-  });
+    // clear basic info
+    setBasicInfo({
+      studioName: "",
+      studioType: "",
+      studioDesc: "",
+      studioAddress: "",
+      state: "",
+      city: "",
+      pinCode: "",
+      landMark: "",
+    });
 
-  // clear details value
-  setDetails({
-    studioSize: "",
-    maximumPeople: "",
-    minBookingHours: "",
-    maxBookingHours: "",
-    basePrice: "",
-    weekendPrice: "",
-    overtimePrice: "",
-    securityDeposit: "",
-    contactPhone: "",
-    alternatePhone: "",
-  });
+    // clear details value
+    setDetails({
+      studioSize: "",
+      maximumPeople: "",
+      minBookingHours: "",
+      maxBookingHours: "",
+      basePrice: "",
+      weekendPrice: "",
+      overtimePrice: "",
+      securityDeposit: "",
+      contactPhone: "",
+      alternatePhone: "",
+    });
 
-  // clear amenities values
-  setAmenities([
-    { id: 1, name: "Professional Lighting Setup", selected: false },
-    { id: 2, name: "Props & Accessories", selected: false },
-    { id: 3, name: "Makeup Station", selected: false },
-    { id: 4, name: "Changing Room", selected: false },
-    { id: 5, name: "Air Conditioning", selected: false },
-    { id: 6, name: "Parking Available", selected: false },
-    { id: 7, name: "Refreshments", selected: false },
-    { id: 8, name: "Sound System", selected: false },
-    { id: 9, name: "Green Screen", selected: false },
-    { id: 10, name: "Cyclorama Wall", selected: false },
-    { id: 11, name: "Natural Light", selected: false },
-    { id: 12, name: "Storage Space", selected: false },
-    { id: 13, name: "Client Lounge", selected: false },
-  ]);
+    // clear amenities values
+    setAmenities([
+      { id: 1, name: "Professional Lighting Setup", selected: false },
+      { id: 2, name: "Props & Accessories", selected: false },
+      { id: 3, name: "Makeup Station", selected: false },
+      { id: 4, name: "Changing Room", selected: false },
+      { id: 5, name: "Air Conditioning", selected: false },
+      { id: 6, name: "Parking Available", selected: false },
+      { id: 7, name: "Refreshments", selected: false },
+      { id: 8, name: "Sound System", selected: false },
+      { id: 9, name: "Green Screen", selected: false },
+      { id: 10, name: "Cyclorama Wall", selected: false },
+      { id: 11, name: "Natural Light", selected: false },
+      { id: 12, name: "Storage Space", selected: false },
+      { id: 13, name: "Client Lounge", selected: false },
+    ]);
 
-  // clear equipments values
-  setEquipments([
-    { id: 1, name: "Canon DSLR Cameras", selected: false },
-    { id: 2, name: "Sony Mirrorless Cameras", selected: false },
-    { id: 3, name: "Nikon Professional Cameras", selected: false },
-    { id: 4, name: "Profoto Flash Systems", selected: false },
-    { id: 5, name: "Godox LED Lights", selected: false },
-    { id: 6, name: "Softbox Light Modifiers", selected: false },
-    { id: 7, name: "Reflectors & Diffusers", selected: false },
-    { id: 8, name: "Tripods & Stands", selected: false },
-    { id: 9, name: "Backdrop Support System", selected: false },
-    { id: 10, name: "Light Meters", selected: false },
-    { id: 11, name: "Wireless Triggers", selected: false },
-    { id: 12, name: "Extension Cords & Power", selected: false },
-    { id: 13, name: "Sandbags & Clamps", selected: false },
-    { id: 14, name: "Memory Cards", selected: false },
-    { id: 15, name: "Lens Cleaning Kit", selected: false },
-  ]);
+    // clear equipments values
+    setEquipments([
+      { id: 1, name: "Canon DSLR Cameras", selected: false },
+      { id: 2, name: "Sony Mirrorless Cameras", selected: false },
+      { id: 3, name: "Nikon Professional Cameras", selected: false },
+      { id: 4, name: "Profoto Flash Systems", selected: false },
+      { id: 5, name: "Godox LED Lights", selected: false },
+      { id: 6, name: "Softbox Light Modifiers", selected: false },
+      { id: 7, name: "Reflectors & Diffusers", selected: false },
+      { id: 8, name: "Tripods & Stands", selected: false },
+      { id: 9, name: "Backdrop Support System", selected: false },
+      { id: 10, name: "Light Meters", selected: false },
+      { id: 11, name: "Wireless Triggers", selected: false },
+      { id: 12, name: "Extension Cords & Power", selected: false },
+      { id: 13, name: "Sandbags & Clamps", selected: false },
+      { id: 14, name: "Memory Cards", selected: false },
+      { id: 15, name: "Lens Cleaning Kit", selected: false },
+    ]);
   }
 
   const [images, setImages] = useState({
@@ -261,15 +261,15 @@ const AddStudioComponent = () => {
 
     console.log("📦 Final Payload:", JSON.stringify(payload, null, 2));
 
-    try{
-        const response = await dispatch(createStudioThunk(payload)).unwrap(); // 👈 unwrap() to get actual resolved value
-        clearAllStates();
-        navigation.navigate('Home');
-        console.log("✅ Studio Created Successfully:", response);
-  } catch (error) {
-    console.error("❌ Error submitting studio:", error);
-  }
-};
+    try {
+      const response = await dispatch(createStudioThunk(payload)).unwrap(); // 👈 unwrap() to get actual resolved value
+      clearAllStates();
+      navigation.navigate('Home');
+      console.log("✅ Studio Created Successfully:", response);
+    } catch (error) {
+      console.error("❌ Error submitting studio:", error);
+    }
+  };
 
 
   const buildOperatingHoursPayload = (days: any[]) => {

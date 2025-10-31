@@ -16,6 +16,8 @@ import {
   getFavoriteStudios,
   createStudioReview,
   createStudio,
+  getMyStudios,
+  getStudiosBookings,
 } from './studios.service';
 
 const initialState: StudiosState = {
@@ -129,6 +131,67 @@ export const createStudioThunk = createAsyncThunk('studios/createStudio', async 
     return rejectWithValue(err?.error || 'Failed to create studio');
   }
 });
+
+// ✅ 3️⃣ Thunk with optional params
+export const loadMyStudioThunk = createAsyncThunk(
+  "studio-owner-studios",
+  async (params?: { status?: string; include_stats?: boolean }, { rejectWithValue }) => {
+    try {
+      const res = await getMyStudios(params);
+      console.log("API Response:", res);
+      const studios = res.studios || [];
+      return studios;
+    } catch (err: any) {
+      console.log("loadMyStudioThunk Error:", err);
+
+      // Handle authentication errors gracefully
+      if (
+        err?.status === 401 ||
+        err?.error?.includes("unauthorized") ||
+        err?.error?.includes("authentication")
+      ) {
+        console.log("Authentication error detected, user not logged in");
+        return [];
+      }
+
+      return rejectWithValue(err?.error || "Failed to load studios");
+    }
+  }
+);
+
+// ✅ 3️⃣ Thunk with optional params
+export const loadStudioBookingsThunk = createAsyncThunk(
+  "studio-bookings",
+  async (params: {
+  studio_id: string;
+  status?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}, { rejectWithValue }) => {
+    try {
+      const res = await getStudiosBookings(params);
+      console.log("API Response:", res);
+      const bookings = res.bookings || [];
+      return bookings;
+    } catch (err: any) {
+      console.log("loadMyStudioThunk Error:", err);
+
+      // Handle authentication errors gracefully
+      if (
+        err?.status === 401 ||
+        err?.error?.includes("unauthorized") ||
+        err?.error?.includes("authentication")
+      ) {
+        console.log("Authentication error detected, user not logged in");
+        return [];
+      }
+
+      return rejectWithValue(err?.error || "Failed to load studios bookings");
+    }
+  }
+);
 
 export const getStudioEquipmentThunk = createAsyncThunk(
   'studios/getEquipment', 

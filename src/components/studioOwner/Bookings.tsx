@@ -6,14 +6,19 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 
 export const BookingsComponent = () => {
-    const filterOptions = ["Pending", "Confirmed", "Completed", "Cancelled"];
+    const filterOptions = [
+        { label: "Pending", value: "pending" },
+        { label: "Confirmed", value: "confirmed" },
+        { label: "Completed", value: "completed" },
+        { label: "Cancelled", value: "cancelled" },
+    ];
     const [showFilter, setShowFilter] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [showStartPicker, setShowStartPicker] = useState(false);
     const [showEndPicker, setShowEndPicker] = useState(false);
     const [selectedStudio, setSelectedStudio] = useState('');
-    const [startdate, setStartdate] = useState(new Date());
-    const [enddate, setEnddate] = useState(new Date());
+    const [startdate, setStartdate] = useState('');
+    const [enddate, setEnddate] = useState('');
     const onFilterPress = () => {
         setShowFilter(!showFilter)
     }
@@ -76,14 +81,16 @@ export const BookingsComponent = () => {
     const onStartDateChange = (event: any, selectedDate?: Date) => {
         setShowStartPicker(false);
         if (selectedDate) {
-            setStartdate(selectedDate);
+            const formattedDate = selectedDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+            setStartdate(formattedDate);
         }
     };
 
     const onEndDateChange = (event: any, selectedDate?: Date) => {
         setShowEndPicker(false);
         if (selectedDate) {
-            setEnddate(selectedDate);
+            const formattedDate = selectedDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+            setEnddate(formattedDate);
         }
     };
 
@@ -112,7 +119,7 @@ export const BookingsComponent = () => {
                         <Text style={styles.bookingId}>
                             Booking ID: {item.bookingId}
                         </Text>
-                        <Text style={styles.time}>Booked on :<Text style={{fontWeight: '600'}}>  {item.bookedOn} </Text></Text>
+                        <Text style={styles.time}>Booked on :<Text style={{ fontWeight: '600' }}>  {item.bookedOn} </Text></Text>
                         <Text style={styles.name}>{item.name}</Text>
                         <Text style={styles.studio}>{item.studio}</Text>
                         <Text style={styles.date}>{item.date}</Text>
@@ -190,7 +197,7 @@ export const BookingsComponent = () => {
                 </TouchableOpacity>
             </View>
 
-            <Text style={styles.labelText} >Select studio</Text>
+            <Text style={styles.labelText} >Select studio<Text style={styles.required}> *</Text></Text>
             <View style={styles.pickerWrapper}>
                 <Picker
                     selectedValue={selectedStudio} // Must match one of Picker.Item values
@@ -205,7 +212,7 @@ export const BookingsComponent = () => {
                 </Picker>
             </View>
 
-            <Text style={styles.labelText} >Select date range</Text>
+            <Text style={styles.labelText} >Select date range<Text style={styles.required}> *</Text></Text>
 
             <View style={styles.timeRow}>
                 <TouchableOpacity
@@ -355,6 +362,9 @@ const styles = StyleSheet.create({
     },
     cardContent: {
         flexDirection: 'row',
+    },
+    required: {
+        color: '#DC3545'
     },
     image: {
         width: 120,
