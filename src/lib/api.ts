@@ -299,3 +299,14 @@ export async function bookingReject(body: { booking_id: string; reason?: string 
     body,
   });
 }
+
+// Add equipment to an existing booking
+export async function bookingAddEquipment(payload: {
+  booking_id: string;
+  equipment_items: { equipment_id: string; quantity: number }[];
+}): Promise<{ message: string; booking?: any }> {
+  return apiFetch<{ message: string; booking?: any }>(
+    '/booking-add-equipment',
+    { method: 'POST', body: payload }
+  );
+}

@@ -13,12 +13,15 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
 import { Equipment } from '../types/api';
+import { bookingAddEquipment } from '../lib/api';
 
 interface EquipmentSelectionModalProps {
   visible: boolean;
   equipment: Equipment[];
   loading: boolean;
   selectedEquipment: Equipment[];
+  bookingId?: string;
+
   onClose: () => void;
   onSelectEquipment: (equipment: Equipment, quantity: number) => void;
   onRemoveEquipment: (equipmentId: string) => void;
@@ -31,6 +34,8 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
   equipment,
   loading,
   selectedEquipment,
+  bookingId,
+
   onClose,
   onSelectEquipment,
   onRemoveEquipment,
@@ -72,6 +77,41 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
   const getSelectedQuantity = (equipmentId: string) => {
     const selected = selectedEquipment.find(eq => eq.id === equipmentId);
     return selected?.selectedQuantity || 0;
+  };
+
+  const handleOkPress = async () => {
+    try {
+      console.log('🟦 [EquipmentAdd] Starting OK handler');
+      console.log('🟦 [EquipmentAdd] Props snapshot:', {
+        bookingId,
+        selectedEquipmentCount: selectedEquipment.length,
+      });
+
+      if (!bookingId) {
+        console.log('❌ [EquipmentAdd] Missing bookingId. Aborting.');
+        return onClose();
+      }
+
+      console.log('🟦 [EquipmentAdd] Preparing payload from selectedEquipment...');
+      const equipment_items = selectedEquipment.map((item) => ({
+        equipment_id: item.id,
+        quantity: item.selectedQuantity || 1,
+      }));
+      const payload = { booking_id: bookingId, equipment_items };
+      console.log('📦 [EquipmentAdd] Payload ready:', payload);
+
+      console.log('📡 [EquipmentAdd] Sending POST /booking-add-equipment');
+      const response = await bookingAddEquipment(payload);
+      console.log('✅ [EquipmentAdd] API responded successfully');
+      console.log('🔍 [EquipmentAdd] Response object:', response);
+
+      console.log('🎉 [EquipmentAdd] Equipment added to booking:', bookingId);
+      onClose();
+    } catch (error: any) {
+      console.log('❌ [EquipmentAdd] API error:', error);
+      if (error?.status) console.log('❌ [EquipmentAdd] HTTP status:', error.status);
+      if (error?.error) console.log('❌ [EquipmentAdd] Error message:', error.error);
+    }
   };
 
   const getTotalCost = () => {
@@ -210,7 +250,7 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
           <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.okButton} onPress={onClose}>
+          <TouchableOpacity style={styles.okButton} onPress={handleOkPress}>
             <Text style={styles.okButtonText}>OK</Text>
           </TouchableOpacity>
         </View>
@@ -413,7 +453,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.black,
     paddingHorizontal: 16,
     paddingTop: 16,
-    maxHeight: 200,
+    maxHeight: 350,
   },
   summaryTitle: {
     fontSize: 16,
@@ -422,7 +462,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   selectedList: {
-    maxHeight: 120,
+    maxHeight: 250,
   },
   selectedItem: {
     flexDirection: 'row',

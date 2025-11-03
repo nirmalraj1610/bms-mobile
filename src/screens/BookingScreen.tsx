@@ -411,6 +411,7 @@ console.log('bookings:', bookings);
         equipment={equipmentState.equipment}
         loading={equipmentState.loading}
         selectedEquipment={selectedEquipment}
+        bookingId={selectedBookingForEquipment?.id}
         onClose={() => {
           console.log('🚪 Closing equipment modal');
           setShowEquipmentModal(false);
