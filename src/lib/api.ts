@@ -261,11 +261,33 @@ export async function notificationsMarkRead(payload: { notification_ids: string[
 
 // Post-Booking
 export async function bookingCheckin(id: string, payload?: { notes?: string }) {
-  return apiFetch<{ message: string; booking: any }>(`/booking-checkin/${id}`, { method: 'POST', body: payload ?? {} });
+  // Prefer body-based ID; fallback to path variant if needed
+  try {
+    return await apiFetch<{ message: string; booking: any }>(`/booking-checkin`, {
+      method: 'POST',
+      body: { booking_id: id, ...(payload ?? {}) },
+    });
+  } catch (err: any) {
+    return await apiFetch<{ message: string; booking: any }>(`/booking-checkin/${id}`, {
+      method: 'POST',
+      body: payload ?? {},
+    });
+  }
 }
 
 export async function bookingCheckout(id: string, payload?: { notes?: string }) {
-  return apiFetch<{ message: string; booking: any }>(`/booking-checkout/${id}`, { method: 'POST', body: payload ?? {} });
+  // Prefer body-based ID; fallback to path variant if needed
+  try {
+    return await apiFetch<{ message: string; booking: any }>(`/booking-checkout`, {
+      method: 'POST',
+      body: { booking_id: id, ...(payload ?? {}) },
+    });
+  } catch (err: any) {
+    return await apiFetch<{ message: string; booking: any }>(`/booking-checkout/${id}`, {
+      method: 'POST',
+      body: payload ?? {},
+    });
+  }
 }
 
 export async function reviewCreate(payload: { booking_id: string; studio_id: string; rating: number; comment?: string }) {

@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { getBookings } from '../features/bookings/bookingsSlice';
+import { getBookings, doCheckinBooking, doCheckoutBooking } from '../features/bookings/bookingsSlice';
 import { getStudioEquipmentThunk } from '../features/studios/studiosSlice';
 import type { BookingHistoryItem, Equipment } from '../types/api';
 import EquipmentSelectionModal from '../components/EquipmentSelectionModal';
@@ -21,6 +21,10 @@ const BookingScreen: React.FC = () => {
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [selectedBookingForEquipment, setSelectedBookingForEquipment] = useState<any>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<any[]>([]);
+
+  // Local UI state: track check-in/out per booking
+  const [checkedInMap, setCheckedInMap] = useState<Record<string, boolean>>({});
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
   // Get booking data from Redux store
   const { items: bookings, loading, error } = useAppSelector((state) => state.bookings);
@@ -172,6 +176,32 @@ console.log('bookings:', bookings);
     }
   };
 
+  // Handle Check-In
+  const handleCheckInPress = async (bookingId: string) => {
+    try {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+      await dispatch(doCheckinBooking({ booking_id: bookingId })).unwrap();
+      setCheckedInMap((prev) => ({ ...prev, [bookingId]: true }));
+    } catch (e) {
+      console.log('❌ Check-in failed:', e);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  };
+
+  // Handle Check-Out
+  const handleCheckOutPress = async (bookingId: string) => {
+    try {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+      await dispatch(doCheckoutBooking({ booking_id: bookingId })).unwrap();
+      setCheckedInMap((prev) => ({ ...prev, [bookingId]: false }));
+    } catch (e) {
+      console.log('❌ Check-out failed:', e);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  };
+
   const renderBookingItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.card}>
       <View style={styles.cardMainContent}>
@@ -232,10 +262,25 @@ console.log('bookings:', bookings);
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.checkInButton}>
-                <Icon name="login" size={14} color={COLORS.background} />
-                <Text style={styles.checkInButtonText}>Check IN</Text>
-              </TouchableOpacity>
+              {checkedInMap[item.id] ? (
+                <TouchableOpacity
+                  style={styles.checkOutButton}
+                  onPress={() => handleCheckOutPress(item.id)}
+                  disabled={!!actionLoading[item.id]}
+                >
+                  <Icon name="logout" size={14} color={COLORS.background} />
+                  <Text style={styles.checkOutButtonText}>Check OUT</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.checkInButton}
+                  onPress={() => handleCheckInPress(item.id)}
+                  disabled={!!actionLoading[item.id]}
+                >
+                  <Icon name="login" size={14} color={COLORS.background} />
+                  <Text style={styles.checkInButtonText}>Check IN</Text>
+                </TouchableOpacity>
+              )}
               
               <TouchableOpacity style={styles.viewStudioButton}>
                 <Text style={styles.viewStudioButtonText}>View Studio</Text>
@@ -686,6 +731,22 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   checkInButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.background,
+  },
+  checkOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.bg,
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 4,
+    minWidth: 100,
+  },
+  checkOutButtonText: {
     fontSize: 12,
     fontWeight: '600',
     color: COLORS.background,
