@@ -327,8 +327,21 @@ export async function bookingAddEquipment(payload: {
   booking_id: string;
   equipment_items: { equipment_id: string; quantity: number }[];
 }): Promise<{ message: string; booking?: any }> {
-  return apiFetch<{ message: string; booking?: any }>(
-    '/booking-add-equipment',
-    { method: 'POST', body: payload }
-  );
+  // Prefer body-based ID; fallback to path variant if the server expects URL param.
+  try {
+    return await apiFetch<{ message: string; booking?: any }>(
+      '/booking-add-equipment',
+      { method: 'POST', body: payload }
+    );
+  } catch (err: any) {
+    // Retry using path param style: /booking-add-equipment/:booking_id
+    try {
+      return await apiFetch<{ message: string; booking?: any }>(
+        `/booking-add-equipment/${payload.booking_id}`,
+        { method: 'POST', body: { equipment_items: payload.equipment_items } }
+      );
+    } catch (err2: any) {
+      throw err2;
+    }
+  }
 }
