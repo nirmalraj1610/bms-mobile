@@ -9,7 +9,9 @@ import ViewStudioModal from "./ViewStudioModal";
 
 // --- Main Component ---
 export const MyStudioComponent = ({
-    onPressAddStudio = (i: any) => { }
+    onPressAddStudio = (i: any) => { },
+    editStudio = (i: boolean) => { },
+    editStudioValues = (i: any) => { },
 }) => {
     const dispatch = useDispatch();
     const studioStatusOptions = [
@@ -27,6 +29,12 @@ export const MyStudioComponent = ({
     }
 
     const onAddStudioPress = () => {
+        onPressAddStudio('Add Studio')        
+    }
+
+    const onEditStudio = (item: any) => {
+        editStudioValues(item)
+        editStudio(true)
         onPressAddStudio('Add Studio')
     }
 
@@ -115,13 +123,13 @@ export const MyStudioComponent = ({
                     {/* Action Buttons */}
                     <View style={styles.actionsContainer}>
                         {/* Edit Button (Bordered)  */}
-                        <TouchableOpacity style={[styles.actionButton, styles.editButton]}>
+                        {item.status === 'active' ? <TouchableOpacity onPress={() => onEditStudio(item)} style={[styles.actionButton, styles.editButton]}>
                             <Text style={styles.editButtonText}>Edit</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> : null}
 
                         {/* View Button (Bordered) */}
                         <TouchableOpacity onPress={() => onOpenViewModal(item)} style={[styles.actionButton, styles.viewButton]}>
-                            <Text style={styles.viewButtonText}>View</Text>
+                            <Text style={styles.viewButtonText}>{item.status === 'active' ? 'View' : 'View studio'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

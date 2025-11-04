@@ -70,10 +70,10 @@ export const DashboardComponent = () => {
     const cleardatefilter = () => {
         setStartdate('');
         setEnddate('');
-        fetchStudiosBookings();
+        fetchStudiosBookings({ from_date: '', to_date: '' }); // force reset
     }
 
-    const fetchStudiosBookings = async () => {
+    const fetchStudiosBookings = async (overrideParams?: any) => {
         setIsLoading(true);
         //             {
         //   studio_id: string;
@@ -82,8 +82,8 @@ export const DashboardComponent = () => {
         //   to_date?: string;
         //   limit?: number;
         //   offset?: number;
-        // }
-        const userData = await getUserData();
+        // }        
+
         let params = { studio_id: selectedStudio }
         if (selectedFilter) {
             params = { ...params, status: selectedFilter, }
@@ -91,6 +91,9 @@ export const DashboardComponent = () => {
         if (startdate && enddate) {
             params = { ...params, from_date: startdate, to_date: enddate }
         }
+
+        if (overrideParams) params = { ...params, ...overrideParams };
+
         try {
             const studiosBookings = await dispatch(loadStudioBookingsThunk(params)).unwrap(); // ✅ unwrap to get actual data
             console.log('📦 StudiosBookings from API:', studiosBookings);
@@ -262,15 +265,7 @@ export const DashboardComponent = () => {
                             </Picker>
                         </View>
 
-                        <View style={styles.datelableOutline}>
                             <Text style={styles.labelText} >Select date range<Text style={styles.required}> *</Text></Text>
-                            <TouchableOpacity onPress={fetchStudiosBookings} disabled={!startdate || !enddate} style={styles.acceptBtn}>
-                                <Text style={styles.acceptText}>Apply</Text>
-                            </TouchableOpacity>
-                            {startdate && enddate && <TouchableOpacity onPress={cleardatefilter} disabled={!startdate || !enddate} style={{...styles.acceptBtn, backgroundColor: '#DC3545', marginLeft: 10}}>
-                                <Text style={styles.acceptText}>Clear</Text>
-                            </TouchableOpacity>}
-                        </View>
 
                         <View style={styles.timeRow}>
                             <TouchableOpacity
@@ -305,6 +300,16 @@ export const DashboardComponent = () => {
                                 </Text>
                             </TouchableOpacity>
                         </View>
+                        {startdate && enddate &&
+                            <View style={styles.datelableOutline}>
+                                <TouchableOpacity onPress={cleardatefilter} disabled={!startdate || !enddate} style={{ ...styles.acceptBtn, backgroundColor: '#DC3545', marginRight: 10 }}>
+                                    <Text style={styles.acceptText}>Clear</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={fetchStudiosBookings} disabled={!startdate || !enddate} style={styles.acceptBtn}>
+                                    <Text style={styles.acceptText}>Apply</Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
                         <FlatList
                             data={studioBookingList}
                             keyExtractor={(item) => item.id}
@@ -554,7 +559,7 @@ const styles = StyleSheet.create({
     datelableOutline: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         marginBottom: 10
     },
     noStudioOutline: {

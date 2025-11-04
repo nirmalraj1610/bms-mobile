@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -13,11 +13,29 @@ import { COLORS } from '../constants';
 import BookingScreen from '../screens/BookingScreen';
 import StudioDashboardScreen from '../screens/StudioDashboardScreen';
 import PhotographerDashboardScreen from '../screens/PhotographerDashboardScreen';
+import { getUserData } from '../lib/http';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainTabNavigator: React.FC = () => {
-  const [currentUser, setCurrentuser] = useState('studioOwner') // user or studioOwner or photographer
+  const [currentUser, setCurrentUser] = useState<string | null>(null); // 'client', 'studio_owner', or 'photographer'
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userData = await getUserData();
+        const userType = userData?.customer?.customer_profiles?.user_type;
+        console.log('User type:', userType);
+        setCurrentUser(userType);
+      } catch (err) {
+        console.log('Failed to load user data:', err);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -65,11 +83,13 @@ const MainTabNavigator: React.FC = () => {
         component={BookingScreen} 
         options={{ title: 'Bookings' }}
       />
-      {currentUser !== 'user' && <Tab.Screen 
-        name="Dashboard" 
-        component={currentUser === 'studioOwner' ? StudioDashboardScreen : PhotographerDashboardScreen} 
-        options={{ title: 'Dashboard' }}
-      />}
+      {currentUser && currentUser !== 'client' && (
+        <Tab.Screen
+          name="Dashboard"
+          component={currentUser === 'studio_owner' ? StudioDashboardScreen : PhotographerDashboardScreen}
+          options={{ title: 'Dashboard' }}
+        />
+      )}
       <Tab.Screen 
         name="Favorites" 
         component={FavoritesScreen} 

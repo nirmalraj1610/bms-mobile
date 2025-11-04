@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { COLORS } from "../../constants";
 
 
 // --- Main Component ---
@@ -151,38 +152,44 @@ export const ServicesComponent = () => {
         <View style={{ marginBottom: 360 }}>
 
             {/* Tabs */}
-            <View style={styles.tabContainer}>
+            <View style={styles.toggleContainer}>
                 <TouchableOpacity
                     style={[
-                        styles.tab,
-                        activeTab === "Services" && styles.activeTab,
+                        styles.toggleButton,
+                        activeTab === "Services" && styles.toggleButtonActive
                     ]}
                     onPress={() => setActiveTab("Services")}
                 >
-                    <Text
-                        style={[
-                            styles.tabText,
-                            activeTab === "Services" && styles.activeTabText,
-                        ]}
-                    >
+                    <Icon
+                        name="handyman"
+                        size={16}
+                        color={activeTab === "Services" ? COLORS.background : COLORS.text.secondary}
+                    />
+                    <Text style={[
+                        styles.toggleButtonText,
+                        activeTab === "Services" && styles.toggleButtonTextActive
+                    ]}>
                         Services
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[
-                        styles.tab,
-                        activeTab === "Add Service" && styles.activeTab,
+                        styles.toggleButton,
+                        activeTab === "Add Service" && styles.toggleButtonActive
                     ]}
                     onPress={() => setActiveTab("Add Service")}
                 >
-                    <Text
-                        style={[
-                            styles.tabText,
-                            activeTab === "Add Service" && styles.activeTabText,
-                        ]}
-                    >
-                        Add Service
+                    <Icon
+                        name="add-circle-outline"
+                        size={16}
+                        color={activeTab === "Add Service" ? COLORS.background : COLORS.text.secondary}
+                    />
+                    <Text style={[
+                        styles.toggleButtonText,
+                        activeTab === "Add Service" && styles.toggleButtonTextActive
+                    ]}>
+                        Add service
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -398,31 +405,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 12,
     },
-    tabContainer: {
-        flexDirection: "row",
-        backgroundColor: "#f0f0f0",
-        borderRadius: 10,
-        marginBottom: 20,
-        alignItems: 'center'
-    },
-    tab: {
-        flex: 0.50,
-        paddingVertical: 12,
-        alignItems: "center",
-    },
-    tabText: {
-        fontSize: 16,
-        color: "#777",
-    },
-    activeTab: {
-        borderBottomWidth: 3,
-        borderBottomColor: "#034833",
-        borderRadius: 10
-    },
-    activeTabText: {
-        color: "#034833",
-        fontWeight: "600",
-    },
     viewButton: {
         paddingVertical: 8,
         borderRadius: 8,
@@ -487,5 +469,42 @@ const styles = StyleSheet.create({
         height: 150,
         width: 150,
         borderRadius: 10
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        backgroundColor: COLORS.surface,
+        borderRadius: 25,
+        borderColor: COLORS.bg,
+        borderWidth: 1,
+        padding: 8,
+        marginTop: 16,
+        marginBottom: 16,
+        elevation: 2,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+    },
+    toggleButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 18,
+        backgroundColor: 'transparent',
+    },
+    toggleButtonActive: {
+        backgroundColor: COLORS.bg,
+    },
+    toggleButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.text.secondary,
+        marginLeft: 6,
+    },
+    toggleButtonTextActive: {
+        color: COLORS.background,
     },
 });

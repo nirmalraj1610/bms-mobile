@@ -174,41 +174,47 @@ const ProfileScreen: React.FC = () => {
               </View>
 
               {/* Tabs */}
-              <View style={styles.tabContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.tab,
-                    activeTab === "personal" && styles.activeTab,
-                  ]}
-                  onPress={() => setActiveTab("personal")}
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === "personal" && styles.activeTabText,
-                    ]}
-                  >
-                    Personal Info
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.tab,
-                    activeTab === "verification" && styles.activeTab,
-                  ]}
-                  onPress={() => setActiveTab("verification")}
-                >
-                  <Text
-                    style={[
-                      styles.tabText,
-                      activeTab === "verification" && styles.activeTabText,
-                    ]}
-                  >
-                    Verification
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <View style={styles.toggleContainer}>
+                        <TouchableOpacity
+                          style={[
+                            styles.toggleButton,
+                            activeTab === "personal" && styles.toggleButtonActive
+                          ]}
+                          onPress={() => setActiveTab("personal")}
+                        >
+                          <Icon 
+                            name="person" 
+                            size={16} 
+                            color={activeTab === "personal" ? COLORS.background : COLORS.text.secondary} 
+                          />
+                          <Text style={[
+                            styles.toggleButtonText,
+                            activeTab === "personal" && styles.toggleButtonTextActive
+                          ]}>
+                            Personal Info 
+                          </Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                          style={[
+                            styles.toggleButton,
+                            activeTab === "verification" && styles.toggleButtonActive
+                          ]}
+                          onPress={() => setActiveTab("verification")}
+                        >
+                          <Icon 
+                            name="verified-user" 
+                            size={16} 
+                            color={activeTab === "verification" ? COLORS.background : COLORS.text.secondary} 
+                          />
+                          <Text style={[
+                            styles.toggleButtonText,
+                            activeTab === "verification" && styles.toggleButtonTextActive
+                          ]}>
+                            Verification
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
 
 
               {/* PERSONAL INFO TAB */}
@@ -484,27 +490,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  tabContainer: {
-    flexDirection: "row",
-    backgroundColor: "#f0f0f0",
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  tabText: {
-    fontSize: 16,
-    color: "#777",
-  },
-  activeTab: {
-    borderBottomWidth: 3,
-    borderBottomColor: "#034833",
-  },
-  activeTabText: {
-    color: "#034833",
-    fontWeight: "600",
-  },
   loading: {
     flex: 1,
     justifyContent: "center",
@@ -750,6 +735,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+   toggleContainer: {
+        flexDirection: 'row',
+        marginHorizontal: 10,
+        backgroundColor: COLORS.surface,
+        borderRadius: 25,
+        borderColor: COLORS.bg,
+        borderWidth: 1,
+        padding: 8,
+        marginTop: 16,
+        marginBottom: 16,
+        elevation: 2,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+      },
+      toggleButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 18,
+        backgroundColor: 'transparent',
+      },
+      toggleButtonActive: {
+        backgroundColor: COLORS.bg,
+      },
+      toggleButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.text.secondary,
+        marginLeft: 6,
+      },
+      toggleButtonTextActive: {
+        color: COLORS.background,
+      },
 });
 
 export default ProfileScreen;

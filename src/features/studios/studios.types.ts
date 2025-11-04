@@ -76,3 +76,17 @@ export type StudioCreatePayload = {
   pricing: Record<string, any>;
   amenities: string[];
 };
+
+export type StudioEquipmentPayload = {
+  action: "add" | "update" | "delete"; // allowed actions
+  studio_id: string;
+  equipment_id?:string;
+  item_name: string;
+  item_type: string;
+  description: string;
+  quantity_available: number;
+  rental_price_hourly: number;
+  rental_price_daily: number;
+  condition: string;
+  specifications: Record<string, any>; // dynamic key-value pairs like resolution, video, etc.
+};

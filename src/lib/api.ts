@@ -29,6 +29,7 @@ import type {
   PhotographerPortfolioUploadResponse,
   PhotographerPortfolioUploadPayload,
 } from '../types/api';
+import { StudioEquipmentPayload } from '../features/studios/studios.types';
 
 // Auth
 export async function authSignup(payload: {
@@ -306,6 +307,24 @@ export async function StudioCreate(payload: {
   amenities: string[];
 }) {
   return apiFetch<StudioCreateResponse>('/studio-create', { method: 'POST', body: payload });
+}
+
+export async function StudioUpdate(payload: {
+  name: string;
+  description: string;
+  location: object;
+  pricing: object;
+  amenities: string[];
+}) {
+  return apiFetch<StudioCreateResponse>('/studio-update', { method: 'POST', body: payload });
+}
+
+export async function StudioEquipCreate(payload: StudioEquipmentPayload) {
+  return apiFetch<StudioCreateResponse>('/studio-equipment-manage', { method: 'POST', body: payload });
+}
+
+export async function StudioEquipUpdate(payload: StudioEquipmentPayload) {  
+  return apiFetch<StudioCreateResponse>('/studio-equipment-manage', { method: 'PUT', body: payload });
 }
 
 export async function bookingAccept(body: { booking_id: string }) {

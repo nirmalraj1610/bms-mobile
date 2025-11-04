@@ -6,6 +6,7 @@ import type {
   ReviewCreatePayload,
   StudioCreatePayload,
   ToggleFavoritePayload,
+  StudioEquipmentPayload,
 } from './studios.types';
 import {
   searchStudios,
@@ -18,6 +19,9 @@ import {
   createStudio,
   getMyStudios,
   getStudiosBookings,
+  updateStudio,
+  updateStudioEquip,
+  createStudioEquip,
 } from './studios.service';
 
 const initialState: StudiosState = {
@@ -129,6 +133,33 @@ export const createStudioThunk = createAsyncThunk('studios/createStudio', async 
     return res.studio?.id || null;
   } catch (err: any) {
     return rejectWithValue(err?.error || 'Failed to create studio');
+  }
+});
+
+export const updateStudioThunk = createAsyncThunk('studio-update', async (payload: StudioCreatePayload, { rejectWithValue }) => {
+  try {
+    const res = await updateStudio(payload);
+    return res.studio?.id || null;
+  } catch (err: any) {
+    return rejectWithValue(err?.error || 'Failed to create studio');
+  }
+});
+
+export const createStudioEquipThunk = createAsyncThunk('studio-equipment-manage', async (payload: StudioEquipmentPayload, { rejectWithValue }) => {
+  try {
+    const res = await createStudioEquip(payload);
+    return res || null;
+  } catch (err: any) {
+    return rejectWithValue(err?.error || 'Failed to create studio equipment');
+  }
+});
+
+export const updateStudioEquipThunk = createAsyncThunk('studio-equipment-manage', async (payload: StudioEquipmentPayload, { rejectWithValue }) => {
+  try {
+    const res = await updateStudioEquip(payload);
+    return res || null;
+  } catch (err: any) {
+    return rejectWithValue(err?.error || 'Failed to update studio equipment');
   }
 });
 

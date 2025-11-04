@@ -1,5 +1,5 @@
 import { Picker } from "@react-native-picker/picker";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
   Image,
@@ -16,10 +16,14 @@ import { launchImageLibrary } from "react-native-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch } from "react-redux";
 import { createStudio } from "../../features/studios/studios.service";
-import { createStudioThunk } from "../../features/studios/studiosSlice";
+import { createStudioThunk, updateStudioThunk } from "../../features/studios/studiosSlice";
 import { useNavigation } from "@react-navigation/native";
 
-const AddStudioComponent = () => {
+const AddStudioComponent = ({
+  editStudio = false,
+  onPressSelectmenu = (i:any) => {},
+  editStudioValues = {},
+}) => {
   const dispatch = useDispatch();
   const navigation = useNavigation<any>();
   const [selectedTab, setSelectedTab] = useState(1);
@@ -27,6 +31,7 @@ const AddStudioComponent = () => {
   const [selectedFile, setSelectedFile] = useState([]);
   const [maxImageError, setMaxImageError] = useState('');
   const [showMaxImageError, setShowMaxImageError] = useState(false);
+  const [termsSelected, setTermsSelected] = useState(false);
   const [showPicker, setShowPicker] = useState<{ id: number; type: "open" | "close" } | null>(null);
 
   const [days, setDays] = useState([
@@ -96,17 +101,72 @@ const AddStudioComponent = () => {
     { id: 15, name: "Lens Cleaning Kit", selected: false },
   ]);
 
+  useEffect(() => {
+    if (editStudio && editStudioValues) {
+      setStudioValues();
+      console.log(editStudio , editStudioValues);
+      
+    }
+  }, [editStudio])
+
+  const setStudioValues = () => {
+
+    // clear basic info
+    setBasicInfo({
+      studioName: editStudioValues?.name || '',
+      studioType: "",
+      studioDesc: editStudioValues?.description || '',
+      studioAddress: editStudioValues?.location?.address || '',
+      state: editStudioValues?.location?.state || '',
+      city: editStudioValues?.location?.city || '',
+      pinCode: String(editStudioValues?.location?.pincode) || '',
+      landMark: "",
+    });
+
+    // set details value
+    setDetails({
+      studioSize: "",
+      maximumPeople: "",
+      minBookingHours: String(editStudioValues?.pricing?.minimum_hours) || '',
+      maxBookingHours: "",
+      basePrice: String(editStudioValues?.pricing?.hourly_rate) || '',
+      weekendPrice: String(editStudioValues?.pricing?.weekend_multiplier) || '',
+      overtimePrice: String(editStudioValues?.pricing?.extra_hour_rate) || '',
+      securityDeposit: "",
+      contactPhone: "",
+      alternatePhone: "",
+    });
+
+    // set amenities values
+    const selectedFromAPI = editStudioValues?.amenities || [];
+
+    // Mark dynamically as selected
+    const updatedAmenities = amenities.map(item => ({
+      ...item,
+      selected: selectedFromAPI.includes(item.name),
+    }));
+
+    setAmenities(updatedAmenities);
+
+    setAmenities(updatedAmenities);
+
+  }
+
   const clearAllStates = () => {
-    // clear days value
-    setDays([
-      { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
-      { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
-      { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
-      { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
-      { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
-      { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
-      { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
-    ]);
+    // clear edit statevalues
+      editStudio = false,
+      editStudioValues = {},
+
+      // clear days value
+      setDays([
+        { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
+        { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
+        { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
+        { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
+        { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
+        { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
+        { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
+      ]);
 
     // clear basic info
     setBasicInfo({
@@ -169,6 +229,8 @@ const AddStudioComponent = () => {
       { id: 14, name: "Memory Cards", selected: false },
       { id: 15, name: "Lens Cleaning Kit", selected: false },
     ]);
+
+    onPressSelectmenu('Dashboard')
   }
 
   const [images, setImages] = useState({
@@ -261,13 +323,27 @@ const AddStudioComponent = () => {
 
     console.log("📦 Final Payload:", JSON.stringify(payload, null, 2));
 
-    try {
-      const response = await dispatch(createStudioThunk(payload)).unwrap(); // 👈 unwrap() to get actual resolved value
-      clearAllStates();
-      navigation.navigate('Home');
-      console.log("✅ Studio Created Successfully:", response);
-    } catch (error) {
-      console.error("❌ Error submitting studio:", error);
+    if (editStudio) {
+      console.log('calling here 1');
+      
+      const convertedPayload = { ...payload, studio_id: editStudioValues?.id }
+      try {
+        const response = await dispatch(updateStudioThunk(convertedPayload)).unwrap(); // 👈 unwrap() to get actual resolved value
+        clearAllStates();
+        console.log("✅ Studio updated Successfully:", response);
+      } catch (error) {
+        console.error("❌ Error updating studio:", error);
+      }
+    }
+    else {
+      console.log('calling here 2');
+      try {
+        const response = await dispatch(createStudioThunk(payload)).unwrap(); // 👈 unwrap() to get actual resolved value
+        clearAllStates();
+        console.log("✅ Studio Created Successfully:", response);
+      } catch (error) {
+        console.error("❌ Error submitting studio:", error);
+      }
     }
   };
 
@@ -1000,6 +1076,15 @@ const AddStudioComponent = () => {
               />
               <Text style={styles.noteText}>Your studio listing will be reviewed by our team before going live. You'll receive an email notification once approved.</Text>
             </View>
+            <View style={styles.termsOutline}>
+              <Icon
+                onPress={() => setTermsSelected(!termsSelected)}
+                name={termsSelected ? "check-box" : "check-box-outline-blank"}
+                size={24}
+                color={termsSelected ? "#1B4332" : "#444"}
+              />
+              <Text style={{ ...styles.listInformation, fontSize: 12, marginLeft: 5 }}>I agree to the Terms & Conditions and confirm that all information provided is accurate.</Text>
+            </View>
           </View>}
 
 
@@ -1026,7 +1111,7 @@ const AddStudioComponent = () => {
           {selectedTab == tabs.length &&
             <TouchableOpacity onPress={onSubmitPress} style={styles.previousButton}>
               <Icon name={"check"} size={16} color="#FFFFFF" />
-              <Text style={[styles.previousText, { marginLeft: 5 }]}>Submit for review</Text>
+              <Text style={[styles.previousText, { marginLeft: 5 }]}>{editStudio ? 'Update studio' : 'Submit for review'}</Text>
             </TouchableOpacity>
           }
         </View>
@@ -1278,5 +1363,9 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontWeight: '500',
     fontSize: 14
+  },
+  termsOutline: {
+    flexDirection: 'row',
+    alignItems: 'center'
   },
 });

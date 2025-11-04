@@ -1,14 +1,29 @@
 import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
-import { FlatList, Image, ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useDispatch } from "react-redux";
+import DashboardFilterPopup from "./DashboardFilter";
+import { createStudioEquipThunk, getStudioEquipmentThunk, loadMyStudioThunk, updateStudioEquipThunk } from "../../features/studios/studiosSlice";
+import { COLORS } from "../../constants";
 
 
 // --- Main Component ---
 export const ManageEquipmentComponent = () => {
+    const dispatch = useDispatch();
     const [selectedStudio, setSelectedStudio] = useState('');
+    const [selectedFilter, setSelectedFilter] = useState(null);
+    const [studioList, setStudioList] = useState([{ label: '', value: '' }]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [editEquip, setEditEquip] = useState(false);
+    const [editEquipId, setEditEquipId] = useState('');
+    const [studioEquip, setStudioEquip] = useState([]);
     const [selectedFile, setSelectedFile] = useState('');
+    const filterOptions = [
+        { label: "Available", value: true }
+    ];
+    const [showFilter, setShowFilter] = useState(false);
     const [addStudio, setaddStudio] = useState({
         studioName: "",
         equipmentName: "",
@@ -23,100 +38,125 @@ export const ManageEquipmentComponent = () => {
     });
     const [activeTab, setActiveTab] = useState("Studio Equipment"); // 'Studio Equipment' or 'Add Equipment'
 
-    const viewStudioList = [
-        "Nature studio",
-        "Mani studio",
-        "Jothi studio",
-        "AK studio",
-    ]
-
-    const addStudioList = [
-        "Nature studio",
-        "Mani studio",
-        "Jothi studio",
-        "AK studio",
-    ]
-
-    const equipmentList = [
-        "Camera",
-        "Lighting",
-        "backdrop",
-        "Props",
-        "Lens",
-        "Tripod",
-        "Audio",
-        "Other",
-    ]
+const equipmentList = [
+  { label: "Camera", value: "camera" },
+  { label: "Lighting", value: "lighting" },
+  { label: "Backdrop", value: "backdrop" },
+  { label: "Props", value: "props" },
+  { label: "Lens", value: "lens" },
+  { label: "Tripod", value: "Tripod" },
+  { label: "Audio", value: "audio" },
+  { label: "Other", value: "other" },
+];
 
     const ConditionList = [
-        "Excellent",
-        "Good",
-        "Fair",
-    ]
+  { label: "Excellent", value: "excellent" },
+  { label: "Good", value: "good" },
+  { label: "Fair", value: "fair" },
+];
 
-    // --- Data for the Studio Cards ---
-    const studioData = [
-        {
-            id: '1',
-            equipment: 'camera stand',
-            equipmentType: 'backdrop',
-            desc: 'Hold your camera for hand free',
-            hourPrice: '120',
-            dayPrice: '1198',
-            avaliable: '4',
-            condition: 'Excellent',
-            image: 'https://fotocentreindia.com/wp-content/uploads/2020/01/Ulanzi-MT-08-Extendable-Mini-Tripod-Online-Buy-Mumbai-India-4.jpg' // Placeholder image
-        },
-        {
-            id: '2',
-            equipment: 'Camera lens',
-            equipmentType: 'backdrop',
-            desc: 'f1.8 pro',
-            hourPrice: '100',
-            dayPrice: '1000',
-            avaliable: '6',
-            condition: 'Good',
-            image: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQffoQTJWbabG47mNsJsEE8PUiVEPx-XPvbwFklqWMiJ2u5wPPubzud4oS-JJKtCwS4SfBcq1gHG1JZorjn-hLc059j9dT-uIrtWMNJwUkZDRUnbViSxJWI'
-        },
-        {
-            id: '3',
-            equipment: 'Ring light',
-            equipmentType: 'backdrop',
-            desc: 'Ring light for face brightness',
-            hourPrice: '60',
-            dayPrice: '800',
-            avaliable: '3',
-            condition: 'Fair',
-            image: 'https://atlas-content-cdn.pixelsquid.com/assets_v2/275/2750427660483040505/jpeg-600/G03.jpg'
-        },
-        {
-            id: '4',
-            equipment: 'Flash light',
-            equipmentType: 'backdrop',
-            desc: 'Back light for better brightnes photo',
-            hourPrice: '150',
-            dayPrice: '1500',
-            avaliable: '2',
-            condition: 'Good',
-            image: 'https://3.imimg.com/data3/VH/BQ/GLADMIN-119035/photo-studio-equipment-250x250.jpg'
-        },
-    ];
+    const onFilterPress = () => {
+        setShowFilter(!showFilter)
+    }
 
-    const onEditEquiPress = (item: any) => {
+    useEffect(() => {
+        fetchStudios();
+    }, []);
+
+    useEffect(() => {
+        fetchStudiosEquipments();
+    }, [selectedStudio, selectedFilter])
+
+    useEffect(() => {
+        if(activeTab === "Studio Equipment")
+        {
+            clearStateValues();
+            fetchStudiosEquipments();
+        }
+    },[activeTab])
+
+    const fetchStudios = async () => {
+        setIsLoading(true);
+        // { status: "inactive" }
+        // let params = { include_stats: true }
+        // if (selectedFilter) {
+        //     params = { ...params, status: selectedFilter, }
+        // }
+        try {
+            const studios = await dispatch(loadMyStudioThunk()).unwrap(); // ✅ unwrap to get actual data
+            console.log('📦 Studios from API:', studios);
+
+            // response looks like { studios: [ ... ], total: 16 }
+            const studiosList = studios.map(studio => ({
+                label: studio.name,
+                value: studio.id,
+            }));
+            setStudioList(studiosList || []);
+        } catch (error) {
+            console.log('❌ Failed to load studios:', error);
+        }
+        finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchStudiosEquipments = async () => {
+        setIsLoading(true);
+        //             {
+        //   studio_id: string;
+        //   status?: string;
+        //   from_date?: string;
+        //   to_date?: string;
+        //   limit?: number;
+        //   offset?: number;
+        // }        
+
+        let params = { studio_id: selectedStudio }
+        if (selectedFilter) {
+            params = { ...params, available_only: selectedFilter, }
+        }
+
+        try {
+            const studiosEquipments = await dispatch(getStudioEquipmentThunk(params)).unwrap(); // ✅ unwrap to get actual data
+            console.log('📦 StudiosEquipments from API:', studiosEquipments);
+
+            // response looks like { studiosEquipments: [ ... ], total: 16 }
+            setStudioEquip(studiosEquipments || []);
+        } catch (error) {
+            console.log('❌ Failed to load studios bookings:', error);
+        }
+        finally {
+            setIsLoading(false);
+        }
+    };
+
+    const staticimage = 'https://3.imimg.com/data3/VH/BQ/GLADMIN-119035/photo-studio-equipment-250x250.jpg'
+
+    const onEditEquiPress = (item: any) => {        
+
         setActiveTab("Add Equipment");
-        setSelectedFile(item?.image ? { uri: item?.image } : '')
+        setEditEquip(true);
+        setEditEquipId(item?.id ? item?.id : '')
+        setSelectedFile(item?.image_urls ? { uri: item?.image_urls } : {uri: staticimage})
+
+        const selectedStudioName = studioList.find(
+            (studio) => studio.value === selectedStudio
+        )?.label || '';
+        console.log(selectedStudioName, 'selectedStudioName');
+
+
         setaddStudio({
-            studioName: selectedStudio ? selectedStudio : '',
-            equipmentName: item?.equipment ? item?.equipment : '',
-            equipmentType: item?.equipmentType ? item?.equipmentType : '',
-            equipmentDesc: item?.desc ? item?.desc : '',
-            resolution: "",
-            video: "",
-            availableQuantity: item?.avaliable ? item?.avaliable : '',
-            hourlyRate: item?.hourPrice ? item?.hourPrice : '',
-            dailyRate: item?.dayPrice ? item?.dayPrice : '',
-            Condition: item?.condition ? item?.condition : '',
-        })
+            studioName: selectedStudioName ? selectedStudioName : '',
+            equipmentName: item?.item_name ? item?.item_name : '',
+            equipmentType: item?.item_type ? String(item?.item_type) : '',
+            equipmentDesc: item?.description ? item?.description : '',
+            resolution: item?.specifications?.resolution || '',
+            video: item?.specifications?.video || '',
+            availableQuantity: item?.quantity_available ? String(item?.quantity_available) : '',
+            hourlyRate: item?.rental_price_hourly ? String(item?.rental_price_hourly) : '',
+            dailyRate: item?.rental_price_daily ? String(item?.rental_price_daily) : '',
+            Condition: item?.condition ? String(item?.condition) : '',
+        });
     }
 
     const handleDocumentPick = async () => {
@@ -126,7 +166,11 @@ export const ManageEquipmentComponent = () => {
         }
     };
 
-    const createEquipment = () => {
+    const onAddEquiPress = () => {
+        setActiveTab('Add Equipment')
+    }
+
+    const clearStateValues = () => {
         setSelectedFile('')
         // set initial state value
         setaddStudio({
@@ -145,11 +189,72 @@ export const ManageEquipmentComponent = () => {
         // move to list equipment tab
 
         setActiveTab("Studio Equipment");
-
+        setEditEquip(false);
+        setEditEquipId('')
     }
+
+    const createOrEditEquipment = async () => {
+        let payload = {
+            studio_id: selectedStudio,
+            item_name: addStudio.equipmentName,
+            item_type: addStudio.equipmentType,
+            description: addStudio.equipmentDesc,
+            quantity_available: addStudio.availableQuantity,
+            rental_price_hourly: addStudio.hourlyRate,
+            rental_price_daily: addStudio.dailyRate,
+            condition: addStudio.Condition,
+            specifications: {
+                resolution: addStudio.resolution,
+                video: addStudio.video
+            }
+        };
+
+if (editEquip && editEquipId) {
+  console.log('calling here 1');
+  try {
+    const convertedPayload = {
+      ...payload,
+      action: "update",
+      equipment_id: editEquipId,
+    };
+
+    console.log("📦 Final Payload:", JSON.stringify(convertedPayload, null, 2));
+
+    const response = await dispatch(updateStudioEquipThunk(convertedPayload)).unwrap();
+    clearStateValues();
+    console.log("✅ Equipment updated successfully:", response);
+  } catch (error) {
+    console.error("❌ Error updating equipment:", error);
+  }
+} else {
+  console.log('calling here 2');
+  try {
+    const convertedPayload = {
+      ...payload,
+      action: "add",
+    };
+
+    console.log("📦 Final Payload:", JSON.stringify(convertedPayload, null, 2));
+
+    const response = await dispatch(createStudioEquipThunk(convertedPayload)).unwrap();
+    clearStateValues();
+    console.log("✅ Equipment created successfully:", response);
+  } catch (error) {
+    console.error("❌ Error submitting equipment:", error);
+  }
+}
+
+    };
 
     // --- Render Item Function for FlatList ---
     const renderStudioCard = ({ item }: any) => {
+        let statusBgColor = '#FE9A55'; // default Pending orange
+        if (item.available) statusBgColor = '#034833'; // green
+        if (!item.available) statusBgColor = '#DC3545'; // red
+
+        let statusText = 'Available';
+        if (item.available) statusText = 'Available';
+        if (!item.available) statusText = 'Unavailable';
 
         return (
             <View style={styles.cardContainer}>
@@ -157,19 +262,23 @@ export const ManageEquipmentComponent = () => {
                     {/* Studio Image */}
                     <Image
                         // Using a placeholder that simulates the image's structure
-                        source={{ uri: item.image }}
+                        source={{ uri: item?.image_urls ? item?.image_urls : staticimage }}
                         resizeMode="cover"
                         style={styles.cardImage}
                     />
+                    {/* Status Badge */}
+                    <View style={[styles.statusBadge, { backgroundColor: statusBgColor }]}>
+                        <Text style={styles.statusText}>{statusText}</Text>
+                    </View>
 
                     {/* Text Info */}
                     <View style={styles.infoContainer}>
-                        <Text style={styles.studioName}>{item.equipment} <Text style={styles.equipmentType}>({item.equipmentType})</Text></Text>
-                        <Text style={styles.studioDesc}>{item.desc}</Text>
+                        <Text style={styles.studioName}>{item.item_name} <Text style={styles.equipmentType}>({item.item_type})</Text></Text>
+                        <Text style={styles.studioDesc}>{item.description}</Text>
                         <Text style={styles.avaliable}>Price range:</Text>
-                        <Text style={styles.avaliable}>Per hour: <Text style={styles.price}>₹ {item.hourPrice}</Text></Text>
-                        <Text style={styles.avaliable}>Per Day: <Text style={styles.price}>₹ {item.dayPrice}</Text></Text>
-                        <Text style={styles.avaliable}>Avaliable: <Text style={styles.price}>{item.avaliable} pieces</Text></Text>
+                        <Text style={styles.avaliable}>Per hour: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_hourly}</Text></Text>
+                        <Text style={styles.avaliable}>Per Day: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_daily}</Text></Text>
+                        <Text style={styles.avaliable}>Avaliable: <Text style={styles.price}>{item.quantity_available} pieces</Text></Text>
                         <Text style={styles.avaliable}>Condition: <Text style={styles.price}>{item.condition}</Text></Text>
                     </View>
 
@@ -184,228 +293,276 @@ export const ManageEquipmentComponent = () => {
     }
 
     return (
-        <View style={{ marginBottom: 360 }}>
+        <>
+            {
+                isLoading ?
+                    <View style={styles.loading}>
+                        <ActivityIndicator size="large" color="#034833" />
+                        <Text style={styles.loadingText}>Loading....</Text>
+                    </View> :
+                    <View style={{ marginBottom: 350 }}>
 
-            {/* Tabs */}
-            <View style={styles.tabContainer}>
-                <TouchableOpacity
-                    style={[
-                        styles.tab,
-                        activeTab === "Studio Equipment" && styles.activeTab,
-                    ]}
-                    onPress={() => setActiveTab("Studio Equipment")}
-                >
-                    <Text
-                        style={[
-                            styles.tabText,
-                            activeTab === "Studio Equipment" && styles.activeTabText,
-                        ]}
-                    >
-                        Studio Equipment
-                    </Text>
-                </TouchableOpacity>
+                        {/* Tabs */}
+                        <View style={styles.toggleContainer}>
+                                  <TouchableOpacity
+                                    style={[
+                                      styles.toggleButton,
+                                      activeTab === "Studio Equipment" && styles.toggleButtonActive
+                                    ]}
+                                    onPress={() => setActiveTab("Studio Equipment")}
+                                  >
+                                    <Icon 
+                                      name="camera-alt" 
+                                      size={16} 
+                                      color={activeTab === "Studio Equipment" ? COLORS.background : COLORS.text.secondary} 
+                                    />
+                                    <Text style={[
+                                      styles.toggleButtonText,
+                                      activeTab === "Studio Equipment" && styles.toggleButtonTextActive
+                                    ]}>
+                                      Studio Equipment 
+                                    </Text>
+                                  </TouchableOpacity>
+                                  
+                                  <TouchableOpacity 
+                                    style={[
+                                      styles.toggleButton,
+                                      activeTab === "Add Equipment" && styles.toggleButtonActive
+                                    ]}
+                                    onPress={() => setActiveTab("Add Equipment")}
+                                  >
+                                    <Icon 
+                                      name={editEquip ? "edit" : "add-circle-outline"} 
+                                      size={16} 
+                                      color={activeTab === "Add Equipment" ? COLORS.background : COLORS.text.secondary} 
+                                    />
+                                    <Text style={[
+                                      styles.toggleButtonText,
+                                      activeTab === "Add Equipment" && styles.toggleButtonTextActive
+                                    ]}>
+                                      {editEquip ? "Edit Equipment" : "Add Equipment"}
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {activeTab === "Studio Equipment" ? <>
 
-                <TouchableOpacity
-                    style={[
-                        styles.tab,
-                        activeTab === "Add Equipment" && styles.activeTab,
-                    ]}
-                    onPress={() => setActiveTab("Add Equipment")}
-                >
-                    <Text
-                        style={[
-                            styles.tabText,
-                            activeTab === "Add Equipment" && styles.activeTabText,
-                        ]}
-                    >
-                        Add Equipment
-                    </Text>
-                </TouchableOpacity>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {activeTab === "Studio Equipment" ? <>
+                                <View style={styles.header}>
+                                    <Text style={styles.labelText} >Select Studio to View Equipment<Text style={styles.required}> *</Text></Text>
+                                    <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
+                                        <Icon name="filter-list" size={24} color="#1B4332" />
+                                        <Text style={styles.addButtonText}>Filter</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={styles.pickerWrapper}>
+                                    <Picker
+                                        selectedValue={selectedStudio} // Must match one of Picker.Item values
+                                        onValueChange={(value) => setSelectedStudio(value)}
+                                        dropdownIconColor="#034833" // Color of the arrow
+                                        style={{ color: '#101010' }} // Color of the selected text
+                                    >
+                                        <Picker.Item label="Select a studio" value="" />
+                                        {studioList.map((studio, index) => (
+                                            <Picker.Item key={index} label={studio.label} value={studio.value} />
+                                        ))}
+                                    </Picker>
+                                </View>
 
-                    <Text style={styles.labelText} >Select a Studio to View Equipment<Text style={styles.required}> *</Text></Text>
-                    <View style={styles.pickerWrapper}>
-                        <Picker
-                            selectedValue={selectedStudio} // Must match one of Picker.Item values
-                            onValueChange={(value) => setSelectedStudio(value)}
-                            dropdownIconColor="#034833" // Color of the arrow
-                            style={{ color: '#101010' }} // Color of the selected text
-                        >
-                            <Picker.Item label="Select a studio" value="" />
-                            {viewStudioList.map((studio, index) => (
-                                <Picker.Item key={index} label={studio} value={studio} />
-                            ))}
-                        </Picker>
-                    </View>
-
-                    {/* Studio Cards Grid */}
-                    <FlatList
-                        data={studioData}
-                        keyExtractor={(item) => item.id}
-                        renderItem={renderStudioCard}
-                        numColumns={2} // Two columns for the grid layout
-                        columnWrapperStyle={styles.row} // Style for the row wrapper
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.listContent}
-                    />
-                </> :
-                    <>
-                        <Text style={styles.labelText} >Select a Studio<Text style={styles.required}> *</Text></Text>
-                        <View style={styles.pickerWrapper}>
-                            <Picker
-                                selectedValue={addStudio.studioName} // Must match one of Picker.Item values
-                                onValueChange={(value) => setaddStudio({ ...addStudio, studioName: value })}
-                                dropdownIconColor="#034833" // Color of the arrow
-                                style={{ color: '#101010' }} // Color of the selected text
-                            >
-                                <Picker.Item label="Select a studio" value="" />
-                                {addStudioList.map((studio, index) => (
-                                    <Picker.Item key={index} label={studio} value={studio} />
-                                ))}
-                            </Picker>
-                        </View>
-                        <Text style={styles.labelText} >Equipment Image<Text style={styles.required}> *</Text></Text>
-                        {selectedFile ?
-                            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-                                <Image
-                                    source={{ uri: selectedFile?.uri }}
-                                    style={styles.selectedImage}
-                                    resizeMode={"cover"}
+                                {/* Studio Cards Grid */}
+                                <FlatList
+                                    data={studioEquip}
+                                    keyExtractor={(item) => item.id}
+                                    renderItem={renderStudioCard}
+                                    ListEmptyComponent={
+                                        <View style={styles.noStudioOutline}>
+                                            <Icon name="handyman" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                                            <Text style={styles.noStudioText}>
+                                                No equipments found
+                                            </Text>
+                                            <Text style={styles.addStudioDesc}>
+                                                Add new equipments to show
+                                            </Text>
+                                            <TouchableOpacity onPress={onAddEquiPress} style={styles.addStudioBtn}>
+                                                <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
+                                                <Text style={styles.addStudioText}>Add equipment</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    }
+                                    numColumns={2} // Two columns for the grid layout
+                                    columnWrapperStyle={styles.row} // Style for the row wrapper
+                                    showsVerticalScrollIndicator={false}
+                                    contentContainerStyle={styles.listContent}
                                 />
-                            </TouchableOpacity> :
-                            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-                                <Icon name="cloud-upload" size={28} color="#034833" />
-                                <Text style={styles.uploadTextHeader}>Upload Equipment Image</Text>
-                                <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
-                                <Text style={styles.supportedFilesText}>
-                                    Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
-                                </Text>
-                                <Text style={styles.chooseFilesText}>Choose File</Text>
-                            </TouchableOpacity>}
-                        <Text style={styles.labelText} >Equipment Name<Text style={styles.required}> *</Text></Text>
+                            </> :
+                                <>
+                                    <Text style={styles.labelText} >Select a Studio<Text style={styles.required}> *</Text></Text>
+                                    <View style={styles.pickerWrapper}>
+                                        {addStudio?.studioName ?
+                                            <View style={styles.infoRow}>
+                                                <Text style={styles.infoLabel}>{addStudio?.studioName || '-'}</Text>
+                                            </View> :
+                                            <Picker
+                                                selectedValue={addStudio.studioName} // Must match one of Picker.Item values
+                                                onValueChange={(value) => setaddStudio({ ...addStudio, studioName: value })}
+                                                dropdownIconColor="#034833" // Color of the arrow
+                                                style={{ color: '#101010' }} // Color of the selected text
+                                            >
+                                                <Picker.Item label="Select a studio" value="" />
+                                                {studioList.map((studio, index) => (
+                                                    <Picker.Item key={index} label={studio.label} value={studio.value} />
+                                                ))}
+                                            </Picker>}
+                                    </View>
+                                    <Text style={styles.labelText} >Equipment Image<Text style={styles.required}> *</Text></Text>
+                                    {selectedFile ?
+                                        <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                                            <Image
+                                                source={{ uri: selectedFile?.uri }}
+                                                style={styles.selectedImage}
+                                                resizeMode={"cover"}
+                                            />
+                                        </TouchableOpacity> :
+                                        <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                                            <Icon name="cloud-upload" size={28} color="#034833" />
+                                            <Text style={styles.uploadTextHeader}>Upload Equipment Image</Text>
+                                            <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
+                                            <Text style={styles.supportedFilesText}>
+                                                Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
+                                            </Text>
+                                            <Text style={styles.chooseFilesText}>Choose File</Text>
+                                        </TouchableOpacity>}
+                                    <Text style={styles.labelText} >Equipment Name<Text style={styles.required}> *</Text></Text>
 
-                        <TextInput
-                            style={styles.input}
-                            placeholderTextColor={'#898787'}
-                            placeholder="e.g., Camera"
-                            value={addStudio.equipmentName}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, equipmentName: text })
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor={'#898787'}
+                                        placeholder="e.g., Camera"
+                                        value={addStudio.equipmentName}
+                                        onChangeText={(text) =>
+                                            setaddStudio({ ...addStudio, equipmentName: text })
+                                        }
+                                    />
+                                    <Text style={styles.labelText} >Equipment Type<Text style={styles.required}> *</Text></Text>
+                                    <View style={styles.pickerWrapper}>
+                                        <Picker
+                                            selectedValue={addStudio.equipmentType} // Must match one of Picker.Item values
+                                            onValueChange={(value) => setaddStudio({ ...addStudio, equipmentType: value })}
+                                            dropdownIconColor="#034833" // Color of the arrow
+                                            style={{ color: '#101010' }} // Color of the selected text
+                                        >
+                                            <Picker.Item label="Select a equipment type" value="" />
+                                            {equipmentList.map((equipment, index) => (
+                                                <Picker.Item key={index} label={equipment.label} value={equipment.value} />
+                                            ))}
+                                        </Picker>
+                                    </View>
+                                    <Text style={styles.labelText} >Description</Text>
+
+                                    <TextInput
+                                        style={[styles.input, styles.textArea]}
+                                        placeholderTextColor={'#898787'}
+                                        placeholder="e.g., DSLR Camera with f1.8 pro and ect..."
+                                        multiline
+                                        value={addStudio.equipmentDesc}
+                                        onChangeText={(text) =>
+                                            setaddStudio({ ...addStudio, equipmentDesc: text })
+                                        }
+                                    />
+                                    <Text style={styles.labelText} >Resolution</Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor={'#898787'}
+                                        placeholder="e.g., 45MP"
+                                        multiline
+                                        value={addStudio.resolution}
+                                        onChangeText={(text) =>
+                                            setaddStudio({ ...addStudio, resolution: text })
+                                        }
+                                    />
+                                    <Text style={styles.labelText} >Video</Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor={'#898787'}
+                                        placeholder="e.g., 8K @ 30fps"
+                                        multiline
+                                        value={addStudio.video}
+                                        onChangeText={(text) =>
+                                            setaddStudio({ ...addStudio, video: text })
+                                        }
+                                    />
+                                    <Text style={styles.labelText} >Quantity Available<Text style={styles.required}> *</Text></Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor={'#898787'}
+                                        keyboardType="number-pad"
+                                        placeholder="e.g., 6"
+                                        value={addStudio.availableQuantity}
+                                        onChangeText={(text) =>
+                                            setaddStudio({ ...addStudio, availableQuantity: text })
+                                        }
+                                    />
+                                    <Text style={styles.labelText} >Hourly Rate (₹)<Text style={styles.required}> *</Text></Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor={'#898787'}
+                                        keyboardType="number-pad"
+                                        placeholder="e.g., 300"
+                                        value={addStudio.hourlyRate}
+                                        onChangeText={(text) =>
+                                            setaddStudio({ ...addStudio, hourlyRate: text })
+                                        }
+                                    />
+                                    <Text style={styles.labelText} >Daily Rate (₹)<Text style={styles.required}> *</Text></Text>
+
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholderTextColor={'#898787'}
+                                        keyboardType="number-pad"
+                                        placeholder="e.g., 5000"
+                                        value={addStudio.dailyRate}
+                                        onChangeText={(text) =>
+                                            setaddStudio({ ...addStudio, dailyRate: text })
+                                        }
+                                    />
+                                    <Text style={styles.labelText} >Condition<Text style={styles.required}> *</Text></Text>
+
+                                    <View style={styles.pickerWrapper}>
+                                        <Picker
+                                            selectedValue={addStudio.Condition} // Must match one of Picker.Item values
+                                            onValueChange={(value) => setaddStudio({ ...addStudio, Condition: value })}
+                                            dropdownIconColor="#034833" // Color of the arrow
+                                            style={{ color: '#101010' }} // Color of the selected text
+                                        >
+                                            <Picker.Item label="Select a Condition" value="" />
+                                            {ConditionList.map((Condition, index) => (
+                                                <Picker.Item key={index} label={Condition.label} value={Condition.value} />
+                                            ))}
+                                        </Picker>
+                                    </View>
+
+                                    {/* Save button section  */}
+                                    <TouchableOpacity onPress={createOrEditEquipment} style={styles.createButton}>
+                                        <Text style={styles.createButtonText}>{editEquip ? "Update equipment" : "Create equipment"}</Text>
+                                    </TouchableOpacity>
+
+                                </>
                             }
+                        </ScrollView>
+                        <DashboardFilterPopup
+                            visible={showFilter}
+                            options={filterOptions}
+                            selectedValue={selectedFilter}
+                            onSelect={(val) => setSelectedFilter(val)}
+                            onApply={(val) => setSelectedFilter(val)}
+                            onClear={() => setSelectedFilter(null)}
+                            onClose={() => setShowFilter(false)}
                         />
-                        <Text style={styles.labelText} >Equipment Type<Text style={styles.required}> *</Text></Text>
-                        <View style={styles.pickerWrapper}>
-                            <Picker
-                                selectedValue={addStudio.equipmentType} // Must match one of Picker.Item values
-                                onValueChange={(value) => setaddStudio({ ...addStudio, equipmentType: value })}
-                                dropdownIconColor="#034833" // Color of the arrow
-                                style={{ color: '#101010' }} // Color of the selected text
-                            >
-                                <Picker.Item label="Select a equipment type" value="" />
-                                {equipmentList.map((equipment, index) => (
-                                    <Picker.Item key={index} label={equipment} value={equipment} />
-                                ))}
-                            </Picker>
-                        </View>
-                        <Text style={styles.labelText} >Description</Text>
-
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            placeholderTextColor={'#898787'}
-                            placeholder="e.g., DSLR Camera with f1.8 pro and ect..."
-                            multiline
-                            value={addStudio.equipmentDesc}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, equipmentDesc: text })
-                            }
-                        />
-                        <Text style={styles.labelText} >Resolution</Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholderTextColor={'#898787'}
-                            placeholder="e.g., 45MP"
-                            multiline
-                            value={addStudio.resolution}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, resolution: text })
-                            }
-                        />
-                        <Text style={styles.labelText} >Video</Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholderTextColor={'#898787'}
-                            placeholder="e.g., 8K @ 30fps"
-                            multiline
-                            value={addStudio.video}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, video: text })
-                            }
-                        />
-                        <Text style={styles.labelText} >Quantity Available<Text style={styles.required}> *</Text></Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholderTextColor={'#898787'}
-                            keyboardType="number-pad"
-                            placeholder="e.g., 6"
-                            value={addStudio.availableQuantity}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, availableQuantity: text })
-                            }
-                        />
-                        <Text style={styles.labelText} >Hourly Rate (₹)<Text style={styles.required}> *</Text></Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholderTextColor={'#898787'}
-                            keyboardType="number-pad"
-                            placeholder="e.g., 300"
-                            value={addStudio.hourlyRate}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, hourlyRate: text })
-                            }
-                        />
-                        <Text style={styles.labelText} >Daily Rate (₹)<Text style={styles.required}> *</Text></Text>
-
-                        <TextInput
-                            style={styles.input}
-                            placeholderTextColor={'#898787'}
-                            keyboardType="number-pad"
-                            placeholder="e.g., 5000"
-                            value={addStudio.dailyRate}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, dailyRate: text })
-                            }
-                        />
-                        <Text style={styles.labelText} >Condition<Text style={styles.required}> *</Text></Text>
-
-                        <View style={styles.pickerWrapper}>
-                            <Picker
-                                selectedValue={addStudio.Condition} // Must match one of Picker.Item values
-                                onValueChange={(value) => setaddStudio({ ...addStudio, Condition: value })}
-                                dropdownIconColor="#034833" // Color of the arrow
-                                style={{ color: '#101010' }} // Color of the selected text
-                            >
-                                <Picker.Item label="Select a Condition" value="" />
-                                {ConditionList.map((Condition, index) => (
-                                    <Picker.Item key={index} label={Condition} value={Condition} />
-                                ))}
-                            </Picker>
-                        </View>
-
-                        {/* Save button section  */}
-                        <TouchableOpacity onPress={createEquipment} style={styles.createButton}>
-                            <Text style={styles.createButtonText}>Save equipment</Text>
-                        </TouchableOpacity>
-
-                    </>
-                }
-            </ScrollView>
-        </View>
+                    </View>}
+        </>
     )
 };
 
@@ -413,7 +570,7 @@ export const ManageEquipmentComponent = () => {
 const styles = StyleSheet.create({
     listContent: {
         paddingVertical: 10,
-        paddingBottom: 20,
+        paddingBottom: 80,
     },
     row: {
         justifyContent: 'space-between',
@@ -494,31 +651,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 12,
     },
-    tabContainer: {
-        flexDirection: "row",
-        backgroundColor: "#f0f0f0",
-        borderRadius: 10,
-        marginBottom: 20,
-        alignItems: 'center'
-    },
-    tab: {
-        flex: 0.50,
-        paddingVertical: 12,
-        alignItems: "center",
-    },
-    tabText: {
-        fontSize: 16,
-        color: "#777",
-    },
-    activeTab: {
-        borderBottomWidth: 3,
-        borderBottomColor: "#034833",
-        borderRadius: 10
-    },
-    activeTabText: {
-        color: "#034833",
-        fontWeight: "600",
-    },
     viewButton: {
         paddingVertical: 8,
         borderRadius: 8,
@@ -534,17 +666,18 @@ const styles = StyleSheet.create({
         color: '#FFFFFF'
     },
     createButton: {
-    backgroundColor: "#034833",
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginVertical: 25,
-    alignItems: "center",
-  },
-  createButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+        backgroundColor: "#034833",
+        paddingVertical: 14,
+        borderRadius: 10,
+        marginVertical: 25,
+        marginBottom: 80,
+        alignItems: "center",
+    },
+    createButtonText: {
+        color: "#FFFFFF",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
     uploadButton: {
         borderWidth: 1,
         width: '100%',
@@ -584,4 +717,123 @@ const styles = StyleSheet.create({
         width: 150,
         borderRadius: 10
     },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 15,
+    },
+    noStudioOutline: {
+        alignItems: 'center',
+        marginVertical: 30
+    },
+    loading: {
+        marginTop: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 20,
+        color: "#101010",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    noStudioText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500'
+    },
+    addStudioDesc: {
+        fontSize: 14,
+        color: '#999',
+        marginTop: 4
+    },
+    addStudioBtn: {
+        marginTop: 10,
+        backgroundColor: '#034833',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 5,
+        borderRadius: 6,
+    },
+    addStudioText: {
+        marginLeft: 10,
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    addButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    addButtonText: {
+        color: '#1B4332',
+        fontWeight: '600',
+        fontSize: 16,
+        marginLeft: 4,
+        marginRight: 10
+    },
+    statusBadge: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        borderRadius: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+    },
+    statusText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    infoRow: {
+        borderRadius: 10,
+        padding: 12,
+        fontSize: 15,
+        backgroundColor: "#ffffff",
+    },
+
+    infoLabel: {
+        color: '#101010',
+        fontSize: 14,
+        fontWeight: "600",
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        backgroundColor: COLORS.surface,
+        borderRadius: 25,
+        borderColor: COLORS.bg,
+        borderWidth: 1,
+        padding: 8,
+        marginTop: 16,
+        marginBottom: 16,
+        elevation: 2,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+      },
+      toggleButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 18,
+        backgroundColor: 'transparent',
+      },
+      toggleButtonActive: {
+        backgroundColor: COLORS.bg,
+      },
+      toggleButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.text.secondary,
+        marginLeft: 6,
+      },
+      toggleButtonTextActive: {
+        color: COLORS.background,
+      },
 });

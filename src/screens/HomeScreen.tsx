@@ -567,7 +567,7 @@ const renderRated = ({ item }: { item: any }) => {
           />
           <View style={styles.dotsRow}>
             {whyChooseData.map((item, index)  => (
-              <View style={currentIndex == index ? styles.dotActive : styles.dot} />              
+              <View key={index} style={currentIndex == index ? styles.dotActive : styles.dot} />              
             ))}
           </View>
         </View>

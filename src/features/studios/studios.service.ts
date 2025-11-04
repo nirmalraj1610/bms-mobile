@@ -1,5 +1,5 @@
-import { studiosSearch, studioDetail, studioAvailability, studioEquipmentList, studioFavorite, studioFavorites, reviewCreate, StudioCreate, myStudios, studiosBookings } from '../../lib/api';
-import type { StudiosSearchQuery, AvailabilityPayload, ReviewCreatePayload, StudioCreatePayload, ToggleFavoritePayload } from './studios.types';
+import { studiosSearch, studioDetail, studioAvailability, studioEquipmentList, studioFavorite, studioFavorites, reviewCreate, StudioCreate, myStudios, studiosBookings, StudioUpdate, StudioEquipCreate, StudioEquipUpdate } from '../../lib/api';
+import type { StudiosSearchQuery, AvailabilityPayload, ReviewCreatePayload, StudioCreatePayload, ToggleFavoritePayload, StudioEquipmentPayload } from './studios.types';
 
 export const searchStudios = async (query: StudiosSearchQuery) => {
   const normalized: Record<string, string | number | boolean> = {};
@@ -41,6 +41,18 @@ export const createStudioReview = async (payload: ReviewCreatePayload) => {
 
 export const createStudio = async (payload: StudioCreatePayload) => {
   return StudioCreate(payload);
+};
+
+export const updateStudio = async (payload: StudioCreatePayload) => {
+  return StudioUpdate(payload);
+};
+
+export const createStudioEquip = async (payload: StudioEquipmentPayload) => {
+  return StudioEquipCreate(payload);
+};
+
+export const updateStudioEquip = async (payload: StudioEquipmentPayload) => {
+  return StudioEquipUpdate(payload);
 };
 
 // ✅ 2️⃣ Wrapper function

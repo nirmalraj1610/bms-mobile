@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,15 @@ import AddStudioComponent from '../components/studioOwner/AddStudio';
 
 const StudioDashboardScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
+  const [editStudio, setEditStudio] = useState(false);
+  const [editStudioValues, setEditStudioValues] = useState({});
+
+  useEffect(() => {
+    if (selectedMenu === 'Dashboard') {
+      setEditStudio(false);
+      setEditStudioValues({})
+    }
+  }, [selectedMenu])
 
   const menus = [
     'Dashboard',
@@ -95,10 +104,10 @@ const StudioDashboardScreen: React.FC = () => {
           </View>
         </View>
         {selectedMenu === "Dashboard" && <DashboardComponent />}
-        {selectedMenu === "My Studios" && <MyStudioComponent onPressAddStudio={(i) => setSelectedMenu(i)} />}
+        {selectedMenu === "My Studios" && <MyStudioComponent onPressAddStudio={(i) => setSelectedMenu(i)} editStudio={(i) => setEditStudio(i)} editStudioValues={(values) => setEditStudioValues(values)} />}
         {selectedMenu === "Bookings" && <BookingsComponent />}
         {selectedMenu === "Manage Equipments" && <ManageEquipmentComponent />}
-        {selectedMenu === "Add Studio" && <AddStudioComponent />}
+        {selectedMenu === "Add Studio" && <AddStudioComponent onPressSelectmenu={(i) => setSelectedMenu(i)} editStudio={editStudio} editStudioValues={editStudioValues} />}
       </View>
     </SafeAreaView>
   );

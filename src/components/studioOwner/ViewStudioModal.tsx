@@ -46,48 +46,82 @@ const ViewStudioModal = ({ visible = false, onClose = () => { }, studio = {} }) 
                         <Icon name="star" size={18} color="#FF7441" />
                         <Text style={styles.ratingText}>{studio?.stats?.average_rating || 0}</Text>
                     </View>
+
+                    {studio?.description ? 
+                    <>
                     <Text style={styles.infoLabel}>Description</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>{studio?.description || '-'}</Text>
                     </View>
+                    </> : null}
+
+                    {studio?.location?.address ? 
+                    <>
                     <Text style={styles.infoLabel}>Address</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>{studio?.location?.address || '-'}</Text>
                     </View>
+                    </> : null}
+
+                    {studio?.location?.city ? 
+                    <>
                     <Text style={styles.infoLabel}>City</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>{studio?.location?.city || '-'}</Text>
                     </View>
+                    </> : null}
+
+                    {studio?.location?.state ? 
+                    <>
                     <Text style={styles.infoLabel}>State</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>{studio?.location?.state || '-'}</Text>
                     </View>
+                    </> : null}
+
+                    {studio?.location?.pincode ? 
+                    <> 
                     <Text style={styles.infoLabel}>PinCode</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>{studio?.location?.pincode || '-'}</Text>
                     </View>
+                    </> : null}
 
+                    {studio?.pricing?.hourly_rate ? 
+                    <>
                     <Text style={styles.infoLabel}>Base Price (per Hour)</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>₹ {studio?.pricing?.hourly_rate || '-'}</Text>
                     </View>
+                    </> : null}
+
+                    {studio?.pricing?.weekend_multiplier ? 
+                    <>
                     <Text style={styles.infoLabel}>Weekend Price (per hour)</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>₹ {studio?.pricing?.weekend_multiplier || '-'}</Text>
-                    </View>
+                    </View> 
+                    </> : null}
+
+                    {studio?.pricing?.extra_hour_rate ? 
+                    <>
                     <Text style={styles.infoLabel}>Overtime Price (per hour)</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>₹ {studio?.pricing?.extra_hour_rate || '-'}</Text>
                     </View>
+                     </> : null}
 
-                    <Text style={styles.infoLabel}>Min Booking Hours</Text>
+                    {studio?.pricing?.minimum_hours ? 
+                    <><Text style={styles.infoLabel}>Min Booking Hours</Text>
                     <View style={styles.infoRow}>
                         <Text style={styles.infoValue}>{studio?.pricing?.minimum_hours || '-'}</Text>
                     </View>
-
-                    <Text style={styles.infoLabel}>Amenities</Text>
+                    </> : null}
 
                     {studio?.amenities?.length > 0 ? (
+                        <>
+                    <Text style={styles.infoLabel}>Amenities</Text>
+
                         <View style={styles.infoRow}>
 
                             {studio?.amenities.map(item => (
@@ -96,6 +130,7 @@ const ViewStudioModal = ({ visible = false, onClose = () => { }, studio = {} }) 
                                 </Text>
                             ))}
                         </View>
+                        </>
                     ) : null}
                 </ScrollView>
             </View>
