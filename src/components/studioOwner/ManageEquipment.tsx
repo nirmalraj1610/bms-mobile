@@ -44,7 +44,7 @@ const equipmentList = [
   { label: "Backdrop", value: "backdrop" },
   { label: "Props", value: "props" },
   { label: "Lens", value: "lens" },
-  { label: "Tripod", value: "Tripod" },
+  { label: "Tripod", value: "tripod" },
   { label: "Audio", value: "audio" },
   { label: "Other", value: "other" },
 ];

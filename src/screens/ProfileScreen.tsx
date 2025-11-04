@@ -10,18 +10,19 @@ import {
   Image,
 } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { Picker } from "@react-native-picker/picker";
-import { updateProfile } from "../features/profile/profileSlice";
+import { updateProfile, updateProfileImage } from "../features/profile/profileSlice";
 import { useDispatch } from "react-redux";
 import { getUserProfile } from "../lib/api";
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { clearToken } from "../lib/http";
+import { clearToken, clearUserData } from "../lib/http";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
+  const isFocused = useIsFocused();
 
   const navigateToLogin = () => {
     navigation.navigate('Auth', { screen: 'Login' });
@@ -63,8 +64,11 @@ const ProfileScreen: React.FC = () => {
 
   // --- API Call to Fetch Profile ---
   useEffect(() => {
+    if(isFocused)
+    {
     fetchProfile();
-  }, []);
+    }
+  }, [isFocused]);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -93,6 +97,7 @@ const ProfileScreen: React.FC = () => {
   const onLogoutPress = async () => {
     try {
       await clearToken();
+      await clearUserData();
       fetchProfile();
     } catch {
       return null;
@@ -106,6 +111,7 @@ const ProfileScreen: React.FC = () => {
       const payload: any = {
         full_name: `${profile.firstName} ${profile.lastName}`.trim(),
         phone: profile.phone,
+
         address: { city: profile.location },
         bio: profile.description,
       };
@@ -124,12 +130,43 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleProfilePick = async () => {
-    const result = await launchImageLibrary({ mediaType: 'photo' });
-    if (!result.didCancel && result.assets && result.assets.length > 0) {
-      setSelectedProfile(result.assets[0]);
+const handleProfilePick = async () => {
+  const result = await launchImageLibrary({ mediaType: 'photo' });
+
+  if (!result.didCancel && result.assets && result.assets.length > 0) {
+    const image = result.assets[0];
+    setSelectedProfile(image);
+
+    // 🧠 Correctly append image file to FormData
+    const formdata = new FormData();
+    formdata.append('file', {
+      uri: image.uri,
+      type: image.type || 'image/jpeg',
+      name: image.fileName || `profile_${Date.now()}.jpg`,
+    });
+
+    try {
+      const response = await dispatch(updateProfileImage(formdata)).unwrap();
+      console.log('✅ Profile updated successfully:', response);
+
+      // 🧠 Update local state on success
+      setFullProfileData((prev) => ({
+        ...prev,
+        customer_profiles: {
+          ...prev?.customer_profiles,
+          profile_image_url: response?.updated_image_url || image.uri,
+        },
+      }));
+
+      // Optional: show success toast
+      // Toast.show('Profile updated successfully!');
+    } catch (error) {
+      console.error('❌ Error updating profile:', error);
     }
-  };
+  }
+};
+
+
 
   return (
     <>
@@ -146,7 +183,13 @@ const ProfileScreen: React.FC = () => {
               <View style={styles.profileImageContainer}>
                 <TouchableOpacity onPress={handleProfilePick} style={styles.profileImageOutline}>
                   <Image
-                    source={selectedProfile ? { uri: selectedProfile?.uri } : require('../assets/images/logoo.png')}
+                    source={
+                      selectedProfile
+                        ? { uri: selectedProfile.uri }
+                        : fullProfileData?.customer_profiles?.profile_image_url
+                          ? { uri: fullProfileData.customer_profiles.profile_image_url }
+                          : require('../assets/images/logoo.png')
+                    }
                     style={styles.profileImage}
                     resizeMode="cover"
                   />
@@ -175,46 +218,46 @@ const ProfileScreen: React.FC = () => {
 
               {/* Tabs */}
               <View style={styles.toggleContainer}>
-                        <TouchableOpacity
-                          style={[
-                            styles.toggleButton,
-                            activeTab === "personal" && styles.toggleButtonActive
-                          ]}
-                          onPress={() => setActiveTab("personal")}
-                        >
-                          <Icon 
-                            name="person" 
-                            size={16} 
-                            color={activeTab === "personal" ? COLORS.background : COLORS.text.secondary} 
-                          />
-                          <Text style={[
-                            styles.toggleButtonText,
-                            activeTab === "personal" && styles.toggleButtonTextActive
-                          ]}>
-                            Personal Info 
-                          </Text>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity 
-                          style={[
-                            styles.toggleButton,
-                            activeTab === "verification" && styles.toggleButtonActive
-                          ]}
-                          onPress={() => setActiveTab("verification")}
-                        >
-                          <Icon 
-                            name="verified-user" 
-                            size={16} 
-                            color={activeTab === "verification" ? COLORS.background : COLORS.text.secondary} 
-                          />
-                          <Text style={[
-                            styles.toggleButtonText,
-                            activeTab === "verification" && styles.toggleButtonTextActive
-                          ]}>
-                            Verification
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    activeTab === "personal" && styles.toggleButtonActive
+                  ]}
+                  onPress={() => setActiveTab("personal")}
+                >
+                  <Icon
+                    name="person"
+                    size={16}
+                    color={activeTab === "personal" ? COLORS.background : COLORS.text.secondary}
+                  />
+                  <Text style={[
+                    styles.toggleButtonText,
+                    activeTab === "personal" && styles.toggleButtonTextActive
+                  ]}>
+                    Personal Info
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.toggleButton,
+                    activeTab === "verification" && styles.toggleButtonActive
+                  ]}
+                  onPress={() => setActiveTab("verification")}
+                >
+                  <Icon
+                    name="verified-user"
+                    size={16}
+                    color={activeTab === "verification" ? COLORS.background : COLORS.text.secondary}
+                  />
+                  <Text style={[
+                    styles.toggleButtonText,
+                    activeTab === "verification" && styles.toggleButtonTextActive
+                  ]}>
+                    Verification
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
 
               {/* PERSONAL INFO TAB */}
@@ -735,44 +778,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-   toggleContainer: {
-        flexDirection: 'row',
-        marginHorizontal: 10,
-        backgroundColor: COLORS.surface,
-        borderRadius: 25,
-        borderColor: COLORS.bg,
-        borderWidth: 1,
-        padding: 8,
-        marginTop: 16,
-        marginBottom: 16,
-        elevation: 2,
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-      },
-      toggleButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 18,
-        backgroundColor: 'transparent',
-      },
-      toggleButtonActive: {
-        backgroundColor: COLORS.bg,
-      },
-      toggleButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: COLORS.text.secondary,
-        marginLeft: 6,
-      },
-      toggleButtonTextActive: {
-        color: COLORS.background,
-      },
+  toggleContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 10,
+    backgroundColor: COLORS.surface,
+    borderRadius: 25,
+    borderColor: COLORS.bg,
+    borderWidth: 1,
+    padding: 8,
+    marginTop: 16,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  toggleButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: 'transparent',
+  },
+  toggleButtonActive: {
+    backgroundColor: COLORS.bg,
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text.secondary,
+    marginLeft: 6,
+  },
+  toggleButtonTextActive: {
+    color: COLORS.background,
+  },
 });
 
 export default ProfileScreen;

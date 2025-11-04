@@ -14,11 +14,13 @@ import BookingScreen from '../screens/BookingScreen';
 import StudioDashboardScreen from '../screens/StudioDashboardScreen';
 import PhotographerDashboardScreen from '../screens/PhotographerDashboardScreen';
 import { getUserData } from '../lib/http';
+import { useDispatch } from 'react-redux';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainTabNavigator: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string | null>(null); // 'client', 'studio_owner', or 'photographer'
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -33,7 +35,7 @@ const MainTabNavigator: React.FC = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [dispatch]);
 
 
   return (

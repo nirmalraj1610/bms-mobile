@@ -61,6 +61,10 @@ export async function updateUserProfile(payload: any) {
   return apiFetch<{ message: string; profile: any }>('/user-profile', { method: 'PUT', body: payload });
 }
 
+export async function updateProfileImageApi(formData: any) {
+  return apiFetch<{ message: string; profile: any }>('/user-profile', { method: 'POST', body: formData });
+}
+
 export async function kycUpload(payload: { document_type: string; document_url: string }) {
   return apiFetch<{ message: string; document: any }>('/kyc-upload', { method: 'POST', body: payload });
 }

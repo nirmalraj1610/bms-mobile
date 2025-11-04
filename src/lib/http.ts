@@ -160,6 +160,14 @@ export async function getUserData() {
   }
 }
 
+export async function clearUserData() {
+  try {
+    await AsyncStorage.removeItem('UserData');
+  } catch {
+    // ignore
+  }
+}
+
 export async function clearToken() {
   try {
     await AsyncStorage.removeItem('auth_token');

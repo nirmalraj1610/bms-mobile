@@ -28,7 +28,7 @@ const AddStudioComponent = ({
   const navigation = useNavigation<any>();
   const [selectedTab, setSelectedTab] = useState(1);
   const flatListRef = useRef<FlatList>(null);
-  const [selectedFile, setSelectedFile] = useState([]);
+  const [selectedImages, setSelectedImages] = useState([]);
   const [maxImageError, setMaxImageError] = useState('');
   const [showMaxImageError, setShowMaxImageError] = useState(false);
   const [termsSelected, setTermsSelected] = useState(false);
@@ -284,68 +284,116 @@ const AddStudioComponent = ({
   ];
 
   const onSubmitPress = async () => {
-    const payload = {
-      name: basicInfo?.studioName?.trim() || "",
-      description: basicInfo?.studioDesc?.trim() || "",
-      location: {
-        address: basicInfo?.studioAddress?.trim() || "",
-        city: basicInfo?.city?.trim() || "",
-        state: basicInfo?.state?.trim() || "",
-        pincode: Number(basicInfo?.pinCode) || 0,
-        coordinates: {
-          lat: 19.076,  // TODO: replace with actual user-selected coordinates if available
-          lng: 72.8777
-        }
-      },
-      pricing: {
-        hourly_rate: Number(details?.basePrice) || 0,
-        minimum_hours: Number(details?.minBookingHours) || 0,
-        maximum_hours: Number(details?.maxBookingHours) || 0,
-        extra_hour_rate: Number(details?.overtimePrice) || 0,
-        weekend_multiplier: Number(details?.weekendPrice) || 0
-      },
-      amenities: selectedAmenities?.map(item => item?.name) || [],
-      studio_type: basicInfo?.studioType || "",
-      details: {
-        size: Number(details?.studioSize) || 0,
-        capacity: Number(details?.maximumPeople) || 0,
-        contact_phone: details?.contactPhone?.trim() || "",
-        alternate_phone: details?.alternatePhone?.trim() || ""
-      },
-      policies: {
-        cancellation: images?.cancellationPolicy?.trim() || "",
-        payment: images?.paymentPolicy?.trim() || "",
-        rules: images?.additionalRules?.trim() || ""
-      },
-      operating_hours: buildOperatingHoursPayload(days),
-      equipment: selectedEquipments?.map(item => item?.name) || []
-    };
-
-    console.log("📦 Final Payload:", JSON.stringify(payload, null, 2));
-
-    if (editStudio) {
-      console.log('calling here 1');
-      
-      const convertedPayload = { ...payload, studio_id: editStudioValues?.id }
-      try {
-        const response = await dispatch(updateStudioThunk(convertedPayload)).unwrap(); // 👈 unwrap() to get actual resolved value
-        clearAllStates();
-        console.log("✅ Studio updated Successfully:", response);
-      } catch (error) {
-        console.error("❌ Error updating studio:", error);
+  const payload = {
+    name: basicInfo?.studioName?.trim() || "",
+    description: basicInfo?.studioDesc?.trim() || "",
+    location: {
+      address: basicInfo?.studioAddress?.trim() || "",
+      city: basicInfo?.city?.trim() || "",
+      state: basicInfo?.state?.trim() || "",
+      pincode: Number(basicInfo?.pinCode) || 0,
+      coordinates: {
+        lat: 19.076, // TODO: replace with actual coordinates if available
+        lng: 72.8777
       }
-    }
-    else {
-      console.log('calling here 2');
-      try {
-        const response = await dispatch(createStudioThunk(payload)).unwrap(); // 👈 unwrap() to get actual resolved value
-        clearAllStates();
-        console.log("✅ Studio Created Successfully:", response);
-      } catch (error) {
-        console.error("❌ Error submitting studio:", error);
-      }
-    }
+    },
+    pricing: {
+      hourly_rate: Number(details?.basePrice) || 0,
+      minimum_hours: Number(details?.minBookingHours) || 0,
+      maximum_hours: Number(details?.maxBookingHours) || 0,
+      extra_hour_rate: Number(details?.overtimePrice) || 0,
+      weekend_multiplier: Number(details?.weekendPrice) || 0
+    },
+    amenities: selectedAmenities?.map(item => item?.name) || [],
+    studio_type: basicInfo?.studioType || "",
+    details: {
+      size: Number(details?.studioSize) || 0,
+      capacity: Number(details?.maximumPeople) || 0,
+      contact_phone: details?.contactPhone?.trim() || "",
+      alternate_phone: details?.alternatePhone?.trim() || ""
+    },
+    policies: {
+      cancellation: images?.cancellationPolicy?.trim() || "",
+      payment: images?.paymentPolicy?.trim() || "",
+      rules: images?.additionalRules?.trim() || ""
+    },
+    operating_hours: buildOperatingHoursPayload(days),
+    equipment: selectedEquipments?.map(item => item?.name) || []
   };
+
+  // 🧠 Create FormData
+  const formData = new FormData();
+  formData.append('name', payload.name);
+  formData.append('description', payload.description);
+  formData.append('studio_type', payload.studio_type);
+
+  // Convert nested objects to strings
+  formData.append('location', JSON.stringify(payload.location));
+  formData.append('pricing', JSON.stringify(payload.pricing));
+  formData.append('details', JSON.stringify(payload.details));
+  formData.append('policies', JSON.stringify(payload.policies));
+  formData.append('operating_hours', JSON.stringify(payload.operating_hours));
+
+  // Arrays
+  formData.append('amenities', JSON.stringify(payload.amenities));
+  formData.append('equipment', JSON.stringify(payload.equipment));
+
+  // 🖼️ Append all selected images
+  if (selectedImages?.length > 0) {
+    selectedImages.forEach((image, index) => {
+      formData.append('images', {
+        uri: image.uri,
+        type: image.type || 'image/jpeg',
+        name: image.fileName || `studio_image_${index}.jpg`,
+      });
+    });
+  }
+
+  console.log("📦 Final FormData payload ready to send");
+
+  if (selectedImages?.length > 0) {
+    try {
+    let response;
+    if (editStudio) {
+      console.log('calls from formData update', formData);
+      
+      // UPDATE studio
+      formData.append('studio_id', editStudioValues?.id);
+      response = await dispatch(updateStudioThunk(formData)).unwrap();
+      console.log("✅ Studio updated successfully:", response);
+    } else {
+      // CREATE studio
+      console.log('calls from formData create', formData);
+      response = await dispatch(createStudioThunk(formData)).unwrap();
+      console.log("✅ Studio created successfully:", response);
+    }
+    clearAllStates();
+  } catch (error) {
+    console.error("❌ Error submitting studio:", error);
+  }
+}
+else{
+      try {
+    let response;
+    if (editStudio) {
+      console.log('calls from json update', payload);
+      // UPDATE studio
+      const convertedPayload ={...payload, studio_id: editStudioValues?.id}
+      response = await dispatch(updateStudioThunk(convertedPayload)).unwrap();
+      console.log("✅ Studio updated successfully:", response);
+    } else {
+      console.log('calls from json update', payload);
+      // CREATE studio
+      response = await dispatch(createStudioThunk(payload)).unwrap();
+      console.log("✅ Studio created successfully:", response);
+    }
+    clearAllStates();
+  } catch (error) {
+    console.error("❌ Error submitting studio:", error);
+  }  
+}
+};
+
 
 
   const buildOperatingHoursPayload = (days: any[]) => {
@@ -416,7 +464,7 @@ const AddStudioComponent = ({
   };
 
   const handleDocumentPick = async () => {
-    if (selectedFile.length == 10) {
+    if (selectedImages.length == 10) {
       setMaxImageError('You can upload up to 10 images only.');
       setShowMaxImageError(true);
       setTimeout(() => {
@@ -428,7 +476,7 @@ const AddStudioComponent = ({
       const result = await launchImageLibrary({ mediaType: "photo", selectionLimit: 10 });
 
       if (!result.didCancel && result.assets && result.assets.length > 0) {
-        setSelectedFile(result.assets); // store selected image info
+        setSelectedImages(result.assets); // store selected image info
       }
     }
   };
@@ -530,7 +578,7 @@ const AddStudioComponent = ({
   );
 
   const removeSelectedImage = (item: any) => {
-    setSelectedFile((prevFiles: any[]) => prevFiles.filter(file => file.uri !== item.uri));
+    setSelectedImages((prevFiles: any[]) => prevFiles.filter(file => file.uri !== item.uri));
 
   }
 
@@ -861,10 +909,10 @@ const AddStudioComponent = ({
         </View> : selectedTab === 4 ? <View>
           <Text style={styles.title}>Studio Images</Text>
           <Text style={styles.labelText} >Upload high-quality images of your studio. First image will be used as cover photo.<Text style={styles.required}> *</Text></Text>
-          {selectedFile.length > 0 ? (
+          {selectedImages.length > 0 ? (
             <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
               <FlatList
-                data={selectedFile}
+                data={selectedImages}
                 renderItem={renderImages}
                 numColumns={2}
                 keyExtractor={(item) => item.fileName}

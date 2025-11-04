@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { ProfileState } from './profile.types';
-import { getProfile, updateUserProfile, uploadKyc } from './profile.service';
+import { getProfile, updateUserProfile, updateUserProfileImage, uploadKyc } from './profile.service';
 
 const initialState: ProfileState = {
   data: null,
@@ -27,6 +27,19 @@ export const updateProfile = createAsyncThunk('profile/update', async (payload: 
     return rejectWithValue(err?.error || 'Failed to update profile');
   }
 });
+
+export const updateProfileImage = createAsyncThunk(
+  'profile/updateImage',
+  async (formData: FormData, { rejectWithValue }) => {
+    try {
+      const res = await updateUserProfileImage(formData); // 👈 expects FormData
+      return res || null;
+    } catch (err: any) {
+      console.error('❌ Error updating profile image:', err);
+      return rejectWithValue(err?.error || 'Failed to update profile image');
+    }
+  }
+);
 
 export const uploadKycDocs = createAsyncThunk('profile/uploadKyc', async (payload: { document_type: string; document_url: string }, { rejectWithValue }) => {
   try {

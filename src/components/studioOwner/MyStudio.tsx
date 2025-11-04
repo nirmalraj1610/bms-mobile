@@ -72,8 +72,6 @@ export const MyStudioComponent = ({
         }
     };
 
-    const staticImage = 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg';
-
     // --- Render Item Function for FlatList ---
     const renderStudioCard = ({ item }: any) => {
         // Determine status badge colors based on the image design
@@ -93,7 +91,7 @@ export const MyStudioComponent = ({
                     {/* Studio Image */}
                     <Image
                         // Using a placeholder that simulates the image's structure
-                        source={{ uri: staticImage }}
+                        source={item?.studio_images[0] ? { uri: item?.studio_images[0]?.image_url } : require('../../assets/images/logoo.png')}
                         style={styles.cardImage}
                     />
 
