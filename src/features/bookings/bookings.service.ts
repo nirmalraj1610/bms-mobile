@@ -5,8 +5,8 @@ export const fetchBookingHistory = async (payload: { limit?: number; status?: st
   return bookingHistory(payload);
 };
 
-export const cancelBooking = async (payload: { booking_id: string; reason?: string }): Promise<BookingCancelResponse> => {
-  return bookingCancel(payload.booking_id, payload.reason);
+export const cancelBooking = async (payload: { booking_id: string; cancellation_reason?: string }): Promise<BookingCancelResponse> => {
+  return bookingCancel(payload.booking_id, payload.cancellation_reason);
 };
 
 export const rescheduleBooking = async (payload: { booking_id: string; new_booking_date: string; new_start_time: string; new_end_time: string }): Promise<BookingRescheduleResponse> => {

@@ -26,7 +26,7 @@ export const getBookings = createAsyncThunk('bookings/list', async (payload: { l
   return res.bookings as BookingHistoryItem[];
 });
 
-export const doCancelBooking = createAsyncThunk('bookings/cancel', async (payload: { booking_id: string; reason?: string }) => {
+export const doCancelBooking = createAsyncThunk('bookings/cancel', async (payload: { booking_id: string; cancellation_reason?: string }) => {
   const res = await cancelBooking(payload);
   return res.booking;
 });
