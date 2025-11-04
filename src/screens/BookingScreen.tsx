@@ -293,6 +293,17 @@ console.log('bookings:', bookings);
     }
   };
 
+  // View Studio handler
+  const handleViewStudio = (booking: any) => {
+    const originalBooking = bookings.find(b => b.id === booking.id);
+    const studioId = originalBooking?.studios?.id;
+    if (studioId) {
+      (navigation as any).navigate('StudioDetails', { studioId });
+    } else {
+      Alert.alert('Studio not found', 'Unable to open studio details.');
+    }
+  };
+
   // Cancel helpers
   const openCancelModal = (booking: any) => {
     const original = bookings.find(b => b.id === booking.id) || null;
@@ -395,7 +406,7 @@ console.log('bookings:', bookings);
             <View style={styles.actionButtonsContainer}>
               {hasEnded ? (
                 // After end time has passed: show only View Studio
-                <TouchableOpacity style={styles.viewStudioButton}>
+                <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                   <Text style={styles.viewStudioButtonText}>View Studio</Text>
                 </TouchableOpacity>
               ) : (
@@ -429,7 +440,7 @@ console.log('bookings:', bookings);
                     </TouchableOpacity>
                   )}
                   
-                  <TouchableOpacity style={styles.viewStudioButton}>
+                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                     <Text style={styles.viewStudioButtonText}>View Studio</Text>
                   </TouchableOpacity>
                 </>
@@ -442,7 +453,7 @@ console.log('bookings:', bookings);
             <View style={styles.actionButtonsContainer}>
               {hasEnded ? (
                 // After end time: only View Studio
-                <TouchableOpacity style={styles.viewStudioButton}>
+                <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                   <Text style={styles.viewStudioButtonText}>View Studio</Text>
                 </TouchableOpacity>
               ) : (
@@ -455,7 +466,7 @@ console.log('bookings:', bookings);
                     <Text style={styles.selectEquipmentButtonText}>Select{'\n'}Equipment</Text>
                   </TouchableOpacity>
                   
-                  <TouchableOpacity style={styles.viewStudioButton}>
+                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                     <Text style={styles.viewStudioButtonText}>View Studio</Text>
                   </TouchableOpacity>
                 </>
@@ -466,7 +477,7 @@ console.log('bookings:', bookings);
           {/* Buttons for cancelled bookings */}
           {item.status === 'Cancelled' && (
             <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity style={styles.viewStudioButton}>
+              <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                 <Text style={styles.viewStudioButtonText}>View Studio</Text>
               </TouchableOpacity>
             </View>
