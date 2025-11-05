@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, ImageBackground, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardFilterPopup from "./DashboardFilter";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { getUserData } from "../../lib/http";
 import { useDispatch } from "react-redux";
 import { loadMyStudioThunk, loadStudioBookingsThunk } from "../../features/studios/studiosSlice";
+import CancelStudioBookingModal from "./CancelStudioBookingModal";
+import AcceptStudioBookingModal from "./AcceptStudioBookingModal";
 
 export const BookingsComponent = () => {
     const dispatch = useDispatch();
@@ -26,6 +27,9 @@ export const BookingsComponent = () => {
     const [selectedStudio, setSelectedStudio] = useState('');
     const [startdate, setStartdate] = useState<string>('');
     const [enddate, setEnddate] = useState<string>('');
+    const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
+    const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
+    const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
 
     const staticImage = 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg';
 
@@ -38,8 +42,10 @@ export const BookingsComponent = () => {
     }, [])
 
     useEffect(() => {
-        fetchStudiosBookings();
-    }, [selectedStudio, selectedFilter])
+        if (!showCancelModal.status && !showAcceptModal.status) {
+            fetchStudiosBookings();
+        }
+    }, [selectedStudio, selectedFilter, showCancelModal, showAcceptModal]);
 
     const fetchStudios = async () => {
         setIsLoading(true);
@@ -53,10 +59,13 @@ export const BookingsComponent = () => {
             console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
-            const studiosList = studios.map(studio => ({
-                label: studio.name,
-                value: studio.id,
-            }));
+            const studiosList = studios
+                ?.filter(studio => studio.status === "active") // ✅ only active studios
+                .map(studio => ({
+                    label: studio.name,
+                    value: studio.id,
+                }));
+
             setStudioList(studiosList || []);
         } catch (error) {
             console.log('❌ Failed to load studios:', error);
@@ -65,54 +74,6 @@ export const BookingsComponent = () => {
             setIsLoading(false);
         }
     };
-
-    const bookingData = [
-        {
-            id: '1',
-            bookingId: 'BMS001',
-            date: '25-09-2024',
-            bookedOn: '25-08-2024, 1:04 PM',
-            name: 'Priya Sharma',
-            studio: 'Studio Elite Mumbai',
-            time: '2:00 PM - 6:00 PM',
-            price: '10,000',
-            paid: '5000',
-            due: '5000',
-            phone: '+91 9876543210',
-            status: 'Pending',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-        {
-            id: '2',
-            bookingId: 'BMS002',
-            date: '25-09-2024',
-            bookedOn: '20-08-2024, 8:04 PM',
-            name: 'Priya Sharma',
-            studio: 'Studio Elite Mumbai',
-            time: '2:00 PM - 6:00 PM',
-            price: '8,000',
-            paid: '6000',
-            due: '2000',
-            phone: '+91 9876543210',
-            status: 'Confirmed',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-        {
-            id: '3',
-            bookingId: 'BMS003',
-            date: '25-09-2024',
-            bookedOn: '10-09-2024, 4:04 PM',
-            name: 'Priya Sharma',
-            studio: 'Studio Elite Mumbai',
-            time: '2:00 PM - 6:00 PM',
-            price: '8,000',
-            paid: '8000',
-            due: '0',
-            phone: '+91 9876543210',
-            status: 'Completed',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-    ];
 
     const cleardatefilter = () => {
         setStartdate('');
@@ -173,6 +134,22 @@ export const BookingsComponent = () => {
         }
     };
 
+    const onCloseCancelModal = () => {
+        setShowCancelModal({ status: false, selectedBooking: {} })
+    }
+
+    const onOpenCancelModal = (item: any) => {
+        setShowCancelModal({ status: true, selectedBooking: item })
+    }
+
+    const onCloseAcceptModal = () => {
+        setShowAcceptModal({ status: false, selectedBooking: {} })
+    }
+
+    const onOpenAcceptModal = (item: any) => {
+        setShowAcceptModal({ status: true, selectedBooking: item })
+    }
+
     const renderItem = ({ item }: any) => {
         let statusColor = '#FE9A55'; // default Pending orange
         if (item.status === 'pending') statusColor = '#FFC107'; // yellow
@@ -202,43 +179,102 @@ export const BookingsComponent = () => {
                         </Text>
                         <Text style={styles.name}>{item?.customer?.full_name}</Text>
                         <Text style={styles.date}>Date: <Text style={{ fontWeight: '600' }}>{item.booking_date}</Text></Text>
-                        <Text style={styles.time}>Booking type: <Text style={{ fontWeight: '600' }}>{item?.customer?.phone}</Text></Text>
                         <Text style={styles.time}>Booking type: <Text style={{ fontWeight: '600' }}>{item.booking_type}</Text></Text>
                         <Text style={styles.time}>Start time: <Text style={{ fontWeight: '600' }}>{item.start_time}</Text></Text>
                         <Text style={styles.time}>End time: <Text style={{ fontWeight: '600' }}>{item.end_time}</Text></Text>
                         <Text style={styles.price}>₹{item.total_amount}</Text>
+                    </View>
+                </View>
 
-                        {/* Action Buttons */}
-                        <View style={styles.actions}>
-                            {item.status === 'confirmed' && (
-                                <>
-                                    <TouchableOpacity style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Decline</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.contactBtn}>
-                                        <Text style={styles.contactBtnText}>Contact</Text>
-                                    </TouchableOpacity>
-                                </>
-                            )}
-                            {item.status === 'cancelled' && (
+                {/* Action Buttons */}
+                <View style={styles.actions}>
+                    {item.status === 'confirmed' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.contactBtn}
+                                onPress={() =>
+                                    setExpandedBookingId(prev =>
+                                        prev === item.id ? null : item.id
+                                    )
+                                }
+                            >
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                    {(item.status === 'cancelled' || item.status === 'completed') && (
 
-                                <TouchableOpacity style={styles.contactBtn}>
-                                    <Text style={styles.contactBtnText}>Contact</Text>
-                                </TouchableOpacity>
-                            )}
-                            {item.status === 'pending' && (
+                        <TouchableOpacity
+                            style={styles.contactBtn}
+                            onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            }
+                        >
+                            <Text style={styles.contactBtnText}>
+                                {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                    {item.status === 'pending' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenAcceptModal(item)} style={styles.acceptBtn}>
+                                <Text style={styles.acceptText}>Accept</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.contactBtn}
+                                onPress={() =>
+                                    setExpandedBookingId(prev =>
+                                        prev === item.id ? null : item.id
+                                    )
+                                }
+                            >
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+                {expandedBookingId === item.id && (
+                    <View style={[styles.card, { marginTop: 20, marginBottom: 0 }]}>
+                        <View style={styles.info}>
+                            <Text style={styles.labelText}>Contact Information:</Text>
+                            <Text style={styles.time}>
+                                Phone: <Text style={{ fontWeight: '600' }}>+91 {item?.customer?.phone}</Text>
+                            </Text>
+                            <Text style={[styles.time, { marginBottom: 10 }]}>
+                                Email: <Text style={{ fontWeight: '600' }}>{item?.customer?.email}</Text>
+                            </Text>
+
+                            <Text style={styles.labelText}>Required Equipment:</Text>
+                            {item?.equipment?.length > 0 ? (
                                 <>
-                                    <TouchableOpacity style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Decline</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.acceptBtn}>
-                                        <Text style={styles.acceptText}>Accept</Text>
-                                    </TouchableOpacity>
+                                    {item.equipment.map(eq => (
+                                        <Text key={eq?.id} style={{ ...styles.time, fontWeight: '600' }}>
+                                            • {eq.item_name}
+                                        </Text>
+                                    ))}
                                 </>
+                            ) : (
+                                <Text style={{ ...styles.labelText, fontSize: 10 }}>
+                                    No equipment found
+                                </Text>
                             )}
                         </View>
                     </View>
-                </View>
+                )}
+
+
             </View>
         );
 
@@ -406,6 +442,18 @@ export const BookingsComponent = () => {
                                 onChange={onEndDateChange}
                             />
                         )}
+
+                        <CancelStudioBookingModal
+                            visible={showCancelModal.status}
+                            booking={showCancelModal.selectedBooking}
+                            onClose={onCloseCancelModal}
+                        />
+
+                        <AcceptStudioBookingModal
+                            visible={showAcceptModal.status}
+                            booking={showAcceptModal.selectedBooking}
+                            onClose={onCloseAcceptModal}
+                        />
                     </ScrollView>}
         </>
     )
@@ -551,13 +599,16 @@ const styles = StyleSheet.create({
     actions: {
         flexDirection: 'row',
         marginTop: 8,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     contactBtn: {
         borderWidth: 1,
         borderColor: '#007BFF',
-        paddingHorizontal: 15,
-        paddingVertical: 6,
+        paddingHorizontal: 20,
+        paddingVertical: 8,
         borderRadius: 6,
+        marginRight: 8,
     },
     contactBtnText: {
         color: '#007BFF',
@@ -567,8 +618,8 @@ const styles = StyleSheet.create({
     declineBtn: {
         borderWidth: 1,
         borderColor: '#DC3545',
-        paddingHorizontal: 15,
-        paddingVertical: 6,
+        paddingHorizontal: 20,
+        paddingVertical: 8,
         borderRadius: 6,
         marginRight: 8,
     },
@@ -579,9 +630,10 @@ const styles = StyleSheet.create({
     },
     acceptBtn: {
         backgroundColor: '#034833',
-        paddingHorizontal: 15,
-        paddingVertical: 5,
+        paddingHorizontal: 20,
+        paddingVertical: 8,
         borderRadius: 6,
+        marginRight: 8,
     },
     acceptText: {
         color: '#fff',

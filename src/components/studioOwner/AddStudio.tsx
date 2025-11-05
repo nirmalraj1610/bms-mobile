@@ -150,6 +150,14 @@ const AddStudioComponent = ({
 
     setAmenities(updatedAmenities);
 
+if (editStudioValues?.studio_images?.[0]?.image_url) {
+  const formattedImages = editStudioValues.studio_images.map(img => ({
+    ...img,
+    uri: img.image_url,
+  }));
+  setSelectedImages(formattedImages);
+}
+
   }
 
   const clearAllStates = () => {
@@ -588,7 +596,7 @@ else{
         <Icon name="close" size={22} color="#034833" />
       </TouchableOpacity>
       <Image
-        source={{ uri: item.uri }}
+        source={{ uri: item.image_url || item.uri }}
         style={styles.selectedImage}
         resizeMode="cover"
       />

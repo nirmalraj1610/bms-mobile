@@ -87,10 +87,13 @@ const equipmentList = [
             console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
-            const studiosList = studios.map(studio => ({
-                label: studio.name,
-                value: studio.id,
-            }));
+            const studiosList = studios
+                ?.filter(studio => studio.status === "active") // ✅ only active studios
+                .map(studio => ({
+                    label: studio.name,
+                    value: studio.id,
+                }));
+
             setStudioList(studiosList || []);
         } catch (error) {
             console.log('❌ Failed to load studios:', error);

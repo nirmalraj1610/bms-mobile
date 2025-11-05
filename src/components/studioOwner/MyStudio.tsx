@@ -1,10 +1,10 @@
-import { ActivityIndicator, FlatList, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Used for the Add Studio icon and Star icon
 import DashboardFilterPopup from "./DashboardFilter";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loadMyStudioThunk } from "../../features/studios/studiosSlice";
-import ViewStudioModal from "./ViewStudioModal";
+import { useNavigation } from "@react-navigation/native";
 
 
 // --- Main Component ---
@@ -14,6 +14,7 @@ export const MyStudioComponent = ({
     editStudioValues = (i: any) => { },
 }) => {
     const dispatch = useDispatch();
+    const navigation = useNavigation<any>();
     const studioStatusOptions = [
         { label: "Pending Approvals", value: "pending_approval" },
         { label: "Active Studios", value: "active" },
@@ -21,7 +22,6 @@ export const MyStudioComponent = ({
     ];;
     const [showFilter, setShowFilter] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [showViewModal, setShowViewModal] = useState({ status: false, selectedStudio: {} });
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [studioList, setStudioList] = useState([]);
     const onFilterPress = () => {
@@ -29,7 +29,7 @@ export const MyStudioComponent = ({
     }
 
     const onAddStudioPress = () => {
-        onPressAddStudio('Add Studio')        
+        onPressAddStudio('Add Studio')
     }
 
     const onEditStudio = (item: any) => {
@@ -38,13 +38,12 @@ export const MyStudioComponent = ({
         onPressAddStudio('Add Studio')
     }
 
-    const onCloseViewModal = () => {
-        setShowViewModal({ status: false, selectedStudio: {} })
-    }
-
-    const onOpenViewModal = (item: any) => {
-        setShowViewModal({ status: true, selectedStudio: item })
-    }
+    const onOpenViewStudio = (studios: any) => {
+        const studioId = studios?.id;
+        if (studioId) {
+            (navigation as any).navigate('StudioDetails', { studioId });
+        }
+    };
 
     useEffect(() => {
 
@@ -85,13 +84,17 @@ export const MyStudioComponent = ({
         if (item.status === 'active') statusText = 'Active'; // blue
         if (item.status === 'inactive') statusText = 'Inactive'; // red
 
+        const imageSource = item?.studio_images?.[0]?.image_url
+            ? { uri: item.studio_images[0].image_url }
+            : require('../../assets/images/logoo.png');
+
         return (
             <View style={styles.cardContainer}>
                 <View style={styles.card}>
                     {/* Studio Image */}
                     <Image
                         // Using a placeholder that simulates the image's structure
-                        source={item?.studio_images[0] ? { uri: item?.studio_images[0]?.image_url } : require('../../assets/images/logoo.png')}
+                        source={imageSource}
                         style={styles.cardImage}
                     />
 
@@ -126,7 +129,7 @@ export const MyStudioComponent = ({
                         </TouchableOpacity> : null}
 
                         {/* View Button (Bordered) */}
-                        <TouchableOpacity onPress={() => onOpenViewModal(item)} style={[styles.actionButton, styles.viewButton]}>
+                        <TouchableOpacity onPress={() => onOpenViewStudio(item)} style={[styles.actionButton, styles.viewButton]}>
                             <Text style={styles.viewButtonText}>{item.status === 'active' ? 'View' : 'View studio'}</Text>
                         </TouchableOpacity>
                     </View>
@@ -208,11 +211,6 @@ export const MyStudioComponent = ({
                         onApply={(val) => setSelectedFilter(val)}
                         onClear={() => setSelectedFilter(null)}
                         onClose={() => setShowFilter(false)}
-                    />
-                    <ViewStudioModal
-                        visible={showViewModal.status}
-                        studio={showViewModal.selectedStudio}
-                        onClose={onCloseViewModal}
                     />
                 </ScrollView>}
         </>

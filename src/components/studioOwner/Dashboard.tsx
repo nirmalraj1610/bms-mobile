@@ -7,6 +7,8 @@ import { loadMyStudioThunk, loadStudioBookingsThunk } from "../../features/studi
 import { getUserData } from "../../lib/http";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import CancelStudioBookingModal from "./CancelStudioBookingModal";
+import AcceptStudioBookingModal from "./AcceptStudioBookingModal";
 
 export const DashboardComponent = () => {
     const dispatch = useDispatch();
@@ -26,6 +28,9 @@ export const DashboardComponent = () => {
     const [selectedStudio, setSelectedStudio] = useState('');
     const [startdate, setStartdate] = useState<string>('');
     const [enddate, setEnddate] = useState<string>('');
+    const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
+    const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
+    const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
 
     const staticImage = 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg';
 
@@ -39,8 +44,10 @@ export const DashboardComponent = () => {
     }, [])
 
     useEffect(() => {
-        fetchStudiosBookings();
-    }, [selectedStudio, selectedFilter])
+        if (!showCancelModal.status && !showAcceptModal.status) {
+            fetchStudiosBookings();
+        }
+    }, [selectedStudio, selectedFilter, showCancelModal, showAcceptModal]);
 
     const fetchStudios = async () => {
         setIsLoading(true);
@@ -54,10 +61,13 @@ export const DashboardComponent = () => {
             console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
-            const studiosList = studios.map(studio => ({
-                label: studio.name,
-                value: studio.id,
-            }));
+            const studiosList = studios
+                ?.filter(studio => studio.status === "active") // ✅ only active studios
+                .map(studio => ({
+                    label: studio.name,
+                    value: studio.id,
+                }));
+
             setStudioList(studiosList || []);
         } catch (error) {
             console.log('❌ Failed to load studios:', error);
@@ -126,6 +136,22 @@ export const DashboardComponent = () => {
         }
     };
 
+    const onCloseCancelModal = () => {
+        setShowCancelModal({ status: false, selectedBooking: {} })
+    }
+
+    const onOpenCancelModal = (item: any) => {
+        setShowCancelModal({ status: true, selectedBooking: item })
+    }
+
+    const onCloseAcceptModal = () => {
+        setShowAcceptModal({ status: false, selectedBooking: {} })
+    }
+
+    const onOpenAcceptModal = (item: any) => {
+        setShowAcceptModal({ status: true, selectedBooking: item })
+    }
+
     const renderItem = ({ item }: any) => {
         let statusColor = '#FE9A55'; // default Pending orange
         if (item.status === 'pending') statusColor = '#FFC107'; // yellow
@@ -155,47 +181,107 @@ export const DashboardComponent = () => {
                         </Text>
                         <Text style={styles.name}>{item?.customer?.full_name}</Text>
                         <Text style={styles.date}>Date: <Text style={{ fontWeight: '600' }}>{item.booking_date}</Text></Text>
-                        <Text style={styles.time}>Booking type: <Text style={{ fontWeight: '600' }}>{item?.customer?.phone}</Text></Text>
                         <Text style={styles.time}>Booking type: <Text style={{ fontWeight: '600' }}>{item.booking_type}</Text></Text>
                         <Text style={styles.time}>Start time: <Text style={{ fontWeight: '600' }}>{item.start_time}</Text></Text>
                         <Text style={styles.time}>End time: <Text style={{ fontWeight: '600' }}>{item.end_time}</Text></Text>
                         <Text style={styles.price}>₹{item.total_amount}</Text>
+                    </View>
+                </View>
 
-                        {/* Action Buttons */}
-                        <View style={styles.actions}>
-                            {item.status === 'confirmed' && (
-                                <>
-                                    <TouchableOpacity style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Decline</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.contactBtn}>
-                                        <Text style={styles.contactBtnText}>Contact</Text>
-                                    </TouchableOpacity>
-                                </>
-                            )}
-                            {item.status === 'cancelled' && (
+                {/* Action Buttons */}
+                <View style={styles.actions}>
+                    {item.status === 'confirmed' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.contactBtn}
+                                onPress={() =>
+                                    setExpandedBookingId(prev =>
+                                        prev === item.id ? null : item.id
+                                    )
+                                }
+                            >
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                    {(item.status === 'cancelled' || item.status === 'completed') && (
 
-                                <TouchableOpacity style={styles.contactBtn}>
-                                    <Text style={styles.contactBtnText}>Contact</Text>
-                                </TouchableOpacity>
-                            )}
-                            {item.status === 'pending' && (
+                        <TouchableOpacity
+                            style={styles.contactBtn}
+                            onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            }
+                        >
+                            <Text style={styles.contactBtnText}>
+                                {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                    {item.status === 'pending' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenAcceptModal(item)} style={styles.acceptBtn}>
+                                <Text style={styles.acceptText}>Accept</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.contactBtn}
+                                onPress={() =>
+                                    setExpandedBookingId(prev =>
+                                        prev === item.id ? null : item.id
+                                    )
+                                }
+                            >
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+                {expandedBookingId === item.id && (
+                    <View style={[styles.card, { marginTop: 20, marginBottom: 0 }]}>
+                        <View style={styles.info}>
+                            <Text style={styles.labelText}>Contact Information:</Text>
+                            <Text style={styles.time}>
+                                Phone: <Text style={{ fontWeight: '600' }}>+91 {item?.customer?.phone}</Text>
+                            </Text>
+                            <Text style={[styles.time, { marginBottom: 10 }]}>
+                                Email: <Text style={{ fontWeight: '600' }}>{item?.customer?.email}</Text>
+                            </Text>
+
+                            <Text style={styles.labelText}>Required Equipment:</Text>
+                            {item?.equipment?.length > 0 ? (
                                 <>
-                                    <TouchableOpacity style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Decline</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.acceptBtn}>
-                                        <Text style={styles.acceptText}>Accept</Text>
-                                    </TouchableOpacity>
+                                    {item.equipment.map(eq => (
+                                        <Text key={eq?.id} style={{ ...styles.time, fontWeight: '600' }}>
+                                            • {eq.item_name}
+                                        </Text>
+                                    ))}
                                 </>
+                            ) : (
+                                <Text style={{ ...styles.labelText, fontSize: 10 }}>
+                                    No equipment found
+                                </Text>
                             )}
                         </View>
                     </View>
-                </View>
+                )}
+
+
             </View>
         );
 
-    }
+    };
+
     return (
         <>
             {
@@ -265,7 +351,7 @@ export const DashboardComponent = () => {
                             </Picker>
                         </View>
 
-                            <Text style={styles.labelText} >Select date range<Text style={styles.required}> *</Text></Text>
+                        <Text style={styles.labelText} >Select date range<Text style={styles.required}> *</Text></Text>
 
                         <View style={styles.timeRow}>
                             <TouchableOpacity
@@ -355,6 +441,18 @@ export const DashboardComponent = () => {
                                 onChange={onEndDateChange}
                             />
                         )}
+
+                        <CancelStudioBookingModal
+                            visible={showCancelModal.status}
+                            booking={showCancelModal.selectedBooking}
+                            onClose={onCloseCancelModal}
+                        />
+
+                        <AcceptStudioBookingModal
+                            visible={showAcceptModal.status}
+                            booking={showAcceptModal.selectedBooking}
+                            onClose={onCloseAcceptModal}
+                        />
 
                     </ScrollView>}
         </>
@@ -481,13 +579,16 @@ const styles = StyleSheet.create({
     actions: {
         flexDirection: 'row',
         marginTop: 8,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     contactBtn: {
         borderWidth: 1,
         borderColor: '#007BFF',
         paddingHorizontal: 20,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 6,
+        marginRight: 8,
     },
     contactBtnText: {
         color: '#007BFF',
@@ -498,7 +599,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#DC3545',
         paddingHorizontal: 20,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 6,
         marginRight: 8,
     },
@@ -510,8 +611,9 @@ const styles = StyleSheet.create({
     acceptBtn: {
         backgroundColor: '#034833',
         paddingHorizontal: 20,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 6,
+        marginRight: 8,
     },
     acceptText: {
         color: '#fff',
