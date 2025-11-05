@@ -90,9 +90,21 @@ const StudioDetailsScreen: React.FC = () => {
 
   // Helper functions to safely access studio data
   const getStudioImages = () => {
-    if (studio?.images && Array.isArray(studio.images)) {
-      return studio.images;
+    // Prefer API-provided images array: studio_images[].image_url
+    const apiImages = (studio as any)?.studio_images;
+    if (Array.isArray(apiImages) && apiImages.length > 0) {
+      const urls = apiImages
+        .map((img: any) => img?.image_url)
+        .filter(Boolean);
+      if (urls.length > 0) return urls;
     }
+
+    // Fallback to legacy/images[] array if present
+    if (studio?.images && Array.isArray(studio.images) && studio.images.length > 0) {
+      return studio.images as string[];
+    }
+
+    // Final fallback
     return ['https://via.placeholder.com/400x200'];
   };
 

@@ -161,7 +161,7 @@ const handleLogin = async () => {
             </View>
 
             {/* Social Login Buttons */}
-            <View style={styles.socialContainer}>
+            {/* <View style={styles.socialContainer}>
               <TouchableOpacity 
                 style={styles.socialButton} 
                 onPress={() => handleSocialLogin('Google')}
@@ -182,7 +182,7 @@ const handleLogin = async () => {
               >
                 <Text style={styles.socialButtonText}>f</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             {/* Terms and Privacy */}
             <View style={styles.termsContainer}>
