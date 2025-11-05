@@ -8,6 +8,7 @@ export interface User {
 }
 
 export interface Studio {
+  studio_images: any;
   id: string;
   name: string;
   description: string;

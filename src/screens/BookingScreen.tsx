@@ -90,7 +90,10 @@ console.log('bookings:', bookings);
         status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
         bookingType: booking.booking_type || 'studio', // Handle booking_type from API
         image: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400', // Default image
-        isFavorite: false, // You can implement favorites logic later
+        isFavorite: false,
+        total_amount: booking.total_amount,
+         // You can 
+        // implement favorites logic later
       };
     });
   }, [bookings]);
@@ -359,7 +362,7 @@ console.log('bookings:', bookings);
         {/* Left Section - Image and Price */}
         <View style={styles.leftSection}>
           <Image source={{ uri: item.image }} style={styles.cardImage} />
-          <Text style={styles.priceText}>₹{item.price || '200'}</Text>
+          <Text style={styles.priceText}>₹{item.total_amount || '200'}</Text>
         </View>
 
         {/* Middle Section - Main Content */}
@@ -381,9 +384,9 @@ console.log('bookings:', bookings);
             <Text style={styles.timeText}>{item.time}</Text>
           </View>
 
-          <View style={styles.studioTag}>
+          {/* <View style={styles.studioTag}>
             <Text style={styles.studioTagText}>Studio</Text>
-          </View>
+          </View> */}
 
           {/* <Text style={styles.bookingId}>Booking ID: {item.bookingId || '1349c3e1-55a9-4cce-8154-a0ca17f84d03'}</Text>
           <Text style={styles.bookedOn}>Booked on: {item.bookedOn || '2025-10-29T12:44:18.429259+00:00'}</Text> */}

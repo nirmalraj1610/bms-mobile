@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -10,6 +10,8 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { studioDetailsThunk } from '../features/studios/studiosSlice';
 import { Studio } from '../types';
 import { StudioDetail } from '../types/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserData } from '../lib/http';
 
 const StudioDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
@@ -17,6 +19,7 @@ const StudioDetailsScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const studioId: string | undefined = route?.params?.studioId;
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Get studio data from Redux
   const { data: studioData, loading, error } = useAppSelector(state => state.studios.detail);
@@ -167,6 +170,36 @@ const StudioDetailsScreen: React.FC = () => {
     ];
   };
 
+  const closeLoginModal = () => setShowLoginModal(false);
+  const goToLogin = () => {
+    setShowLoginModal(false);
+    navigation.navigate('Auth', { screen: 'Login' });
+  };
+
+  const handlePressBookNow = async () => {
+    // 1) Token presence check
+    let token: string | null = null;
+    try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+    if (!token) {
+      setShowLoginModal(true);
+      return;
+    }
+    // 2) Expiry check from saved session
+    try {
+      const userData = await getUserData();
+      const exp = userData?.session?.expires_at; // seconds epoch
+      if (typeof exp === 'number') {
+        const isExpired = exp * 1000 <= Date.now();
+        if (isExpired) {
+          setShowLoginModal(true);
+          return;
+        }
+      }
+    } catch {}
+    // 3) Auth OK -> open booking modal
+    setShowBookingModal(true);
+  };
+
   const renderStars = (rating: number) => {
     const rounded = Math.round(rating);
     return (
@@ -255,7 +288,7 @@ const StudioDetailsScreen: React.FC = () => {
         </View>
 
         {/* CTA */}
-        <TouchableOpacity style={styles.bookBtn} onPress={() => setShowBookingModal(true)}>
+        <TouchableOpacity style={styles.bookBtn} onPress={handlePressBookNow}>
           <Text style={styles.bookBtnText}>Book Now</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -266,6 +299,26 @@ const StudioDetailsScreen: React.FC = () => {
         onClose={() => setShowBookingModal(false)}
         studio={studio}
       />
+
+      {/* Login Required Modal */}
+      <Modal visible={showLoginModal} transparent animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to book a studio.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButtonModal} onPress={closeLoginModal}>
+                <Text style={styles.confirmButtonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -298,6 +351,59 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 16,
     marginTop: 12,
+  },
+  // Modal styles for login prompt
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    elevation: 4,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text.primary,
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 12,
+  },
+  confirmButton: {
+    backgroundColor: COLORS.bg,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  cancelButtonModal: {
+    backgroundColor: '#827d7dff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
   chipsRow: {
     flexDirection: 'row',
@@ -412,7 +518,7 @@ const styles = StyleSheet.create({
   },
   bookBtn: {
     marginTop: 16,
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.bg,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',

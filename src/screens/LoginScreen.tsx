@@ -43,7 +43,7 @@ const handleLogin = async () => {
 
     console.log('Login Success:', result);
 
-    Alert.alert('Success', 'Login successful!');
+    // Alert.alert('Success', 'Login successful!');
     navigation.replace('Main');
   } catch (err: any) {
     console.log('Login Error:', err);

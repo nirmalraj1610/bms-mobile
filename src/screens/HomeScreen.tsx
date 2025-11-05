@@ -12,6 +12,7 @@ import {
   Dimensions,
   TextInput,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -27,6 +28,7 @@ import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors
 import { RootState, AppDispatch } from '../store/store';
 import { studiosSearchThunk, toggleFavoriteThunk, loadFavoritesThunk } from '../features/studios/studiosSlice';
 import { getphotographersSearch } from '../features/photographers/photographersSlice';
+import { getUserData } from '../lib/http';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -39,6 +41,7 @@ const HomeScreen: React.FC = () => {
   const [query, setQuery] = useState('');
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
@@ -129,14 +132,54 @@ console.log(studiosState,'studiooooooo');
     navigation.navigate('Browse');
   };
 
-  const handleToggleFavorite = (studioId: string) => {
+  const handleToggleFavorite = async (studioId: string) => {
+    // 1) Quick auth presence check
+    let token: string | null = null;
+    try {
+      token = await AsyncStorage.getItem('auth_token');
+    } catch {}
+
+    // 2) If no token, prompt login immediately
+    if (!token) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // 3) Check token expiry via saved user session, if available
+    try {
+      const userData = await getUserData();
+      const exp = userData?.session?.expires_at; // seconds epoch
+      if (typeof exp === 'number') {
+        const isExpired = exp * 1000 <= Date.now();
+        if (isExpired) {
+          setShowLoginModal(true);
+          return;
+        }
+      }
+    } catch {}
+
+    // 4) Proceed to toggle favorite and catch auth errors to prompt login
     const isFavorited = isStudioFavorited(studioId);
     const action = isFavorited ? 'remove' : 'add';
-    
-    dispatch(toggleFavoriteThunk({
-      studio_id: studioId,
-      action: action
-    }));
+    try {
+      await dispatch(toggleFavoriteThunk({ studio_id: studioId, action })).unwrap();
+    } catch (err: any) {
+      const msg = typeof err === 'string' ? err : err?.message || '';
+      const isAuthError = msg?.toLowerCase().includes('invalid jwt') || msg?.toLowerCase().includes('unauthorized') || msg?.toLowerCase().includes('authentication');
+      if (isAuthError || err?.status === 401) {
+        setShowLoginModal(true);
+        return;
+      }
+      // Swallow other errors silently or log
+      try { console.log('toggleFavorite error:', err); } catch {}
+    }
+  };
+
+  const closeLoginModal = () => setShowLoginModal(false);
+  const goToLogin = () => {
+    setShowLoginModal(false);
+    // Navigate to Auth stack Login screen
+    navigation.navigate('Auth', { screen: 'Login' });
   };
 
   const isStudioFavorited = (studioId: string) => {
@@ -256,10 +299,19 @@ console.log(studiosState,'studiooooooo');
     );
   };
 
+  // Prefer API field `studio_images[0].image_url` and fall back to `images[0]`
+  const getStudioPrimaryImage = (item: any): string => {
+    return (
+      item?.studio_images?.[0]?.image_url ||
+      item?.images?.[0] ||
+      'https://via.placeholder.com/300x200'
+    );
+  };
+
   const renderRecommendCard = ({ item }: { item: Studio }) => (
     <TouchableOpacity style={styles.recommendCard} onPress={() => navigateToStudioDetails(item.id)}>
       <View style={styles.recommendImageContainer}>
-        <Image source={{ uri: item.images?.[0] || 'https://via.placeholder.com/300x200' }} style={styles.recommendImage} />
+        <Image source={{ uri: getStudioPrimaryImage(item) }} style={styles.recommendImage} />
         
         {/* Rating Badge */}
         <View style={styles.ratingBadge}>
@@ -364,7 +416,7 @@ const renderRated = ({ item }: { item: any }) => {
       >
         <View style={styles.ratedImageContainer}>
           <Image 
-            source={{ uri: item.images?.[0] || 'https://via.placeholder.com/150' }} 
+            source={{ uri: getStudioPrimaryImage(item) }} 
             style={styles.ratedImage} 
           />
           <TouchableOpacity 
@@ -589,6 +641,25 @@ const renderRated = ({ item }: { item: any }) => {
           </LinearGradient>
         </View> */}
       </ScrollView>
+      {/* Login Required Modal */}
+      <Modal visible={showLoginModal} transparent animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to favorite studios.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButtonModal} onPress={closeLoginModal}>
+                <Text style={styles.confirmButtonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1220,6 +1291,60 @@ ratedPerHour: {
   fontSize: 13,
   color: COLORS.text.secondary,
 },
+
+  // Modal styles for login prompt
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    elevation: 4,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text.primary,
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 12,
+  },
+  confirmButton: {
+    backgroundColor: COLORS.bg,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  cancelButtonModal: {
+    backgroundColor: '#838383ff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
 
 });
 
