@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Image, ImageSourcePropType, StyleSheet } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
-import BrowseScreen from '../screens/BrowseScreen';
-import SearchScreen from '../screens/SearchScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { MainTabParamList } from '../types';
@@ -14,60 +11,63 @@ import { typography } from '../constants/typography';
 import BookingScreen from '../screens/BookingScreen';
 import StudioDashboardScreen from '../screens/StudioDashboardScreen';
 import PhotographerDashboardScreen from '../screens/PhotographerDashboardScreen';
-import { getUserData } from '../lib/http';
 import { useDispatch } from 'react-redux';
+import imagePaths from '../constants/imagePaths';
+import { getUserProfile } from '../lib/api';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const MainTabNavigator: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string | null>(null); // 'client', 'studio_owner', or 'photographer'
+  const [validUser, setValidUser] = useState<boolean | null>(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userData = await getUserData();
-        const userType = userData?.customer?.customer_profiles?.user_type;
-        console.log('User type:', userType);
-        setCurrentUser(userType);
-      } catch (err) {
-        console.log('Failed to load user data:', err);
-      }
-    };
-
-    fetchUserData();
+    fetchProfile();
   }, [dispatch]);
+
+  const fetchProfile = async () => {
+    try {
+      const userData: any = await getUserProfile();
+      const userType = userData?.customer?.customer_profiles?.user_type;
+      console.log('User type:', userType);
+      setCurrentUser(userType);
+      setValidUser(true);
+    } catch (err) {
+      setValidUser(false);
+    }
+  };
 
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string;
+          let imageName: ImageSourcePropType;
 
           switch (route.name) {
             case 'Home':
-              iconName = 'home';
+              imageName = imagePaths.Home;
               break;
             case 'Bookings':
-              iconName = 'book';
+              imageName = imagePaths.Bookings;
               break;
 
             case 'Dashboard':
-              iconName = 'space-dashboard';
+              imageName = imagePaths.Dashboard;
               break;
-            
+
             case 'Favorites':
-              iconName = focused ? 'star' : 'star-border';
+              imageName = imagePaths.Favorites;
               break;
             case 'Profile':
-              iconName = 'person';
+              imageName = imagePaths.Profile;
               break;
             default:
-              iconName = 'circle';
+              imageName = imagePaths.Home;
           }
 
-          return <Icon name={iconName} size={size} color={color} />;
+          return <Image source={imageName} resizeMode='contain' tintColor={focused ? "#FFFFFF" : "#AFAFAF"} style={styles.tabImages} />
         },
         tabBarActiveTintColor: COLORS.surface,
         tabBarInactiveTintColor: COLORS.text.secondary,
@@ -76,31 +76,31 @@ const MainTabNavigator: React.FC = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen} 
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
         options={{ title: 'Home' }}
       />
-      <Tab.Screen 
-        name="Bookings" 
-        component={BookingScreen} 
+      <Tab.Screen
+        name="Bookings"
+        component={BookingScreen}
         options={{ title: 'Bookings' }}
       />
-      {currentUser && currentUser !== 'client' && (
+      {validUser && currentUser !== 'client' ?
         <Tab.Screen
           name="Dashboard"
           component={currentUser === 'studio_owner' ? StudioDashboardScreen : PhotographerDashboardScreen}
           options={{ title: 'Dashboard' }}
-        />
-      )}
-      <Tab.Screen 
-        name="Favorites" 
-        component={FavoritesScreen} 
+        /> : null
+      }
+      <Tab.Screen
+        name="Favorites"
+        component={FavoritesScreen}
         options={{ title: 'Favorites' }}
       />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen} 
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
         options={{ title: 'Profile' }}
       />
     </Tab.Navigator>
@@ -120,6 +120,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     ...typography.regular,
     color: COLORS.background,
+  },
+  tabImages: {
+    width: 22,
+    height: 22
   },
 });
 

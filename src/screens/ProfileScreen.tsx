@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
+  ImageBackground,
 } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -19,6 +20,7 @@ import { useDispatch } from "react-redux";
 import { getUserProfile } from "../lib/api";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { clearToken, clearUserData } from "../lib/http";
+import imagePaths from "../constants/imagePaths";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -446,19 +448,26 @@ const handleProfilePick = async () => {
                 </ScrollView>
               )}
             </View> :
-            <View style={styles.logoutUserContainer}>
+                <View style={styles.logoutUserContainer}>
+      <ImageBackground
+        source={imagePaths.LoginBg}
+        resizeMode="cover"
+        style={styles.backgroundImage}
+      >
+        <Image source={imagePaths.logo} resizeMode="contain" style={styles.logo} />
+        <Text style={styles.titleText}>Discover Your</Text>
+        <Text style={styles.titleText}>Best Photo Studio, Photographers</Text>
 
-              <View style={styles.tempButtonsContainer}>
+          <TouchableOpacity style={{...styles.tempButton, marginTop: 100}} onPress={navigateToLogin}>
+            <Text style={styles.tempButtonText}>Login</Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity style={styles.tempButton} onPress={navigateToLogin}>
-                  <Text style={styles.tempButtonText}>Login</Text>
-                </TouchableOpacity>
+          <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
+            <Text style={[styles.tempButtonText, styles.signUpButtonText]}>SignUp</Text>
+          </TouchableOpacity>
+      </ImageBackground>
+    </View>
 
-                <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
-                  <Text style={[styles.tempButtonText, styles.signUpButtonText]}>SignUp</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
           }
         </>}
     </>
@@ -466,52 +475,19 @@ const handleProfilePick = async () => {
 };
 
 const styles = StyleSheet.create({
-  logoutUserContainer: {
+    logoutUserContainer: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  backgroundImage: {
+    flex: 1,
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-    paddingHorizontal: 20,
   },
-
-  title: {
-    fontSize: 28,
-    ...typography.bold,
-    color: '#034833',
-    marginBottom: 8,
-  },
-
-  subtitle: {
-    fontSize: 16,
-    color: '#6C757D',
-    marginBottom: 30,
-  },
-
-  tempButtonsContainer: {
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3, // Android shadow
-  },
-
-  tempTitle: {
-    fontSize: 16,
-    ...typography.semibold,
-    color: '#034833',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-
   tempButton: {
+    width: "90%",
     backgroundColor: '#034833',
     paddingVertical: 12,
     borderRadius: 10,
-    marginBottom: 12,
+    marginBottom: 20,
     alignItems: 'center',
   },
 
@@ -523,7 +499,7 @@ const styles = StyleSheet.create({
 
   signUpButton: {
     backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: '#034833',
   },
 
@@ -533,6 +509,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  logo: {
+    width: 185,
+    height: 140,
+    marginTop: 20,
+    marginBottom: 30
+  },
+  titleText: {
+    fontWeight: "700",
+    color: "#034833",
+    fontSize: 20,
+    ...typography.bold,
   },
   loading: {
     flex: 1,
