@@ -10,6 +10,7 @@ import FavoritesScreen from '../screens/FavoritesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { MainTabParamList } from '../types';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import BookingScreen from '../screens/BookingScreen';
 import StudioDashboardScreen from '../screens/StudioDashboardScreen';
 import PhotographerDashboardScreen from '../screens/PhotographerDashboardScreen';
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
   },
   tabBarLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    ...typography.regular,
     color: COLORS.background,
   },
 });

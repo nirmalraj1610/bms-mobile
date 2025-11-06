@@ -82,6 +82,24 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
+## Using Manrope Font
+
+This project is configured to use the Manrope font across all screens.
+
+1. Download Manrope `.ttf` files from Google Fonts.
+   - Suggested weights: `Manrope-Regular.ttf`, `Manrope-SemiBold.ttf`, `Manrope-Bold.ttf`.
+2. Place the files into `src/assets/fonts/`.
+3. Link assets into native projects:
+   - Run `npx react-native-asset` in the project root.
+4. Rebuild the app:
+   - Android: `npm run android`
+   - iOS (macOS): `bundle exec pod install` then `npm run ios`
+
+Notes:
+- All `Text` and `TextInput` components use `Manrope-Regular` by default.
+- Navigation header titles and bottom tab labels use `Manrope-SemiBold`.
+- If font files are missing or not linked, the system font will be used as a fallback.
+
 # Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.

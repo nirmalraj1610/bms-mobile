@@ -20,6 +20,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, CITIES, FEATURES } from '../constants';
+import { typography } from '../constants/typography';
 import { mockStudios } from '../utils/mockData';
 import { Studio, Feature } from '../types';
 import { PhotographerSummary } from '../types/api';
@@ -689,7 +690,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.background,
   },
   profileButton: {
@@ -720,7 +721,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 15,
     alignSelf:'center',
@@ -728,7 +729,7 @@ const styles = StyleSheet.create({
   viewAllButton: {
     fontSize: 14,
     color: COLORS.primary,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   categoryChip: {
     flexDirection: 'row',
@@ -743,7 +744,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 14,
     color: COLORS.text.primary,
-    fontWeight: '500',
+    ...typography.medium,
   },
   cityList: {
     paddingRight: 20,
@@ -759,7 +760,7 @@ const styles = StyleSheet.create({
   },
   cityName: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   stateName: {
@@ -806,7 +807,7 @@ const styles = StyleSheet.create({
   ratingBadgeText: {
     color: 'black',
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     marginLeft: 2,
   },
   heartIcon: {
@@ -822,7 +823,7 @@ const styles = StyleSheet.create({
   },
   recommendName: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   recommendBottomRow: {
@@ -870,13 +871,13 @@ const styles = StyleSheet.create({
   },
   recommendRatingText: {
     fontSize: 13,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginLeft: 4,
   },
   recommendPrice: {
     fontSize: 14,
-    fontWeight: '700',
+    ...typography.bold,
     color: '#FF6B35',
     textAlign: 'right',
   },
@@ -898,7 +899,7 @@ const styles = StyleSheet.create({
   },
   gridName: {
     fontSize: 14,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   gridLocation: {
@@ -936,7 +937,7 @@ const styles = StyleSheet.create({
   },
   studioName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.text.primary,
     flex: 1,
   },
@@ -948,7 +949,7 @@ const styles = StyleSheet.create({
   studioType: {
     fontSize: 14,
     color: COLORS.primary,
-    fontWeight: '600',
+    ...typography.semibold,
     marginTop: 4,
   },
   ratingContainer: {
@@ -958,7 +959,7 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginLeft: 4,
   },
@@ -969,7 +970,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 16,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.primary,
     marginTop: 8,
   },
@@ -990,7 +991,7 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.text.primary,
     textAlign: 'center',
     marginBottom: 8,
@@ -1032,7 +1033,7 @@ const styles = StyleSheet.create({
   },
   whyTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 6,
   },
@@ -1074,7 +1075,7 @@ const styles = StyleSheet.create({
   },
   ctaTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.background,
     marginBottom: 8,
   },
@@ -1095,7 +1096,7 @@ const styles = StyleSheet.create({
   },
   ctaButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.primary,
     marginRight: 8,
   },
@@ -1130,7 +1131,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   welcomeText: {
-    fontWeight: '600',
+    ...typography.semibold,
     fontSize: 18,
     color: COLORS.text.primary,
   },
@@ -1153,7 +1154,7 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 14,
     color: '#FF6B35',
-    fontWeight: '600',
+    ...typography.semibold,
     marginLeft: 4,
   },
   notificationIcon: {
@@ -1259,13 +1260,13 @@ ratedTopRow: {
   alignItems: 'center',
   marginTop: 10,
 },
-ratedName: {
-  fontSize: 16,
-  fontWeight: '600',
-  color: COLORS.text.primary,
-  // marginTop: 4,
-  
-},
+  ratedName: {
+    fontSize: 16,
+    ...typography.semibold,
+    color: COLORS.text.primary,
+    // marginTop: 4,
+    
+  },
 ratedLocationRow: {
   flexDirection: 'row',
   alignItems: 'center',
@@ -1284,11 +1285,11 @@ ratedFromText: {
   fontSize: 13,
   color: COLORS.text.secondary,
 },
-ratedPrice: {
-  fontSize: 16,
-  fontWeight: '700',
-  color: '#FF6B35',
-},
+  ratedPrice: {
+    fontSize: 16,
+    ...typography.bold,
+    color: '#FF6B35',
+  },
 ratedPerHour: {
   fontSize: 13,
   color: COLORS.text.secondary,
@@ -1317,7 +1318,7 @@ ratedPerHour: {
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   modalLabel: {
@@ -1339,7 +1340,7 @@ ratedPerHour: {
   },
   confirmButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    ...typography.semibold,
   },
   cancelButtonModal: {
     backgroundColor: '#838383ff',

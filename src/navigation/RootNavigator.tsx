@@ -13,6 +13,7 @@ import GettingStartedScreen from '../screens/GettingStartedScreen';
 import OurWorksScreen from '../screens/OurWorksScreen';
 import GalleryScreen from '../screens/GalleryScreen';
 import { RootStackParamList } from '../types';
+import { typography } from '../constants/typography';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -23,6 +24,7 @@ const RootNavigator: React.FC = () => {
         initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
+          headerTitleStyle: typography.regular  ,
         }}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />

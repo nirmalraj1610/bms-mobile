@@ -132,6 +132,7 @@ export type MainTabParamList = {
   Search: undefined;
   Favorites: undefined;
   Profile: undefined;
+  Dashboard: undefined;
 };
 
 export type AuthStackParamList = {
