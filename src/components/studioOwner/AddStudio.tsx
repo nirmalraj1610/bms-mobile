@@ -15,9 +15,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { launchImageLibrary } from "react-native-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch } from "react-redux";
-import { createStudio } from "../../features/studios/studios.service";
 import { createStudioThunk, updateStudioThunk } from "../../features/studios/studiosSlice";
-import { useNavigation } from "@react-navigation/native";
 
 const AddStudioComponent = ({
   editStudio = false,
@@ -25,7 +23,6 @@ const AddStudioComponent = ({
   editStudioValues = {},
 }) => {
   const dispatch = useDispatch();
-  const navigation = useNavigation<any>();
   const [selectedTab, setSelectedTab] = useState(1);
   const flatListRef = useRef<FlatList>(null);
   const [selectedImages, setSelectedImages] = useState([]);
@@ -237,6 +234,9 @@ if (editStudioValues?.studio_images?.[0]?.image_url) {
       { id: 14, name: "Memory Cards", selected: false },
       { id: 15, name: "Lens Cleaning Kit", selected: false },
     ]);
+
+    // clear selected images values
+    setSelectedImages([]);
 
     onPressSelectmenu('Dashboard')
   }

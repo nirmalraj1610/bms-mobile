@@ -16,18 +16,35 @@ import { MyStudioComponent } from '../components/studioOwner/MyStudio';
 import { BookingsComponent } from '../components/studioOwner/Bookings';
 import { ManageEquipmentComponent } from '../components/studioOwner/ManageEquipment';
 import AddStudioComponent from '../components/studioOwner/AddStudio';
+import { getUserData } from '../lib/http';
 
 const StudioDashboardScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
   const [editStudio, setEditStudio] = useState(false);
   const [editStudioValues, setEditStudioValues] = useState({});
+  const [currentUser, setCurrentUser] = useState<string | null>('User');
 
   useEffect(() => {
-    if (selectedMenu === 'Dashboard') {
+    if (selectedMenu !== 'Add Studio') {
       setEditStudio(false);
       setEditStudioValues({})
     }
   }, [selectedMenu])
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const userData = await getUserData();
+      const user = userData?.customer;
+      console.log('userData:', user);
+      setCurrentUser(user);
+    } catch (err) {
+      console.log('Failed to load user data:', err);
+    }
+  };
 
   const menus = [
     'Dashboard',
@@ -60,7 +77,7 @@ const StudioDashboardScreen: React.FC = () => {
               resizeMode="contain"
             />
             <Text style={styles.welcomeText}>
-              Hello <Text style={styles.userName}>Jana!</Text>
+              Hello <Text style={styles.userName}>{currentUser?.full_name}!</Text>
             </Text>
           </View>
 
@@ -73,8 +90,8 @@ const StudioDashboardScreen: React.FC = () => {
             <View style={styles.locationContainer}>
               <Text style={styles.locationLabel}>Current Location</Text>
               <View style={styles.locationRow}>
-                <Icon name="location-on" size={16} color="#FF6B35" />
-                <Text style={styles.locationText}>Chennai</Text>
+                <Icon name="location-on" size={16} color="#034833" />
+                <Text style={styles.locationText}>{currentUser?.customer_profiles?.address?.city}</Text>
               </View>
             </View>
           </View>
@@ -142,7 +159,8 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontWeight: '600',
-    fontSize: 18,
+    fontSize: 16,
+    marginTop: 10,
     color: COLORS.text.primary,
   },
   userName: {

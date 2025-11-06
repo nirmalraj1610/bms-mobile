@@ -55,12 +55,11 @@ export const BookingsComponent = () => {
         //     params = { ...params, status: selectedFilter, }
         // }
         try {
-            const studios = await dispatch(loadMyStudioThunk()).unwrap(); // ✅ unwrap to get actual data
+            const studios = await dispatch(loadMyStudioThunk({ status: "active" })).unwrap(); // ✅ unwrap to get actual data
             console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
             const studiosList = studios
-                ?.filter(studio => studio.status === "active") // ✅ only active studios
                 .map(studio => ({
                     label: studio.name,
                     value: studio.id,

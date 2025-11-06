@@ -1,6 +1,6 @@
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useDispatch } from "react-redux";
@@ -19,12 +19,15 @@ export const ManageEquipmentComponent = () => {
     const [editEquip, setEditEquip] = useState(false);
     const [editEquipId, setEditEquipId] = useState('');
     const [studioEquip, setStudioEquip] = useState([]);
-    const [selectedFile, setSelectedFile] = useState('');
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [maxImageError, setMaxImageError] = useState('');
+    const [showMaxImageError, setShowMaxImageError] = useState(false);
     const filterOptions = [
         { label: "Available", value: true }
     ];
     const [showFilter, setShowFilter] = useState(false);
     const [addStudio, setaddStudio] = useState({
+        studioId: "",
         studioName: "",
         equipmentName: "",
         equipmentType: "",
@@ -38,22 +41,22 @@ export const ManageEquipmentComponent = () => {
     });
     const [activeTab, setActiveTab] = useState("Studio Equipment"); // 'Studio Equipment' or 'Add Equipment'
 
-const equipmentList = [
-  { label: "Camera", value: "camera" },
-  { label: "Lighting", value: "lighting" },
-  { label: "Backdrop", value: "backdrop" },
-  { label: "Props", value: "props" },
-  { label: "Lens", value: "lens" },
-  { label: "Tripod", value: "tripod" },
-  { label: "Audio", value: "audio" },
-  { label: "Other", value: "other" },
-];
+    const equipmentList = [
+        { label: "Camera", value: "camera" },
+        { label: "Lighting", value: "lighting" },
+        { label: "Backdrop", value: "backdrop" },
+        { label: "Props", value: "props" },
+        { label: "Lens", value: "lens" },
+        { label: "Tripod", value: "tripod" },
+        { label: "Audio", value: "audio" },
+        { label: "Other", value: "other" },
+    ];
 
     const ConditionList = [
-  { label: "Excellent", value: "excellent" },
-  { label: "Good", value: "good" },
-  { label: "Fair", value: "fair" },
-];
+        { label: "Excellent", value: "excellent" },
+        { label: "Good", value: "good" },
+        { label: "Fair", value: "fair" },
+    ];
 
     const onFilterPress = () => {
         setShowFilter(!showFilter)
@@ -68,12 +71,11 @@ const equipmentList = [
     }, [selectedStudio, selectedFilter])
 
     useEffect(() => {
-        if(activeTab === "Studio Equipment")
-        {
+        if (activeTab === "Studio Equipment") {
             clearStateValues();
             fetchStudiosEquipments();
         }
-    },[activeTab])
+    }, [activeTab])
 
     const fetchStudios = async () => {
         setIsLoading(true);
@@ -83,12 +85,11 @@ const equipmentList = [
         //     params = { ...params, status: selectedFilter, }
         // }
         try {
-            const studios = await dispatch(loadMyStudioThunk()).unwrap(); // ✅ unwrap to get actual data
+            const studios = await dispatch(loadMyStudioThunk({ status: "active" })).unwrap(); // ✅ unwrap to get actual data
             console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
             const studiosList = studios
-                ?.filter(studio => studio.status === "active") // ✅ only active studios
                 .map(studio => ({
                     label: studio.name,
                     value: studio.id,
@@ -133,14 +134,12 @@ const equipmentList = [
         }
     };
 
-    const staticimage = 'https://3.imimg.com/data3/VH/BQ/GLADMIN-119035/photo-studio-equipment-250x250.jpg'
 
-    const onEditEquiPress = (item: any) => {        
+    const onEditEquiPress = (item: any) => {
 
         setActiveTab("Add Equipment");
         setEditEquip(true);
         setEditEquipId(item?.id ? item?.id : '')
-        setSelectedFile(item?.image_urls ? { uri: item?.image_urls } : {uri: staticimage})
 
         const selectedStudioName = studioList.find(
             (studio) => studio.value === selectedStudio
@@ -149,6 +148,7 @@ const equipmentList = [
 
 
         setaddStudio({
+            studioId: item?.id ? item?.id : '',
             studioName: selectedStudioName ? selectedStudioName : '',
             equipmentName: item?.item_name ? item?.item_name : '',
             equipmentType: item?.item_type ? String(item?.item_type) : '',
@@ -160,23 +160,44 @@ const equipmentList = [
             dailyRate: item?.rental_price_daily ? String(item?.rental_price_daily) : '',
             Condition: item?.condition ? String(item?.condition) : '',
         });
+
+        if (item?.equipment_images?.[0]?.image_url) {
+            const formattedImages = item?.equipment_images?.map(img => ({
+                ...img,
+                uri: img.image_url,
+            }));
+            setSelectedImages(formattedImages);
+        }
     }
 
     const handleDocumentPick = async () => {
-        const result = await launchImageLibrary({ mediaType: 'photo' });
-        if (!result.didCancel && result.assets && result.assets.length > 0) {
-            setSelectedFile(result.assets[0]);
+        if (selectedImages.length == 10) {
+            setMaxImageError('You can upload up to 10 images only.');
+            setShowMaxImageError(true);
+            setTimeout(() => {
+                setShowMaxImageError(false);
+            }, 3000);
+
+        }
+        else {
+            const result = await launchImageLibrary({ mediaType: "photo", selectionLimit: 10 });
+
+            if (!result.didCancel && result.assets && result.assets.length > 0) {
+                setSelectedImages(result.assets); // store selected image info
+            }
         }
     };
+
 
     const onAddEquiPress = () => {
         setActiveTab('Add Equipment')
     }
 
     const clearStateValues = () => {
-        setSelectedFile('')
+
         // set initial state value
         setaddStudio({
+            studioId: "",
             studioName: "",
             equipmentName: "",
             equipmentType: "",
@@ -189,68 +210,116 @@ const equipmentList = [
             Condition: ""
         })
 
+        // clear selected images values
+        setSelectedImages([]);
+
         // move to list equipment tab
 
         setActiveTab("Studio Equipment");
         setEditEquip(false);
-        setEditEquipId('')
+        setEditEquipId('');
     }
 
     const createOrEditEquipment = async () => {
-        let payload = {
-            studio_id: selectedStudio,
-            item_name: addStudio.equipmentName,
-            item_type: addStudio.equipmentType,
-            description: addStudio.equipmentDesc,
-            quantity_available: addStudio.availableQuantity,
-            rental_price_hourly: addStudio.hourlyRate,
-            rental_price_daily: addStudio.dailyRate,
-            condition: addStudio.Condition,
-            specifications: {
-                resolution: addStudio.resolution,
-                video: addStudio.video
+        let studio_id = selectedStudio || ''
+        try {
+
+            if (!editEquip && !editEquipId) {
+                if (addStudio?.studioId) {
+                    studio_id = addStudio?.studioId
+
+                }
+                else {
+                    Alert.alert('Please selecte a studio to add equipment')
+                }
+
             }
-        };
+            // 🧱 Build your base payload
+            const payload = {
+                studio_id: studio_id,
+                item_name: addStudio.equipmentName,
+                item_type: addStudio.equipmentType,
+                description: addStudio.equipmentDesc,
+                quantity_available: addStudio.availableQuantity,
+                rental_price_hourly: addStudio.hourlyRate,
+                rental_price_daily: addStudio.dailyRate,
+                condition: addStudio.Condition,
+                specifications: {
+                    resolution: addStudio.resolution,
+                    video: addStudio.video,
+                },
+            };
 
-if (editEquip && editEquipId) {
-  console.log('calling here 1');
-  try {
-    const convertedPayload = {
-      ...payload,
-      action: "update",
-      equipment_id: editEquipId,
+            // 🧠 Convert to FormData
+            const formData = new FormData();
+
+            formData.append('studio_id', payload.studio_id);
+            formData.append('item_name', payload.item_name);
+            formData.append('item_type', payload.item_type);
+            formData.append('description', payload.description);
+            formData.append('quantity_available', String(payload.quantity_available || 0));
+            formData.append('rental_price_hourly', String(payload.rental_price_hourly || 0));
+            formData.append('rental_price_daily', String(payload.rental_price_daily || 0));
+            formData.append('condition', payload.condition || '');
+            formData.append('specifications', JSON.stringify(payload.specifications));
+
+            // 🖼️ Add image if available
+            if (selectedImages?.length > 0) {
+                selectedImages.forEach((image, index) => {
+                    formData.append('images', {
+                        uri: image.uri,
+                        type: image.type || 'image/jpeg',
+                        name: image.fileName || `equipment_image_${index}.jpg`,
+                    });
+                });
+            }
+
+            // 🧩 Add action and equipment_id if editing
+            if (editEquip && editEquipId) {
+                formData.append('action', 'update');
+                formData.append('equipment_id', editEquipId);
+                console.log('📦 Final Payload (Update):', formData);
+
+                const response = await dispatch(updateStudioEquipThunk(formData)).unwrap();
+                clearStateValues();
+                console.log('✅ Equipment updated successfully:', response);
+            } else {
+                formData.append('action', 'add');
+                console.log('📦 Final Payload (Add):', formData);
+
+                const response = await dispatch(createStudioEquipThunk(formData)).unwrap();
+                clearStateValues();
+                console.log('✅ Equipment created successfully:', response);
+            }
+        } catch (error) {
+            console.error('❌ Error submitting equipment:', error);
+        }
     };
 
-    console.log("📦 Final Payload:", JSON.stringify(convertedPayload, null, 2));
 
-    const response = await dispatch(updateStudioEquipThunk(convertedPayload)).unwrap();
-    clearStateValues();
-    console.log("✅ Equipment updated successfully:", response);
-  } catch (error) {
-    console.error("❌ Error updating equipment:", error);
-  }
-} else {
-  console.log('calling here 2');
-  try {
-    const convertedPayload = {
-      ...payload,
-      action: "add",
-    };
 
-    console.log("📦 Final Payload:", JSON.stringify(convertedPayload, null, 2));
+    const removeSelectedImage = (item: any) => {
+        setSelectedImages((prevFiles: any[]) => prevFiles.filter(file => file.uri !== item.uri));
 
-    const response = await dispatch(createStudioEquipThunk(convertedPayload)).unwrap();
-    clearStateValues();
-    console.log("✅ Equipment created successfully:", response);
-  } catch (error) {
-    console.error("❌ Error submitting equipment:", error);
-  }
-}
+    }
 
-    };
+    const renderImages = ({ item }: any) => (
+        <View>
+            <TouchableOpacity onPress={() => removeSelectedImage(item)} style={styles.imageDeSelect}>
+                <Icon name="close" size={22} color="#034833" />
+            </TouchableOpacity>
+            <Image
+                source={{ uri: item.image_url || item.uri }}
+                style={styles.selectedImage}
+                resizeMode="cover"
+            />
+        </View>
+    )
+
 
     // --- Render Item Function for FlatList ---
     const renderStudioCard = ({ item }: any) => {
+
         let statusBgColor = '#FE9A55'; // default Pending orange
         if (item.available) statusBgColor = '#034833'; // green
         if (!item.available) statusBgColor = '#DC3545'; // red
@@ -259,13 +328,17 @@ if (editEquip && editEquipId) {
         if (item.available) statusText = 'Available';
         if (!item.available) statusText = 'Unavailable';
 
+        const imageSource = item?.equipment_images?.[0]?.image_url
+            ? { uri: item.equipment_images[0].image_url }
+            : require('../../assets/images/logoo.png');
+
         return (
             <View style={styles.cardContainer}>
                 <View style={styles.card}>
                     {/* Studio Image */}
                     <Image
                         // Using a placeholder that simulates the image's structure
-                        source={{ uri: item?.image_urls ? item?.image_urls : staticimage }}
+                        source={imageSource}
                         resizeMode="cover"
                         style={styles.cardImage}
                     />
@@ -307,46 +380,46 @@ if (editEquip && editEquipId) {
 
                         {/* Tabs */}
                         <View style={styles.toggleContainer}>
-                                  <TouchableOpacity
-                                    style={[
-                                      styles.toggleButton,
-                                      activeTab === "Studio Equipment" && styles.toggleButtonActive
-                                    ]}
-                                    onPress={() => setActiveTab("Studio Equipment")}
-                                  >
-                                    <Icon 
-                                      name="camera-alt" 
-                                      size={16} 
-                                      color={activeTab === "Studio Equipment" ? COLORS.background : COLORS.text.secondary} 
-                                    />
-                                    <Text style={[
-                                      styles.toggleButtonText,
-                                      activeTab === "Studio Equipment" && styles.toggleButtonTextActive
-                                    ]}>
-                                      Studio Equipment 
-                                    </Text>
-                                  </TouchableOpacity>
-                                  
-                                  <TouchableOpacity 
-                                    style={[
-                                      styles.toggleButton,
-                                      activeTab === "Add Equipment" && styles.toggleButtonActive
-                                    ]}
-                                    onPress={() => setActiveTab("Add Equipment")}
-                                  >
-                                    <Icon 
-                                      name={editEquip ? "edit" : "add-circle-outline"} 
-                                      size={16} 
-                                      color={activeTab === "Add Equipment" ? COLORS.background : COLORS.text.secondary} 
-                                    />
-                                    <Text style={[
-                                      styles.toggleButtonText,
-                                      activeTab === "Add Equipment" && styles.toggleButtonTextActive
-                                    ]}>
-                                      {editEquip ? "Edit Equipment" : "Add Equipment"}
-                                    </Text>
-                                  </TouchableOpacity>
-                                </View>
+                            <TouchableOpacity
+                                style={[
+                                    styles.toggleButton,
+                                    activeTab === "Studio Equipment" && styles.toggleButtonActive
+                                ]}
+                                onPress={() => setActiveTab("Studio Equipment")}
+                            >
+                                <Icon
+                                    name="camera-alt"
+                                    size={16}
+                                    color={activeTab === "Studio Equipment" ? COLORS.background : COLORS.text.secondary}
+                                />
+                                <Text style={[
+                                    styles.toggleButtonText,
+                                    activeTab === "Studio Equipment" && styles.toggleButtonTextActive
+                                ]}>
+                                    Studio Equipment
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.toggleButton,
+                                    activeTab === "Add Equipment" && styles.toggleButtonActive
+                                ]}
+                                onPress={() => setActiveTab("Add Equipment")}
+                            >
+                                <Icon
+                                    name={editEquip ? "edit" : "add-circle-outline"}
+                                    size={16}
+                                    color={activeTab === "Add Equipment" ? COLORS.background : COLORS.text.secondary}
+                                />
+                                <Text style={[
+                                    styles.toggleButtonText,
+                                    activeTab === "Add Equipment" && styles.toggleButtonTextActive
+                                ]}>
+                                    {editEquip ? "Edit Equipment" : "Add Equipment"}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {activeTab === "Studio Equipment" ? <>
 
@@ -406,7 +479,14 @@ if (editEquip && editEquipId) {
                                             </View> :
                                             <Picker
                                                 selectedValue={addStudio.studioName} // Must match one of Picker.Item values
-                                                onValueChange={(value) => setaddStudio({ ...addStudio, studioName: value })}
+                                                onValueChange={(value) => {
+                                                    const selectedStudioObj = studioList.find(studio => studio.value === value);
+                                                    setaddStudio({
+                                                        ...addStudio,
+                                                        studioId: value,
+                                                        studioName: selectedStudioObj?.label || "",
+                                                    });
+                                                }}
                                                 dropdownIconColor="#034833" // Color of the arrow
                                                 style={{ color: '#101010' }} // Color of the selected text
                                             >
@@ -417,23 +497,31 @@ if (editEquip && editEquipId) {
                                             </Picker>}
                                     </View>
                                     <Text style={styles.labelText} >Equipment Image<Text style={styles.required}> *</Text></Text>
-                                    {selectedFile ?
+
+                                    {selectedImages.length > 0 ? (
                                         <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-                                            <Image
-                                                source={{ uri: selectedFile?.uri }}
-                                                style={styles.selectedImage}
-                                                resizeMode={"cover"}
+                                            <FlatList
+                                                data={selectedImages}
+                                                renderItem={renderImages}
+                                                numColumns={2}
+                                                keyExtractor={(item) => item.fileName}
+                                                showsVerticalScrollIndicator={false}
                                             />
-                                        </TouchableOpacity> :
+                                            {showMaxImageError && <Text style={{ ...styles.uploadText, ...styles.required }}>{maxImageError}</Text>}
+
+                                        </TouchableOpacity>
+                                    ) : (
                                         <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
                                             <Icon name="cloud-upload" size={28} color="#034833" />
-                                            <Text style={styles.uploadTextHeader}>Upload Equipment Image</Text>
-                                            <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
+                                            <Text style={styles.uploadTextHeader}>Upload Equipment Images</Text>
+                                            <Text style={styles.uploadTextDesc}>Click to browse your images</Text>
                                             <Text style={styles.supportedFilesText}>
-                                                Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
+                                                Supported formats: JPG, PNG, WebP. Max size: 5MB per image. Max 10 images.
                                             </Text>
-                                            <Text style={styles.chooseFilesText}>Choose File</Text>
-                                        </TouchableOpacity>}
+                                            <Text style={styles.chooseFilesText}>Choose Files</Text>
+                                        </TouchableOpacity>
+                                    )}
+
                                     <Text style={styles.labelText} >Equipment Name<Text style={styles.required}> *</Text></Text>
 
                                     <TextInput
@@ -683,15 +771,40 @@ const styles = StyleSheet.create({
     },
     uploadButton: {
         borderWidth: 1,
-        width: '100%',
-        height: 200,
         borderColor: "#BABABA",
+        marginBottom: 12,
+        marginTop: 10,
+        borderRadius: 8,
+        padding: 20,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    selectedImage: {
+        width: 100,
+        height: 100,
+        borderWidth: 1,
+        borderColor: "#BABABA",
+        marginRight: 10,
+        marginBottom: 10,
         borderRadius: 10,
-        marginBottom: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+    },
+    imageDeSelect: {
+        position: 'absolute',
+        right: 15,
+        top: 6,
+        borderRadius: 100,
+        borderWidth: 1,
+        borderColor: '#034833',
+        zIndex: 1
+    },
+    selectedImageOutline: {
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between'
+    },
+    uploadText: {
+        color: "#101010",
+        fontWeight: "600",
+        marginTop: 10
     },
     uploadTextHeader: {
         fontWeight: "600",
@@ -714,11 +827,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
         fontWeight: "bold",
         color: "#034833",
-    },
-    selectedImage: {
-        height: 150,
-        width: 150,
-        borderRadius: 10
     },
     header: {
         flexDirection: 'row',
@@ -816,8 +924,8 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 6,
-      },
-      toggleButton: {
+    },
+    toggleButton: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
@@ -826,17 +934,17 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         borderRadius: 18,
         backgroundColor: 'transparent',
-      },
-      toggleButtonActive: {
+    },
+    toggleButtonActive: {
         backgroundColor: COLORS.bg,
-      },
-      toggleButtonText: {
+    },
+    toggleButtonText: {
         fontSize: 14,
         fontWeight: '600',
         color: COLORS.text.secondary,
         marginLeft: 6,
-      },
-      toggleButtonTextActive: {
+    },
+    toggleButtonTextActive: {
         color: COLORS.background,
-      },
+    },
 });

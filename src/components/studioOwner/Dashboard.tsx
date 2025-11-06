@@ -1,10 +1,9 @@
-import { ActivityIndicator, FlatList, Image, ImageBackground, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardFilterPopup from "./DashboardFilter";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loadMyStudioThunk, loadStudioBookingsThunk } from "../../features/studios/studiosSlice";
-import { getUserData } from "../../lib/http";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CancelStudioBookingModal from "./CancelStudioBookingModal";
@@ -57,12 +56,11 @@ export const DashboardComponent = () => {
         //     params = { ...params, status: selectedFilter, }
         // }
         try {
-            const studios = await dispatch(loadMyStudioThunk()).unwrap(); // ✅ unwrap to get actual data
+            const studios = await dispatch(loadMyStudioThunk({ status: "active" })).unwrap(); // ✅ unwrap to get actual data
             console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
             const studiosList = studios
-                ?.filter(studio => studio.status === "active") // ✅ only active studios
                 .map(studio => ({
                     label: studio.name,
                     value: studio.id,
