@@ -35,6 +35,7 @@ const GettingStartedScreen: React.FC = () => {
         <View style={styles.logoContainer}>
           <Image
             source={require('../assets/images/logoo.png')}
+          
             style={styles.logo}
             resizeMode="contain"
           />
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   ctaButton: {
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.bg,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',

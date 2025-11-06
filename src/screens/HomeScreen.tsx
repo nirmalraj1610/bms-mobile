@@ -42,6 +42,7 @@ const HomeScreen: React.FC = () => {
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [photoErrorIds, setPhotoErrorIds] = useState<{ [key: string]: boolean }>({});
 
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
@@ -300,18 +301,18 @@ console.log(studiosState,'studiooooooo');
   };
 
   // Prefer API field `studio_images[0].image_url` and fall back to `images[0]`
-  const getStudioPrimaryImage = (item: any): string => {
-    return (
-      item?.studio_images?.[0]?.image_url ||
-      item?.images?.[0] ||
-      'https://via.placeholder.com/300x200'
-    );
+  // Do NOT return remote placeholder here; allow UI to use local asset
+  const getStudioPrimaryImage = (item: any): string | undefined => {
+    return item?.studio_images?.[0]?.image_url || item?.images?.[0] || '';
   };
 
   const renderRecommendCard = ({ item }: { item: Studio }) => (
     <TouchableOpacity style={styles.recommendCard} onPress={() => navigateToStudioDetails(item.id)}>
       <View style={styles.recommendImageContainer}>
-        <Image source={{ uri: getStudioPrimaryImage(item) }} style={styles.recommendImage} />
+        <Image
+          source={getStudioPrimaryImage(item) ? { uri: getStudioPrimaryImage(item) } : require('../assets/images/studio_placeholder.png')}
+          style={styles.recommendImage}
+        />
         
         {/* Rating Badge */}
         <View style={styles.ratingBadge}>
@@ -363,9 +364,9 @@ const renderRated = ({ item }: { item: any }) => {
     const minPrice = item.services.length > 0 
       ? Math.min(...item.services.map((s: any) => s.base_price))
       : 0;
-    const imageUrl = item.portfolio && item.portfolio.length > 0 
+    const imageUrl = (item.portfolio && item.portfolio.length > 0 
       ? item.portfolio[0].image_url 
-      : item.profile_image_url || 'https://via.placeholder.com/150';
+      : item.profile_image_url) || '';
     
     return (
       <TouchableOpacity 
@@ -374,8 +375,9 @@ const renderRated = ({ item }: { item: any }) => {
       >
         <View style={styles.ratedImageContainer}>
           <Image 
-            source={{ uri: imageUrl }} 
-            style={styles.ratedImage} 
+            source={photoErrorIds[item.id] || !imageUrl ? require('../assets/images/photographer_placeholder.jpg') : { uri: imageUrl }}
+            style={styles.ratedImage}
+            onError={() => setPhotoErrorIds(prev => ({ ...prev, [item.id]: true }))}
           />
           <TouchableOpacity 
             style={styles.ratedHeartIcon}
