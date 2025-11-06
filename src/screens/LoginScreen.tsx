@@ -16,6 +16,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { authLogin } from '../lib/api';
 import { useDispatch } from 'react-redux';
 import { login } from '../features/auth/authSlice';
@@ -223,13 +224,13 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 18,
     color: '#2C5530',
-    fontWeight: '600',
+    ...typography.semibold,
     textAlign: 'center',
   },
   taglineSecond: {
     fontSize: 18,
     color: '#2C5530',
-    fontWeight: '600',
+    ...typography.semibold,
     textAlign: 'center',
   },
   formContainer: {
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: '#333',
     marginBottom: 30,
   },
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     marginBottom: 8,
-    fontWeight: '500',
+    ...typography.medium,
   },
   input: {
     borderWidth: 1,
@@ -292,7 +293,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: '#2C5530',
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
   },
   loginButton: {
     backgroundColor: '#2C5530',
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    ...typography.bold,
   },
   signUpContainer: {
     flexDirection: 'row',
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
   },
   signUpLink: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: '#2C5530',
   },
   divider: {
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
   },
   socialButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    ...typography.bold,
   },
   termsContainer: {
     alignItems: 'center',
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: '#2C5530',
-    fontWeight: '500',
+    ...typography.medium,
   },
 });
 

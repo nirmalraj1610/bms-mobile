@@ -15,6 +15,7 @@ import { DashboardComponent } from '../components/photographer/Dashboard';
 import { BookingsComponent } from '../components/photographer/Bookings';
 import { ServicesComponent } from '../components/photographer/Services';
 import { PortfolioComponent } from '../components/photographer/portfolio';
+import { typography } from '../constants/typography';
 
 const PhotographerDashboardScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   welcomeText: {
-    fontWeight: '600',
+    ...typography.semibold,
     fontSize: 18,
     color: COLORS.text.primary,
   },
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 14,
     color: '#FF6B35',
-    fontWeight: '600',
+    ...typography.semibold,
     marginLeft: 4,
   },
 

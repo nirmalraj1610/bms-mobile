@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 
 const BookingScreen: React.FC = () => {
   return (
@@ -21,7 +22,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 10,
   },

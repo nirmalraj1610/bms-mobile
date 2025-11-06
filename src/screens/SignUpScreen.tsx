@@ -16,6 +16,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 
 const SignUpScreen: React.FC = () => {
   const [name, setName] = useState('');
@@ -233,13 +234,13 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 18,
     color: '#2C5530',
-    fontWeight: '600',
+    ...typography.semibold,
     textAlign: 'center',
   },
   taglineSecond: {
     fontSize: 18,
     color: '#2C5530',
-    fontWeight: '600',
+    ...typography.semibold,
     textAlign: 'center',
   },
   formContainer: {
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    ...typography.bold,
     color: '#333',
     marginBottom: 30,
   },
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     marginBottom: 8,
-    fontWeight: '500',
+    ...typography.medium,
   },
   input: {
     borderWidth: 1,
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
   signUpButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    ...typography.bold,
   },
   signInContainer: {
     flexDirection: 'row',
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
   },
   signInLink: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: '#2C5530',
   },
   termsContainer: {
@@ -337,7 +338,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: '#2C5530',
-    fontWeight: '500',
+    ...typography.medium,
   },
 });
 

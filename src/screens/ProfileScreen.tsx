@@ -12,6 +12,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { Picker } from "@react-native-picker/picker";
 import { updateProfile, updateProfileImage } from "../features/profile/profileSlice";
 import { useDispatch } from "react-redux";
@@ -475,7 +476,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    ...typography.bold,
     color: '#034833',
     marginBottom: 8,
   },
@@ -500,7 +501,7 @@ const styles = StyleSheet.create({
 
   tempTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: '#034833',
     marginBottom: 16,
     textAlign: 'center',
@@ -517,7 +518,7 @@ const styles = StyleSheet.create({
   tempButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '600',
+    ...typography.semibold,
   },
 
   signUpButton: {
@@ -541,7 +542,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     color: "#101010",
-    fontWeight: "bold",
+    ...typography.bold,
     fontSize: 16,
   },
   input: {
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 14,
     backgroundColor: "#ffffff",
-    fontWeight: '600',
+    ...typography.semibold,
   },
   readOnly: {
     backgroundColor: "#f5f5f5",
@@ -578,18 +579,18 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    ...typography.bold,
     fontSize: 16,
   },
   label: {
     fontSize: 15,
-    fontWeight: "500",
+    ...typography.medium,
     marginBottom: 6,
   },
   labelText: {
     color: '#6C757D',
     fontSize: 15,
-    fontWeight: "500",
+    ...typography.medium,
     marginBottom: 6,
   },
   uploadButton: {
@@ -605,7 +606,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   uploadTextHeader: {
-    fontWeight: "600",
+    ...typography.semibold,
     color: "#101010",
     fontSize: 16,
     marginTop: 10,
@@ -623,7 +624,7 @@ const styles = StyleSheet.create({
   },
   chooseFilesText: {
     marginTop: 10,
-    fontWeight: "bold",
+    ...typography.bold,
     color: "#034833",
   },
   submitButton: {
@@ -634,7 +635,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    ...typography.bold,
     fontSize: 16,
   },
   placeholderImage: {
@@ -695,21 +696,21 @@ const styles = StyleSheet.create({
   userName: {
     color: '#101010',
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
     marginRight: 6,
   },
 
   userRole: {
     color: '#6C757D',
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
     marginRight: 6,
   },
 
   userEmail: {
     color: '#101010',
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     marginRight: 6,
     flexShrink: 1,
   },
@@ -717,7 +718,7 @@ const styles = StyleSheet.create({
   userPhone: {
     color: '#101010',
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     marginRight: 6,
     flexShrink: 1,
   },
@@ -734,7 +735,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: '#034833',
   },
 
@@ -758,14 +759,14 @@ const styles = StyleSheet.create({
   infoLabel: {
     color: '#6C757D',
     fontSize: 15,
-    fontWeight: "500",
+    ...typography.medium,
     marginBottom: 6,
   },
 
   infoValue: {
     color: '#101010',
     fontSize: 15,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   logoutBtn: {
     backgroundColor: '#DC3545',
@@ -776,7 +777,7 @@ const styles = StyleSheet.create({
   logoutBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -809,7 +810,7 @@ const styles = StyleSheet.create({
   },
   toggleButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.secondary,
     marginLeft: 6,
   },

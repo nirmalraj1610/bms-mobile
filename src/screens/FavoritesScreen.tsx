@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { RootState, AppDispatch } from '../store/store';
 import { loadFavoritesThunk, toggleFavoriteThunk } from '../features/studios/studiosSlice';
 
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   screenSubtitle: {
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   ratingRow: {
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 13,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginLeft: 6,
   },
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginTop: 16,
   },
@@ -416,7 +417,7 @@ const styles = StyleSheet.create({
   browseBtnText: {
     color: COLORS.background,
     fontSize: 15,
-    fontWeight: '600',
+    ...typography.semibold,
   },
    recommendMeta: {
     flexDirection: 'row',
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginTop: 16,
     textAlign: 'center',
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
   retryBtnText: {
     color: COLORS.background,
     fontSize: 15,
-    fontWeight: '600',
+    ...typography.semibold,
   },
 });
 

@@ -17,6 +17,7 @@ import { BookingsComponent } from '../components/studioOwner/Bookings';
 import { ManageEquipmentComponent } from '../components/studioOwner/ManageEquipment';
 import AddStudioComponent from '../components/studioOwner/AddStudio';
 import { getUserData } from '../lib/http';
+import { typography } from '../constants/typography';
 
 const StudioDashboardScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   welcomeText: {
-    fontWeight: '600',
+    ...typography.semibold,
     fontSize: 16,
     marginTop: 10,
     color: COLORS.text.primary,
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 14,
     color: '#FF6B35',
-    fontWeight: '600',
+    ...typography.semibold,
     marginLeft: 4,
   },
 

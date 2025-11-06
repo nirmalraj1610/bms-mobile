@@ -13,6 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 
 const { width } = Dimensions.get('window');
 
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   ctaText: {
     color: COLORS.background,
     fontSize: 18,
-    fontWeight: '600',
+    ...typography.semibold,
   },
 });
 

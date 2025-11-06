@@ -17,6 +17,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { RootState, AppDispatch } from '../store/store';
 import {
   getphotographerDetail, // <- FIXED import name
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
   },
   photographerName: {
     fontSize: 22,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 8,
   },
@@ -573,7 +574,7 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 13,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginLeft: 6,
   },
@@ -584,7 +585,7 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.primary,
   },
   bookingSection: {
@@ -593,7 +594,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 12,
   },
@@ -612,7 +613,7 @@ const styles = StyleSheet.create({
   },
   studioBookingName: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginBottom: 4,
   },
@@ -646,7 +647,7 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: COLORS.primary,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   tabContent: {
     paddingHorizontal: 16,
@@ -673,7 +674,7 @@ const styles = StyleSheet.create({
   },
   ownerName: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginBottom: 4,
   },
@@ -696,7 +697,7 @@ const styles = StyleSheet.create({
   },
   serviceTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginBottom: 8,
   },
@@ -713,7 +714,7 @@ const styles = StyleSheet.create({
   },
   servicePrice: {
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.primary,
   },
   serviceDuration: {
@@ -733,7 +734,7 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginBottom: 8,
   },
@@ -767,14 +768,14 @@ const styles = StyleSheet.create({
   submitReviewButtonText: {
     color: COLORS.background,
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   policySection: {
     marginBottom: 16,
   },
   policyTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginBottom: 4,
   },
@@ -801,7 +802,7 @@ const styles = StyleSheet.create({
   calendarButtonText: {
     color: COLORS.background,
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     marginLeft: 8,
   },
   selectionSummary: {
@@ -827,7 +828,7 @@ const styles = StyleSheet.create({
   bookButtonText: {
     color: COLORS.background,
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
   },
   disabledButtonText: {
     color: '#999',
@@ -848,7 +849,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   modalContent: {
@@ -884,10 +885,10 @@ const styles = StyleSheet.create({
   },
   selectedDateText: {
     color: COLORS.background,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   todayDateText: {
-    fontWeight: '600',
+    ...typography.semibold,
   },
   timeSlotsGrid: {
     flexDirection: 'row',
@@ -920,7 +921,7 @@ const styles = StyleSheet.create({
   },
   selectedTimeSlotText: {
     color: COLORS.background,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   unavailableTimeSlotText: {
     color: '#999',
@@ -935,7 +936,7 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: COLORS.background,
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
   },
 });
 

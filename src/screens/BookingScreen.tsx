@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getBookings, doCheckinBooking, doCheckoutBooking, doRescheduleBooking, doCancelBooking } from '../features/bookings/bookingsSlice';
 import { getStudioEquipmentThunk } from '../features/studios/studiosSlice';
@@ -831,7 +832,7 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   screenSubtitle: {
@@ -906,7 +907,7 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   middleSection: {
@@ -924,7 +925,7 @@ const styles = StyleSheet.create({
   },
   studioName: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 8,
   },
@@ -968,7 +969,7 @@ const styles = StyleSheet.create({
   },
   studioTagText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: '#2E7D32',
   },
   bookingId: {
@@ -990,7 +991,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   iconStyle: {
    
@@ -1018,7 +1019,7 @@ const styles = StyleSheet.create({
   },
   rescheduleButtonText: {
     fontSize: 12,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.black,
   },
   cancelButton: {
@@ -1036,7 +1037,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: '#ff0000ff',
   },
   checkInButton: {
@@ -1052,7 +1053,7 @@ const styles = StyleSheet.create({
   },
   checkInButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.background,
   },
   checkOutButton: {
@@ -1068,7 +1069,7 @@ const styles = StyleSheet.create({
   },
   checkOutButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.background,
   },
   viewStudioButton: {
@@ -1084,7 +1085,7 @@ const styles = StyleSheet.create({
   },
   viewStudioButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.secondary,
   },
   selectEquipmentButton: {
@@ -1103,14 +1104,14 @@ const styles = StyleSheet.create({
   },
   selectEquipmentButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: '#00BCD4',
     textAlign: 'center',
     lineHeight: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginTop: 20,
     marginBottom: 12,
@@ -1156,7 +1157,7 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: COLORS.background,
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -1188,7 +1189,7 @@ const styles = StyleSheet.create({
   },
   toggleButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.secondary,
     marginLeft: 6,
   },
@@ -1218,7 +1219,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   modalRow: {
@@ -1270,7 +1271,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    ...typography.semibold,
   },
   cancelButtonModal: {
     backgroundColor: '#ECECEC',

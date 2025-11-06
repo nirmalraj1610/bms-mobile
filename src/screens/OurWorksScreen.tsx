@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 
 const { width } = Dimensions.get('window');
 const itemWidth = (width - 60) / 2; // 2 columns with padding
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   categoryContainer: {
@@ -249,12 +250,12 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.bg,
   },
   activeCategoryText: {
     color: COLORS.background,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   worksContainer: {
     flex: 1,
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
   },
   workTitle: {
     fontSize: 12,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
     lineHeight: 18,
   },

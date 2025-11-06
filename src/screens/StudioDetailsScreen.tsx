@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { mockFavoriteStudios, mockStudios } from '../utils/mockData';
 import BookingModal from '../components/BookingModal';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   modalLabel: {
@@ -409,7 +410,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    ...typography.semibold,
   },
   cancelButtonModal: {
     backgroundColor: '#827d7dff',
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   ratingRow: {
@@ -467,7 +468,7 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 13,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginLeft: 6,
   },
@@ -479,7 +480,7 @@ const styles = StyleSheet.create({
   priceText: {
     marginTop: 8,
     fontSize: 14,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   description: {
@@ -491,7 +492,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginTop: 14,
     fontSize: 14,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
   },
   bullets: {
@@ -526,7 +527,7 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 14,
     color: COLORS.text.primary,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   bookBtn: {
     marginTop: 16,
@@ -539,7 +540,7 @@ const styles = StyleSheet.create({
   bookBtnText: {
     color: COLORS.background,
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
   },
   loadingContainer: {
     flex: 1,
