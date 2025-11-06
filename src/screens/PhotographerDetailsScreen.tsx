@@ -56,6 +56,8 @@ const PhotographerDetailsScreen: React.FC = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('');
+  const [heroImageError, setHeroImageError] = useState(false);
+  const [ownerImageError, setOwnerImageError] = useState(false);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedStudioBooking, setSelectedStudioBooking] = useState<any>(null);
   const [selectedDurationHours, setSelectedDurationHours] = useState(2);
@@ -238,8 +240,11 @@ const PhotographerDetailsScreen: React.FC = () => {
             <Text style={styles.sectionTitle}>Photographer Details</Text>
             <View style={styles.ownerInfo}>
               <Image
-                source={{ uri: photographer?.profile_image_url || 'https://via.placeholder.com/50' }}
+                source={ownerImageError || !photographer?.profile_image_url
+                  ? require('../assets/images/photographer_placeholder.jpg')
+                  : { uri: photographer.profile_image_url }}
                 style={styles.ownerImage}
+                onError={() => setOwnerImageError(true)}
               />
               <View style={styles.ownerDetails}>
                 <Text style={styles.ownerName}>{photographer?.full_name || 'Photographer'}</Text>
@@ -410,8 +415,11 @@ const PhotographerDetailsScreen: React.FC = () => {
 
         {/* Hero Image */}
         <Image 
-          source={{ uri: photographer?.profile_image_url || 'https://via.placeholder.com/400x220' }} 
+          source={heroImageError || !photographer?.profile_image_url
+            ? require('../assets/images/photographer_placeholder.jpg')
+            : { uri: photographer.profile_image_url }} 
           style={styles.heroImage} 
+          onError={() => setHeroImageError(true)}
         />
 
         {/* Photographer Info */}

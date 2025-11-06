@@ -21,6 +21,7 @@ const StudioDetailsScreen: React.FC = () => {
   const studioId: string | undefined = route?.params?.studioId;
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [heroImageError, setHeroImageError] = useState(false);
 
   // Get studio data from Redux
   const { data: studioData, loading, error } = useAppSelector(state => state.studios.detail);
@@ -105,8 +106,8 @@ const StudioDetailsScreen: React.FC = () => {
       return studio.images as string[];
     }
 
-    // Final fallback
-    return ['https://via.placeholder.com/400x200'];
+    // Final fallback: return empty so UI can use local asset placeholder
+    return [];
   };
 
   const getOwnerName = () => {
@@ -252,7 +253,18 @@ const StudioDetailsScreen: React.FC = () => {
         </View>
 
         {/* Hero Image */}
-        <Image source={{ uri: getStudioImages()[0] }} style={styles.heroImage} />
+        {(() => {
+          const heroImageUrl = getStudioImages()[0] || '';
+          return (
+            <Image
+              source={heroImageError || !heroImageUrl
+                ? require('../assets/images/studio_placeholder.png')
+                : { uri: heroImageUrl }}
+              style={styles.heroImage}
+              onError={() => setHeroImageError(true)}
+            />
+          );
+        })()}
 
         {/* Chips */}
         <View style={styles.chipsRow}>

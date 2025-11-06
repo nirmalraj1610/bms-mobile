@@ -13,6 +13,7 @@ const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState('');
+  const [thumbErrorIds, setThumbErrorIds] = useState<Record<string, boolean>>({});
   
   // Get favorites data from Redux store
   const { favorites: favoritesState } = useSelector((state: RootState) => state.studios);
@@ -65,10 +66,13 @@ const FavoritesScreen: React.FC = () => {
           studio = favorite;
         }
         
+        // Prefer API field studio_images[0].image_url and fall back to images[0]
+        const imageUrl = studio?.studio_images?.[0]?.image_url || studio?.images?.[0] || null;
+
         return {
           id: studio?.id || favorite?.studio_id || favorite?.id || 'unknown',
           name: studio?.name || 'Unknown Studio',
-          thumbnail: studio?.images?.[0] || null,
+          thumbnail: imageUrl,
           location: { city: studio?.location?.city || 'Unknown Location' },
           average_rating: studio?.average_rating || 0,
           total_reviews: studio?.reviews?.length || studio?.total_reviews || 0,
@@ -98,13 +102,13 @@ const FavoritesScreen: React.FC = () => {
 
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('StudioDetails', { studioId: item.id })}>
-      {item.thumbnail ? (
-        <Image source={{ uri: item.thumbnail }} style={styles.thumb} />
-      ) : (
-        <View style={styles.thumbPlaceholder}>
-          <Icon name="photo" size={26} color={COLORS.text.secondary} />
-        </View>
-      )}
+      <Image
+        source={thumbErrorIds[item.id] || !item.thumbnail
+          ? require('../assets/images/studio_placeholder.png')
+          : { uri: item.thumbnail }}
+        style={styles.thumb}
+        onError={() => setThumbErrorIds(prev => ({ ...prev, [item.id]: true }))}
+      />
       <View style={styles.cardBody}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
