@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux";
 import { loadMyStudioThunk, loadStudioBookingsThunk } from "../../features/studios/studiosSlice";
 import CancelStudioBookingModal from "./CancelStudioBookingModal";
 import AcceptStudioBookingModal from "./AcceptStudioBookingModal";
+import imagePaths from "../../constants/imagePaths";
 
 export const BookingsComponent = () => {
     const dispatch = useDispatch();
@@ -30,8 +31,6 @@ export const BookingsComponent = () => {
     const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
     const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
     const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
-
-    const staticImage = 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg';
 
     const onFilterPress = () => {
         setShowFilter(!showFilter)
@@ -170,7 +169,7 @@ export const BookingsComponent = () => {
                 </View>
 
                 <View style={styles.cardContent}>
-                    <Image source={{ uri: staticImage }} resizeMode="cover" style={styles.image} />
+                    <Image source={imagePaths.StudioPlaceHolderImage} resizeMode="cover" style={styles.image} />
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>

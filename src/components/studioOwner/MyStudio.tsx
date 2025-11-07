@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loadMyStudioThunk } from "../../features/studios/studiosSlice";
 import { useNavigation } from "@react-navigation/native";
+import imagePaths from "../../constants/imagePaths";
 
 
 // --- Main Component ---
@@ -86,7 +87,7 @@ export const MyStudioComponent = ({
 
         const imageSource = item?.studio_images?.[0]?.image_url
             ? { uri: item.studio_images[0].image_url }
-            : require('../../assets/images/logoo.png');
+            : imagePaths.StudioPlaceHolderImage;
 
         return (
             <View style={styles.cardContainer}>

@@ -8,6 +8,7 @@ import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CancelStudioBookingModal from "./CancelStudioBookingModal";
 import AcceptStudioBookingModal from "./AcceptStudioBookingModal";
+import imagePaths from "../../constants/imagePaths";
 
 export const DashboardComponent = () => {
     const dispatch = useDispatch();
@@ -30,8 +31,6 @@ export const DashboardComponent = () => {
     const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
     const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
     const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
-
-    const staticImage = 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg';
 
 
     const onFilterPress = () => {
@@ -171,7 +170,7 @@ export const DashboardComponent = () => {
                 </View>
 
                 <View style={styles.cardContent}>
-                    <Image source={{ uri: staticImage }} resizeMode="cover" style={styles.image} />
+                    <Image source={imagePaths.StudioPlaceHolderImage} resizeMode="cover" style={styles.image} />
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>

@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { COLORS } from '../constants';
+import imagePaths from '../constants/imagePaths';
 
 const { width, height } = Dimensions.get('window');
 
@@ -27,10 +28,9 @@ const SplashScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
       <ImageBackground
-          source={require('../assets/images/Splash_Screen.png')}
-
+          source={imagePaths.Splash}
         style={styles.background}
         resizeMode="cover"
       >

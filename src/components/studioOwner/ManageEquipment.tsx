@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import DashboardFilterPopup from "./DashboardFilter";
 import { createStudioEquipThunk, getStudioEquipmentThunk, loadMyStudioThunk, updateStudioEquipThunk } from "../../features/studios/studiosSlice";
 import { COLORS } from "../../constants";
+import imagePaths from "../../constants/imagePaths";
 
 
 // --- Main Component ---
@@ -330,7 +331,7 @@ export const ManageEquipmentComponent = () => {
 
         const imageSource = item?.equipment_images?.[0]?.image_url
             ? { uri: item.equipment_images[0].image_url }
-            : require('../../assets/images/logoo.png');
+            : imagePaths.StudioPlaceHolderImage;
 
         return (
             <View style={styles.cardContainer}>

@@ -13,7 +13,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { COLORS } from '../constants';
-import { typography } from '../constants/typography';
+import { philosopherTypography, typography } from '../constants/typography';
+import imagePaths from '../constants/imagePaths';
 
 const { width } = Dimensions.get('window');
 
@@ -33,14 +34,16 @@ const GettingStartedScreen: React.FC = () => {
         style={styles.background}
         resizeMode="cover"
       >
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('../assets/images/logoo.png')}
-          
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
+         {/* Logo Section */}
+                  <View style={styles.logoContainer}>
+                    <Image
+                      source={imagePaths.logo}
+                      style={styles.headerLogo}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.tagline}>Discover Your</Text>
+                    <Text style={styles.taglineSecond}>Best Photo Studio, Photographers</Text>
+                  </View>
 
         <View style={styles.spacer} />
 
@@ -61,11 +64,25 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 84,
+    paddingTop: 20,
+    paddingBottom: 30,
   },
-  logo: {
-    width: width * 0.6,
+  headerLogo: {
+    width: 160,
     height: 120,
+    marginBottom: 10
+  },
+    tagline: {
+    fontSize: 18,
+    color: '#2C5530',
+    ...philosopherTypography.bold,
+    textAlign: 'center',
+  },
+  taglineSecond: {
+    fontSize: 18,
+    color: '#2C5530',
+    ...philosopherTypography.bold,
+    textAlign: 'center',
   },
   background: {
     flex: 1,
@@ -80,7 +97,7 @@ const styles = StyleSheet.create({
   ctaButton: {
     backgroundColor: COLORS.bg,
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 10,
     alignItems: 'center',
   },
   ctaText: {

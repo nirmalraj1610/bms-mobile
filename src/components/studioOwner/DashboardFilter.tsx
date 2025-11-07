@@ -70,6 +70,7 @@ const DashboardFilterPopup = ({
                 </Text>
               </TouchableOpacity>
             )}
+            style={{ maxHeight: 500 }}
           />
 
           {/* Footer buttons */}

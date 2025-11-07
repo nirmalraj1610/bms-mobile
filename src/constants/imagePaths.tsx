@@ -11,6 +11,12 @@ const imagePaths = {
     Facebook: require('../assets/images/socialIcons/Facebook.png'),
     logo: require('../assets/images/logoo.png'),
     Search: require('../assets/images/Search.png'),
+    StudioPlaceHolderImage: require('../assets/images/studio_placeholder.png'),
+    Splash: require('../assets/images/Splash_Screen.png'),
+    Location: require('../assets/images/location.png'),
+    SquareFt: require('../assets/images/SquareFt.png'),
+    Heart: require('../assets/images/heart.png'),
+    HeartSelected: require('../assets/images/HeartSelected.png')
 };
 
 export default imagePaths;

@@ -140,7 +140,11 @@ const ProfileScreen: React.FC = () => {
   };
 
   const renderWhuChooseCard = ({ item, index }: { item: whyChoose, index: number }) => (
-    <LinearGradient key={item.id} colors={['#2CBA9E', '#CEF9ED']} style={[styles.whyCard, { marginLeft: index == 0 ? 5 : -5, marginRight: whyChooseData.length - 1 ? 10 : 5, width: WHY_CHOOSE_CARD_WIDTH }]}>
+    <LinearGradient key={item.id}
+      start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 0 }}
+  colors={['#2CBA9E', '#CEF9ED']} 
+  style={[styles.whyCard, { marginLeft: index == 0 ? 5 : -5, marginRight: whyChooseData.length - 1 ? 10 : 5, width: WHY_CHOOSE_CARD_WIDTH }]}>
       <View>
         <Image
           source={item.image}

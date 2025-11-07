@@ -515,6 +515,7 @@ console.log(studiosState,'studiooooooo');
                 ? require('../assets/images/rating_selected.png')
                 : require('../assets/images/rating_notSelected.png')
             }
+            tintColor={i <= rounded ? '#FF6D38' : '#FFD0BF'}
             style={styles.ratingStar}
           />
         ))}
@@ -538,7 +539,7 @@ console.log(studiosState,'studiooooooo');
         
         {/* Rating Badge */}
         <View style={styles.ratingBadge}>
-          <Icon name="star" size={16} color="#FF7441" />
+          <Image source={imagePaths.Favorites} resizeMode='contain' tintColor={'#FF7441'} style={styles.locationIcon}/>
           <Text style={styles.ratingBadgeText}>{item.rating}</Text>
         </View>
         
@@ -547,11 +548,7 @@ console.log(studiosState,'studiooooooo');
             style={styles.heartIcon}
             onPress={() => handleToggleFavorite(item.id)}
           >
-            <Icon 
-              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
-              size={14} 
-              color="#FF6038" 
-            />
+          <Image resizeMode='contain' source={isStudioFavorited(item.id) ? imagePaths.HeartSelected : imagePaths.Heart} tintColor={'#FF7441'} style={styles.favorites}/>
           </TouchableOpacity>
       </View>
       
@@ -560,11 +557,13 @@ console.log(studiosState,'studiooooooo');
           <View style={styles.recommendLeftInfo}>
                <Text style={styles.recommendName} numberOfLines={1}>{item.name}</Text>
             <View style={styles.recommendMeta}>
-              
-              <Icon name="place" size={12} color={COLORS.text.secondary} />
+              <Image source={imagePaths.Location} resizeMode='contain' style={styles.locationIcon} />
               <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
             </View>
+            <View style={styles.recommendMeta}>
+              <Image source={imagePaths.SquareFt} resizeMode='contain' style={styles.locationIcon} />
             <Text style={styles.recommendSqft}>800 sq ft</Text>
+            </View>
           </View>
           
           <View style={styles.recommendPriceRow}>
@@ -605,11 +604,7 @@ const renderRated = ({ item }: { item: any }) => {
             style={styles.ratedHeartIcon}
             onPress={() => handleToggleFavorite(item.id)}
           >
-            <Icon 
-              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
-              size={16} 
-              color="#FF6D38" 
-            />
+            <Image resizeMode='contain' source={isStudioFavorited(item.id) ? imagePaths.HeartSelected : imagePaths.Heart} tintColor={'#FF7441'} style={styles.favorites}/>
           </TouchableOpacity>
         </View>
         
@@ -621,7 +616,7 @@ const renderRated = ({ item }: { item: any }) => {
           <Text style={styles.ratedName} numberOfLines={1}>Photographer </Text>
           
           <View style={styles.ratedLocationRow}>
-            <Icon name="place" size={14} color={COLORS.text.secondary} />
+            <Image resizeMode='contain' source={imagePaths.Location} style={styles.locationIcon}/>
             <Text style={styles.ratedLocation} numberOfLines={1}>Available</Text>
           </View>
           
@@ -678,7 +673,19 @@ const renderRated = ({ item }: { item: any }) => {
 
 
   const renderWhuChooseCard =({item, index}: {item: whyChoose, index: number }) => (
-    <LinearGradient key={item.id}  colors={['#2CBA9E', '#CEF9ED']} style={[styles.whyCard, {marginLeft: index == 0 ? 10 : 5, marginRight: whyChooseData.length - 1 ? 10 : 5}]}>
+    <LinearGradient
+  key={item.id}
+  colors={['#2CBA9E', '#CEF9ED']}
+  start={{ x: 0, y: 0 }}   // gradient starts from the left
+  end={{ x: 1, y: 0 }}     // gradient ends at the right
+  style={[
+    styles.whyCard,
+    {
+      marginLeft: index === 0 ? 10 : 5,
+      marginRight: index === whyChooseData.length - 1 ? 10 : 5,
+    },
+  ]}
+>
             <View>
               <Image 
                 source={item.image} 
@@ -1081,6 +1088,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     
   },
+  locationIcon: {
+    height: 12,
+    width: 12
+  },
+    favorites: {
+    height: 16,
+    width: 16
+  },
   recommendImageContainer: {
     position: 'relative',
     width: '100%',
@@ -1143,6 +1158,7 @@ const styles = StyleSheet.create({
   },
   recommendSqft: {
     fontSize: 12,
+    marginLeft: 4,
     color: COLORS.text.secondary,
   },
   recommendPriceRow: {
