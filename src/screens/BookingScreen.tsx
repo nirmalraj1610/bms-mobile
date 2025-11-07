@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, Modal, Alert } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +13,8 @@ import type { BookingHistoryItem, Equipment } from '../types/api';
 import EquipmentSelectionModal from '../components/EquipmentSelectionModal';
 import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserData } from '../lib/http';
 
 const BookingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -41,6 +44,9 @@ const BookingScreen: React.FC = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  // Login-required modal state
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
   // Local UI state: track check-in/out per booking
   const [checkedInMap, setCheckedInMap] = useState<Record<string, boolean>>({});
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
@@ -55,6 +61,38 @@ const BookingScreen: React.FC = () => {
   useEffect(() => {
     dispatch(getBookings({}));
   }, [dispatch]);
+
+  // Show login modal on initial auth check (missing or expired token)
+  useEffect(() => {
+    const checkAuth = async () => {
+      let token: string | null = null;
+      try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+      if (!token) {
+        setShowLoginModal(true);
+        return;
+      }
+      try {
+        const userData = await getUserData();
+        const exp = userData?.session?.expires_at; // seconds epoch
+        if (typeof exp === 'number') {
+          const isExpired = exp * 1000 <= Date.now();
+          if (isExpired) {
+            setShowLoginModal(true);
+            return;
+          }
+        }
+      } catch {}
+    };
+    checkAuth();
+  }, []);
+
+  // Show login modal when API returns auth errors
+  useEffect(() => {
+    const msg = String(error || '').toLowerCase();
+    if (msg.includes('invalid jwt') || msg.includes('unauthorized') || msg.includes('authentication')) {
+      setShowLoginModal(true);
+    }
+  }, [error]);
 
   // Helper function to format date and time
   const formatDateTime = (booking: BookingHistoryItem) => {
@@ -295,6 +333,13 @@ console.log('bookings:', bookings);
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
+  }; 
+
+  // Login modal handlers
+  const closeLoginModal = () => setShowLoginModal(false);
+  const goToLogin = () => {
+    setShowLoginModal(false);
+    navigation.navigate('Auth', { screen: 'Login' });
   };
 
   // View Studio handler
@@ -575,8 +620,8 @@ console.log('bookings:', bookings);
           </View>
         )}
 
-        {/* Error State */}
-        {error && (
+        {/* Error State (hidden when login modal is shown) */}
+        {error && !showLoginModal && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>Error loading bookings: {error}</Text>
             <TouchableOpacity 
@@ -725,6 +770,30 @@ console.log('bookings:', bookings);
             </View>
           </View>
         </Modal>
+
+        {/* Login Required Modal */}
+        <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => {}}>
+          <View style={styles.loginBackdrop}>
+            {/* True blur backdrop with light, white-tinted feel */}
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="light"
+              blurAmount={20}
+              reducedTransparencyFallbackColor="white"
+            />
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Login Required</Text>
+              </View>
+              <Text style={styles.modalLabel}>Please log in to view your bookings.</Text>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                  <Text style={styles.confirmButtonText}>Login</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
         
         {/* Cancel Modal */}
         <Modal
@@ -865,7 +934,7 @@ const styles = StyleSheet.create({
   },
   searchIconButton: {
     width: 60,
-    height: 40,
+    height: 44,
     padding: 10,
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
@@ -1204,23 +1273,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
+  // Stronger backdrop for login (blur-like feel)
+  loginBackdrop: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
   modalContainer: {
-    width: '100%',
+    width: '88%',
+    maxWidth: 380,
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     elevation: 4,
+    alignItems: 'center',
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: 12,
   },
   modalTitle: {
     fontSize: 18,
     ...typography.bold,
     color: COLORS.text.primary,
+    textAlign: 'center',
   },
   modalRow: {
     flexDirection: 'row',
@@ -1231,6 +1311,7 @@ const styles = StyleSheet.create({
   modalLabel: {
     fontSize: 14,
     color: COLORS.text.secondary,
+    textAlign: 'center',
   },
   modalTextInput: {
     minHeight: 80,
@@ -1259,12 +1340,12 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     gap: 12,
     marginTop: 12,
   },
   confirmButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: COLORS.bg,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,

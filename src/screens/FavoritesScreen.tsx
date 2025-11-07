@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -8,12 +8,16 @@ import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
 import { RootState, AppDispatch } from '../store/store';
 import { loadFavoritesThunk, toggleFavoriteThunk } from '../features/studios/studiosSlice';
+import { BlurView } from '@react-native-community/blur';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserData } from '../lib/http';
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState('');
   const [thumbErrorIds, setThumbErrorIds] = useState<Record<string, boolean>>({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   // Get favorites data from Redux store
   const { favorites: favoritesState } = useSelector((state: RootState) => state.studios);
@@ -24,19 +28,75 @@ const FavoritesScreen: React.FC = () => {
   // Load favorites when screen is focused
   useFocusEffect(
     React.useCallback(() => {
+      // Auth presence/expiry check similar to BookingScreen
+      const checkAuth = async () => {
+        let token: string | null = null;
+        try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+        if (!token) {
+          setShowLoginModal(true);
+          return;
+        }
+        try {
+          const userData = await getUserData();
+          const exp = userData?.session?.expires_at; // seconds epoch
+          if (typeof exp === 'number') {
+            const isExpired = exp * 1000 <= Date.now();
+            if (isExpired) {
+              setShowLoginModal(true);
+              return;
+            }
+          }
+        } catch {}
+      };
+
+      checkAuth();
       dispatch(loadFavoritesThunk());
     }, [dispatch])
   );
 
+  // Show login modal when API returns auth errors
+  useEffect(() => {
+    const msg = String(error || '').toLowerCase();
+    if (msg.includes('invalid jwt') || msg.includes('unauthorized') || msg.includes('authentication')) {
+      setShowLoginModal(true);
+    }
+  }, [error]);
+
   // Favorite toggle functionality
-  const handleToggleFavorite = (studioId: string) => {
+  const handleToggleFavorite = async (studioId: string) => {
+    // Quick auth presence check
+    let token: string | null = null;
+    try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+    if (!token) {
+      setShowLoginModal(true);
+      return;
+    }
+    // Check token expiry via saved user session
+    try {
+      const userData = await getUserData();
+      const exp = userData?.session?.expires_at; // seconds epoch
+      if (typeof exp === 'number') {
+        const isExpired = exp * 1000 <= Date.now();
+        if (isExpired) {
+          setShowLoginModal(true);
+          return;
+        }
+      }
+    } catch {}
+
     const isFavorited = isStudioFavorited(studioId);
     const action = isFavorited ? 'remove' : 'add';
-    
-    dispatch(toggleFavoriteThunk({
-      studio_id: studioId,
-      action: action
-    }));
+    try {
+      await dispatch(toggleFavoriteThunk({ studio_id: studioId, action })).unwrap();
+    } catch (err: any) {
+      const msg = typeof err === 'string' ? err : err?.message || '';
+      const isAuthError = msg?.toLowerCase().includes('invalid jwt') || msg?.toLowerCase().includes('unauthorized') || msg?.toLowerCase().includes('authentication');
+      if (isAuthError || err?.status === 401) {
+        setShowLoginModal(true);
+        return;
+      }
+      try { console.log('toggleFavorite error:', err); } catch {}
+    }
   };
 
   const isStudioFavorited = (studioId: string) => {
@@ -150,21 +210,22 @@ const FavoritesScreen: React.FC = () => {
         <Text style={styles.screenTitle}>My Favorite Studios</Text>
         <Text style={styles.screenSubtitle}>Studios you've saved for future bookings</Text>
       </View>
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInput}>
-          <Icon name="search" size={18} color={COLORS.text.secondary} />
-          <TextInput
-            style={styles.searchPlaceholder}
-            placeholder="Search..."
-            placeholderTextColor={COLORS.text.secondary}
-            value={query}
-            onChangeText={setQuery}
-          />
-        </View>
-        <TouchableOpacity style={styles.searchIconButton}>
-          <Icon name="search" size={20} color={COLORS.background} />
-        </TouchableOpacity>
-      </View>
+
+        <View style={styles.searchContainer}>
+                  <View style={styles.searchInput}>
+                    <Icon name="search" size={18} color={COLORS.text.secondary} />
+                    <TextInput
+                      style={styles.searchPlaceholder}
+                      placeholder="Search..."
+                      placeholderTextColor={COLORS.text.secondary}
+                      value={query}
+                      onChangeText={setQuery}
+                    />
+                    <TouchableOpacity style={styles.searchIconButton}>
+                      <Icon name="search" size={20} color={COLORS.background} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
 
       <View style={styles.emptyContent}>
         <Icon name="favorite" size={64} color={COLORS.text.primary} />
@@ -179,6 +240,29 @@ const FavoritesScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Login Required Modal */}
+      <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => {}}>
+        <View style={styles.loginBackdrop}>
+          {/* True blur backdrop with light, white-tinted feel */}
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="light"
+            blurAmount={20}
+            reducedTransparencyFallbackColor="white"
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to view your favorites.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.confirmButton} onPress={() => { setShowLoginModal(false); (navigation as any).navigate('Auth', { screen: 'Login' }); }}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       {filtered.length === 0 ? (
         <EmptyState />
       ) : (
@@ -249,6 +333,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  // Stronger backdrop for login (blur-like feel)
+  loginBackdrop: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
   content: {
     paddingHorizontal: 20,
   },
@@ -299,7 +391,7 @@ const styles = StyleSheet.create({
   },
   searchIconButton: {
     width: 60,
-    height: 40,
+    height: 44,
     padding: 10,
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
@@ -413,7 +505,7 @@ const styles = StyleSheet.create({
   },
   browseBtn: {
     marginTop: 20,
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.bg,
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 16,
@@ -475,6 +567,49 @@ const styles = StyleSheet.create({
   retryBtnText: {
     color: COLORS.background,
     fontSize: 15,
+    ...typography.semibold,
+  },
+  modalContainer: {
+    width: '88%',
+    maxWidth: 380,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    elevation: 4,
+    alignItems: 'center',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    ...typography.bold,
+    color: COLORS.text.primary,
+    textAlign: 'center',
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    textAlign: 'center',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 12,
+  },
+  confirmButton: {
+    backgroundColor: COLORS.bg,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  confirmButtonText: {
+    color: '#fff',
     ...typography.semibold,
   },
 });
