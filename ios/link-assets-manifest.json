@@ -28,6 +28,22 @@
     {
       "path": "src/assets/fonts/Manrope-SemiBold.ttf",
       "sha1": "f7a023cd6c102b2ffa8bf729579552445970d62d"
+    },
+    {
+      "path": "src/assets/fonts/Philosopher-Bold.ttf",
+      "sha1": "1dd1cd1e5fcae5eb63a11061d572ac350663bc59"
+    },
+    {
+      "path": "src/assets/fonts/Philosopher-BoldItalic.ttf",
+      "sha1": "983c888626afe605257e37f9bf3f6406d194b54f"
+    },
+    {
+      "path": "src/assets/fonts/Philosopher-Italic.ttf",
+      "sha1": "6482e8c6aceca10659ecd7b849c545e49a1d96f9"
+    },
+    {
+      "path": "src/assets/fonts/Philosopher-Regular.ttf",
+      "sha1": "b3b4bd1691da6e0c2b819e0ccf107364d97e25c1"
     }
   ]
 }

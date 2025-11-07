@@ -10,7 +10,7 @@ const imagePaths = {
     Apple: require('../assets/images/socialIcons/Apple.png'),
     Facebook: require('../assets/images/socialIcons/Facebook.png'),
     logo: require('../assets/images/logoo.png'),
-    Search: require('../assets/images/search.png'),
+    Search: require('../assets/images/Search.png'),
 };
 
 export default imagePaths;

@@ -58,6 +58,10 @@
 		<string>Manrope-Medium.ttf</string>
 		<string>Manrope-Regular.ttf</string>
 		<string>Manrope-SemiBold.ttf</string>
+		<string>Philosopher-Bold.ttf</string>
+		<string>Philosopher-BoldItalic.ttf</string>
+		<string>Philosopher-Italic.ttf</string>
+		<string>Philosopher-Regular.ttf</string>
 	</array>
 </dict>
 </plist>

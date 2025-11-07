@@ -17,7 +17,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
-import { typography } from '../constants/typography';
+import { philosopherTypography, typography } from '../constants/typography';
 import { authLogin } from '../lib/api';
 import { useDispatch } from 'react-redux';
 import { login } from '../features/auth/authSlice';
@@ -246,13 +246,13 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.bold,
+    ...philosopherTypography.bold,
     textAlign: 'center',
   },
   taglineSecond: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.bold,
+    ...philosopherTypography.bold,
     textAlign: 'center',
   },
   formContainer: {

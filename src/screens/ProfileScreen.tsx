@@ -16,7 +16,7 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
-import { typography } from '../constants/typography';
+import { philosopherTypography, typography } from '../constants/typography';
 import { Picker } from "@react-native-picker/picker";
 import { updateProfile, updateProfileImage } from "../features/profile/profileSlice";
 import { useDispatch } from "react-redux";
@@ -477,7 +477,7 @@ const ProfileScreen: React.FC = () => {
                   {selectedFile ?
                     <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
                       <Image
-                        source={{ uri: selectedFile?.uri }}
+                        source={{ uri: (selectedFile as any)?.uri }}
                         style={styles.selectedImage}
                         resizeMode={"cover"}
                       />
@@ -555,7 +555,7 @@ const ProfileScreen: React.FC = () => {
                       onPress={navigateToSignUp}
                     >
                       <Text style={styles.signupButtonText}>
-                        Log In
+                        Sign Up
                       </Text>
                     </TouchableOpacity>
 
@@ -617,13 +617,13 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.bold,
+    ...philosopherTypography.bold,
     textAlign: 'center',
   },
   taglineSecond: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.bold,
+    ...philosopherTypography.bold,
     textAlign: 'center',
   },
   formContainer: {
