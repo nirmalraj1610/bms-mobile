@@ -34,6 +34,7 @@ import { RootState, AppDispatch } from '../store/store';
 import { studiosSearchThunk, toggleFavoriteThunk, loadFavoritesThunk } from '../features/studios/studiosSlice';
 import { getphotographersSearch } from '../features/photographers/photographersSlice';
 import { getUserData } from '../lib/http';
+import imagePaths from '../constants/imagePaths';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -450,7 +451,7 @@ console.log(studiosState,'studiooooooo');
 
   const renderCategoryChip = ({ item }: { item: Category }) => (
     <TouchableOpacity style={styles.categoryChip} onPress={navigateToBrowse}>
-      <Image resizeMode='contain' source={item.image} style={{ tintColor: COLORS.text.primary, height: 20, width: 20 }} />
+      <Image resizeMode='contain' source={item.image} style={{ tintColor: COLORS.text.primary, height: 22, width: 22 }} />
       <Text style={styles.categoryText}>{item.label}</Text>
     </TouchableOpacity>
   );
@@ -677,9 +678,8 @@ const renderRated = ({ item }: { item: any }) => {
 
 
   const renderWhuChooseCard =({item, index}: {item: whyChoose, index: number }) => (
-    <View style={{marginLeft: index == 0 ? 10 : 5, marginRight: whyChooseData.length - 1 ? 10 : 5}}>
-    <View key={item.id} style={styles.whyCard}>
-            <View style={styles.whyIconCircle}>
+    <LinearGradient key={item.id}  colors={['#2CBA9E', '#CEF9ED']} style={[styles.whyCard, {marginLeft: index == 0 ? 10 : 5, marginRight: whyChooseData.length - 1 ? 10 : 5}]}>
+            <View>
               <Image 
                 source={item.image} 
                 style={styles.whyIconImage}
@@ -692,8 +692,7 @@ const renderRated = ({ item }: { item: any }) => {
                 {item.desc}
               </Text>
             </View>
-          </View>
-          </View>
+          </LinearGradient>
   )
 
   // const renderGridCard = ({ item }: { item: Studio }) => (
@@ -755,12 +754,12 @@ const renderRated = ({ item }: { item: any }) => {
               <TextInput
                 style={styles.searchPlaceholder}
                 placeholder="Search Studios..."
-                placeholderTextColor={COLORS.text.secondary}
+                placeholderTextColor={'#B7B7B7'}
                 value={query}
                 onChangeText={setQuery}
               />
               <TouchableOpacity style={styles.searchIconButton} onPress={navigateToSearch}>
-                <Icon name="search" size={20} color={COLORS.background} />
+                <Image source={imagePaths.Search} style={styles.searchIcon} /> 
               </TouchableOpacity>
               {locationError ? (
                 <View style={{ marginTop: 8 }}>
@@ -1302,32 +1301,18 @@ const styles = StyleSheet.create({
   },
   whyCard: {
     width: WHY_CHOOSE_CARD_WIDTH,
-    backgroundColor: '#E8F5F0',
-    borderRadius: 16,
-    padding: 30,
+    borderRadius: 14,
+    padding: 25,
     flexDirection: 'row',
-    // alignItems: '',
     justifyContent: 'space-between',
-    elevation: 1,
-  },
-  whyIconCircle: {
-    // width: 60,
-    // height: 60,
-    borderRadius: 28,
-    // backgroundColor: '#FF6B35',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 10,
   },
   whyIconImage: {
-    width: 80,
-    height: 80,
-    // tintColor: COLORS.background,
+    width: 90,
+    height: 90,
   },
   whyTextContent: {
     flex: 1,
-    marginLeft: 45,
-    width: '40%',
+    marginLeft: 20,
   },
   whyTitle: {
     fontSize: 16,
@@ -1348,18 +1333,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   dot: {
-    width: 6,
-    height: 6,
+    width: 4,
+    height: 4,
     borderRadius: 3,
     marginHorizontal: 3,
     backgroundColor: '#D9D9D9',
   },
   dotActive: {
     width: 16,
-    height: 6,
+    height: 4,
     borderRadius: 3,
     marginHorizontal: 3,
-    backgroundColor: '#525050',
+    backgroundColor: '#034833',
   },
   ctaSection: {
     margin: 20,
@@ -1480,28 +1465,30 @@ const styles = StyleSheet.create({
   },
   searchPlaceholder: {
     flex: 1,
-    // marginLeft: 8,
     paddingLeft: 16,
     fontSize: 14,
+    height: 48,
     borderTopLeftRadius: 30,
     borderBottomLeftRadius: 30,
-    color: COLORS.text.secondary,
-    backgroundColor:'white',
+    color: '#101010',
+    backgroundColor:'#FFFFFF',
     borderWidth: 1,
-    borderColor: COLORS.bg,
+    borderColor: '#034833',
   },
   searchIconButton: {
-    width: 60,
-    height: 43,
-    // borderRadius: 20,
+    width: 80,
+    height: 48,
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
-    backgroundColor: COLORS.bg,
+    backgroundColor: '#034833',
     justifyContent: 'center',
     alignItems: 'center',
-    // marginLeft: 8,
     
 
+  },
+  searchIcon: {
+    height: 24,
+    width: 24,
   },
   // ratingStar: {
   //   height: 9,

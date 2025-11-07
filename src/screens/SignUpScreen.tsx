@@ -12,11 +12,13 @@ import {
   ScrollView,
   Alert,
   Image,
+  ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
+import imagePaths from '../constants/imagePaths';
 
 const SignUpScreen: React.FC = () => {
   const [name, setName] = useState('');
@@ -60,9 +62,18 @@ const SignUpScreen: React.FC = () => {
     navigation.goBack();
   };
 
+      const handleTermsAndConditions = (provider: string) => {
+      Alert.alert(provider, `${provider} will be implemented soon.`);
+    };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+            <ImageBackground
+        source={imagePaths.SignupBg}
+        resizeMode="cover"
+        style={styles.backgroundImage}
+      >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardContainer}
@@ -74,7 +85,7 @@ const SignUpScreen: React.FC = () => {
           {/* Logo Section */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('../assets/images/logoo.png')}
+              source={imagePaths.logo}
               style={styles.headerLogo}
               resizeMode="contain"
             />
@@ -84,7 +95,10 @@ const SignUpScreen: React.FC = () => {
 
           {/* Form Section */}
           <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>Sign Up</Text>
+            <View style={styles.titleOutline}>
+              <Text style={styles.formTitle}>Sign Up</Text>
+              <View style={styles.borderLine} />
+            </View>
 
             {/* Name Input */}
             <View style={styles.inputGroup}>
@@ -92,7 +106,7 @@ const SignUpScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your name"
-                placeholderTextColor="#999"
+                placeholderTextColor="#616161"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -105,7 +119,7 @@ const SignUpScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your mail"
-                placeholderTextColor="#999"
+                placeholderTextColor="#616161"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -119,7 +133,7 @@ const SignUpScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter your phone number"
-                placeholderTextColor="#999"
+                placeholderTextColor="#616161"
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -133,7 +147,7 @@ const SignUpScreen: React.FC = () => {
                 <TextInput
                   style={styles.passwordInput}
                   placeholder="Enter your password"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#616161"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -145,7 +159,7 @@ const SignUpScreen: React.FC = () => {
                   <Icon
                     name={showPassword ? 'visibility-off' : 'visibility'}
                     size={20}
-                    color="#666"
+                    color="#171725"
                   />
                 </TouchableOpacity>
               </View>
@@ -158,7 +172,7 @@ const SignUpScreen: React.FC = () => {
                 <TextInput
                   style={styles.passwordInput}
                   placeholder="Enter your password"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#616161"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
@@ -170,7 +184,7 @@ const SignUpScreen: React.FC = () => {
                   <Icon
                     name={showConfirmPassword ? 'visibility-off' : 'visibility'}
                     size={20}
-                    color="#666"
+                    color="#171725"
                   />
                 </TouchableOpacity>
               </View>
@@ -199,12 +213,13 @@ const SignUpScreen: React.FC = () => {
             <View style={styles.termsContainer}>
               <Text style={styles.termsText}>
                 By continuing, you agree to our{'\n'}
-                <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>
+                <Text onPress={() => handleTermsAndConditions('Terms of Service')} style={styles.linkText}>Terms of Service</Text> and <Text onPress={() => handleTermsAndConditions('Privacy Policy')} style={styles.linkText}>Privacy Policy</Text>
               </Text>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      </ImageBackground>
     </SafeAreaView>
   );
 };
@@ -214,92 +229,105 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
+      backgroundImage: {
+    flex: 1,
+    alignItems: 'center',
+  },
   keyboardContainer: {
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 20,
     paddingBottom: 30,
   },
   headerLogo: {
-    width: 120,
-    height: 60,
-    marginBottom: 20,
+    width: 160,
+    height: 120,
+    marginBottom: 10,
   },
   tagline: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.semibold,
+    ...typography.bold,
     textAlign: 'center',
   },
   taglineSecond: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.semibold,
+    ...typography.bold,
     textAlign: 'center',
   },
   formContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 40,
+    // marginTop: 50,
     flex: 1,
   },
-  formTitle: {
-    fontSize: 24,
-    ...typography.bold,
-    color: '#333',
-    marginBottom: 30,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 8,
-    ...typography.medium,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#333',
-    backgroundColor: 'white',
-  },
-  passwordContainer: {
+    titleOutline: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  borderLine: {
+    height: 1,
+    backgroundColor: '#79736B',
+    opacity: 0.4,
+    marginTop: 2,
+    width: '75%'
+  },
+  formTitle: {
+    fontSize: 18,
+    ...typography.bold,
+    color: '#423F3F',
+  },
+  inputGroup: {
+    marginTop: 10,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#2A2A2A',
+    marginBottom: 5,
+    ...typography.bold,
+  },
+  input: {
+  borderWidth: 1,
+    borderColor: '#616161',
+    borderRadius: 4,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '101010',
+    backgroundColor: 'transparent',
+    ...typography.semibold,
+  },
+  passwordContainer: {
+   flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    backgroundColor: 'white',
+    borderColor: '#616161',
+    borderRadius: 4,
+    backgroundColor: 'transparent',
   },
   passwordInput: {
     flex: 1,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    fontSize: 16,
-    color: '#333',
+    fontSize: 14,
+    color: '101010',
+    backgroundColor: 'transparent',
+    ...typography.semibold,
   },
   eyeIcon: {
     paddingHorizontal: 15,
     paddingVertical: 12,
   },
   signUpButton: {
-    backgroundColor: '#2C5530',
-    borderRadius: 8,
-    paddingVertical: 15,
+    backgroundColor: '#034833',
+    borderRadius: 10,
+    paddingVertical: 12,
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 20,
@@ -308,37 +336,39 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   signUpButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 18,
     ...typography.bold,
   },
   signInContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
   },
   signInText: {
     fontSize: 14,
-    color: '#666',
+    color: '#1C1C1C',
   },
   signInLink: {
     fontSize: 14,
-    ...typography.semibold,
-    color: '#2C5530',
+    ...typography.bold,
+    color: '#034833',
   },
   termsContainer: {
     alignItems: 'center',
+    marginBottom: 20
   },
   termsText: {
+    marginTop: 20,
     fontSize: 12,
-    color: '#666',
+    color: '#423F3F',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 20,
+    ...typography.medium,
   },
   linkText: {
-    color: '#2C5530',
-    ...typography.medium,
+    color: '#034833',
+    ...typography.semibold,
   },
 });
 

@@ -12,6 +12,7 @@ import {
   ScrollView,
   Alert,
   Image,
+  ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -20,6 +21,7 @@ import { typography } from '../constants/typography';
 import { authLogin } from '../lib/api';
 import { useDispatch } from 'react-redux';
 import { login } from '../features/auth/authSlice';
+import imagePaths from '../constants/imagePaths';
 
 const LoginScreen: React.FC = () => {
   const dispatch = useDispatch();
@@ -67,9 +69,18 @@ const handleLogin = async () => {
     Alert.alert('Social Login', `${provider} login will be implemented soon.`);
   };
 
+    const handleTermsAndConditions = (provider: string) => {
+    Alert.alert(provider, `${provider} will be implemented soon.`);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <ImageBackground
+        source={imagePaths.LoginBg}
+        resizeMode="cover"
+        style={styles.backgroundImage}
+      >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardContainer}
@@ -81,7 +92,7 @@ const handleLogin = async () => {
           {/* Logo Section */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('../assets/images/logoo.png')}
+              source={imagePaths.logo}
               style={styles.headerLogo}
               resizeMode="contain"
             />
@@ -91,15 +102,18 @@ const handleLogin = async () => {
 
           {/* Form Section */}
           <View style={styles.formContainer}>
+            <View style={styles.titleOutline}>
             <Text style={styles.formTitle}>Log In</Text>
+            <View style={styles.borderLine} />
+            </View>
 
             {/* Email/Phone Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Mail id or Phone Number</Text>
+              <Text style={styles.inputLabel}>Mail id or  Phone  Number</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter your mail or mobile number"
-                placeholderTextColor="#999"
+                placeholderTextColor="#616161"
                 value={emailOrPhone}
                 onChangeText={setEmailOrPhone}
                 keyboardType="email-address"
@@ -114,7 +128,7 @@ const handleLogin = async () => {
                 <TextInput
                   style={styles.passwordInput}
                   placeholder="Enter your password"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#616161"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
@@ -126,7 +140,7 @@ const handleLogin = async () => {
                   <Icon
                     name={showPassword ? 'visibility-off' : 'visibility'}
                     size={20}
-                    color="#666"
+                    color="#171725"
                   />
                 </TouchableOpacity>
               </View>
@@ -153,13 +167,16 @@ const handleLogin = async () => {
                 <Text style={styles.signUpLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
+            
+            {/* delete this View when you use the social logins*/}
+            <View style={{height: 50}} />
 
             {/* Divider */}
-            <View style={styles.divider}>
+            {/* <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>or</Text>
               <View style={styles.dividerLine} />
-            </View>
+            </View> */}
 
             {/* Social Login Buttons */}
             {/* <View style={styles.socialContainer}>
@@ -167,21 +184,21 @@ const handleLogin = async () => {
                 style={styles.socialButton} 
                 onPress={() => handleSocialLogin('Google')}
               >
-                <Text style={styles.socialButtonText}>G</Text>
+                <Image source={imagePaths.Google} resizeMode='contain' style={styles.socialIcons} />
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={styles.socialButton} 
                 onPress={() => handleSocialLogin('Apple')}
               >
-                <Text style={styles.socialButtonText}>🍎</Text>
+                <Image source={imagePaths.Apple} resizeMode='contain' style={styles.socialIcons} />
               </TouchableOpacity>
               
               <TouchableOpacity 
                 style={styles.socialButton} 
                 onPress={() => handleSocialLogin('Facebook')}
               >
-                <Text style={styles.socialButtonText}>f</Text>
+                <Image source={imagePaths.Facebook} resizeMode='contain' style={styles.socialIcons} />
               </TouchableOpacity>
             </View> */}
 
@@ -189,12 +206,13 @@ const handleLogin = async () => {
             <View style={styles.termsContainer}>
               <Text style={styles.termsText}>
                 By continuing, you agree to our{'\n'}
-                <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>
+                <Text onPress={() => handleTermsAndConditions('Terms of Service')} style={styles.linkText}>Terms of Service</Text> and <Text onPress={() => handleTermsAndConditions('Privacy Policy')} style={styles.linkText}>Privacy Policy</Text>
               </Text>
             </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      </ImageBackground>
     </SafeAreaView>
   );
 };
@@ -204,83 +222,96 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
+    backgroundImage: {
+    flex: 1,
+    alignItems: 'center',
+  },
   keyboardContainer: {
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: 40,
+    paddingTop: 20,
     paddingBottom: 30,
   },
   headerLogo: {
-    width: 120,
-    height: 60,
-    marginBottom: 20,
+    width: 160,
+    height: 120,
+    marginBottom: 10
   },
   tagline: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.semibold,
+    ...typography.bold,
     textAlign: 'center',
   },
   taglineSecond: {
     fontSize: 18,
     color: '#2C5530',
-    ...typography.semibold,
+    ...typography.bold,
     textAlign: 'center',
   },
   formContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 40,
+    marginTop: 50,
     flex: 1,
   },
+  titleOutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  borderLine: {
+    height: 1,
+    backgroundColor: '#79736B',
+    opacity: 0.4,
+    marginTop: 2,
+    width: '80%'
+  },
   formTitle: {
-    fontSize: 24,
+    fontSize: 18,
     ...typography.bold,
-    color: '#333',
-    marginBottom: 30,
+    color: '#423F3F',
   },
   inputGroup: {
-    marginBottom: 20,
+    marginTop: 10,
   },
   inputLabel: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 8,
-    ...typography.medium,
+    fontSize: 14,
+    color: '#2A2A2A',
+    marginBottom: 5,
+    ...typography.bold,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
+    borderColor: '#616161',
+    borderRadius: 4,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    fontSize: 16,
-    color: '#333',
-    backgroundColor: 'white',
+    fontSize: 14,
+    color: '101010',
+    backgroundColor: 'transparent',
+    ...typography.semibold,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    backgroundColor: 'white',
+    borderColor: '#616161',
+    borderRadius: 4,
+    backgroundColor: 'transparent',
   },
   passwordInput: {
     flex: 1,
     paddingHorizontal: 15,
     paddingVertical: 12,
-    fontSize: 16,
-    color: '#333',
+    fontSize: 14,
+    color: '101010',
+    backgroundColor: 'transparent',
+    ...typography.semibold,
   },
   eyeIcon: {
     paddingHorizontal: 15,
@@ -288,17 +319,17 @@ const styles = StyleSheet.create({
   },
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginTop: 8,
+    marginTop: 5,
   },
   forgotPasswordText: {
-    color: '#2C5530',
+    color: '#034833',
     fontSize: 14,
     ...typography.medium,
   },
   loginButton: {
-    backgroundColor: '#2C5530',
-    borderRadius: 8,
-    paddingVertical: 15,
+    backgroundColor: '#034833',
+    borderRadius: 10,
+    paddingVertical: 12,
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 20,
@@ -307,34 +338,34 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   loginButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 18,
     ...typography.bold,
   },
   signUpContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
   },
   signUpText: {
     fontSize: 14,
-    color: '#666',
+    color: '#1C1C1C',
   },
   signUpLink: {
     fontSize: 14,
-    ...typography.semibold,
-    color: '#2C5530',
+    ...typography.bold,
+    color: '#034833',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 10,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#79736B',
+    opacity: 0.4
   },
   dividerText: {
     marginHorizontal: 15,
@@ -345,34 +376,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 20,
-    marginBottom: 30,
+    marginTop: 10,
+    marginBottom: 20
   },
   socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0.5,
+    borderColor: '#034833',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20
   },
-  socialButtonText: {
-    fontSize: 18,
-    ...typography.bold,
+  socialIcons: {
+    height: 24,
+    width: 24,
   },
   termsContainer: {
     alignItems: 'center',
+    marginBottom: 20
   },
   termsText: {
     fontSize: 12,
-    color: '#666',
+    color: '#423F3F',
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 20,
+    ...typography.medium,
   },
   linkText: {
-    color: '#2C5530',
-    ...typography.medium,
+    color: '#034833',
+    ...typography.semibold,
   },
 });
 

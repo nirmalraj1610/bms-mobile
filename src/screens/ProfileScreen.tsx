@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   ActivityIndicator,
   Image,
   ImageBackground,
+  FlatList,
+  ImageSourcePropType,
+  Dimensions,
 } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -21,11 +24,34 @@ import { getUserProfile } from "../lib/api";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { clearToken, clearUserData } from "../lib/http";
 import imagePaths from "../constants/imagePaths";
+import LinearGradient from "react-native-linear-gradient";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
+  const flatListRef = useRef(null);
   const isFocused = useIsFocused();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const { width } = Dimensions.get('window');
+  const WHY_CHOOSE_CARD_WIDTH = width * 0.9;
+
+  type whyChoose = {
+    id: string;
+    image: ImageSourcePropType;
+    title: string;
+    desc: string;
+  };
+
+  const whyChooseImages = {
+    camera: require('../assets/images/camera.png'),
+    // add more if needed
+  };
+  const whyChooseData: whyChoose[] = [
+    { id: '1', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+    { id: '2', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+    { id: '3', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+    { id: '4', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+  ];
 
   const navigateToLogin = () => {
     navigation.navigate('Auth', { screen: 'Login' });
@@ -67,9 +93,8 @@ const ProfileScreen: React.FC = () => {
 
   // --- API Call to Fetch Profile ---
   useEffect(() => {
-    if(isFocused)
-    {
-    fetchProfile();
+    if (isFocused) {
+      fetchProfile();
     }
   }, [isFocused]);
 
@@ -107,6 +132,31 @@ const ProfileScreen: React.FC = () => {
     }
   }
 
+  const handleScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const width = event.nativeEvent.layoutMeasurement.width;
+    const index = Math.round(offsetX / width);
+    setCurrentIndex(index);
+  };
+
+  const renderWhuChooseCard = ({ item, index }: { item: whyChoose, index: number }) => (
+    <LinearGradient key={item.id} colors={['#2CBA9E', '#CEF9ED']} style={[styles.whyCard, { marginLeft: index == 0 ? 5 : -5, marginRight: whyChooseData.length - 1 ? 10 : 5, width: WHY_CHOOSE_CARD_WIDTH }]}>
+      <View>
+        <Image
+          source={item.image}
+          style={styles.whyIconImage}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={styles.whyTextContent}>
+        <Text style={styles.whyTitle}>{item.title}</Text>
+        <Text style={styles.whySubtitle}>
+          {item.desc}
+        </Text>
+      </View>
+    </LinearGradient>
+  )
+
   // --- Save Changes to API ---
   const handleSave = async () => {
     setLoading(true);
@@ -133,41 +183,41 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-const handleProfilePick = async () => {
-  const result = await launchImageLibrary({ mediaType: 'photo' });
+  const handleProfilePick = async () => {
+    const result = await launchImageLibrary({ mediaType: 'photo' });
 
-  if (!result.didCancel && result.assets && result.assets.length > 0) {
-    const image = result.assets[0];
-    setSelectedProfile(image);
+    if (!result.didCancel && result.assets && result.assets.length > 0) {
+      const image = result.assets[0];
+      setSelectedProfile(image);
 
-    // 🧠 Correctly append image file to FormData
-    const formdata = new FormData();
-    formdata.append('file', {
-      uri: image.uri,
-      type: image.type || 'image/jpeg',
-      name: image.fileName || `profile_${Date.now()}.jpg`,
-    });
+      // 🧠 Correctly append image file to FormData
+      const formdata = new FormData();
+      formdata.append('file', {
+        uri: image.uri,
+        type: image.type || 'image/jpeg',
+        name: image.fileName || `profile_${Date.now()}.jpg`,
+      });
 
-    try {
-      const response = await dispatch(updateProfileImage(formdata)).unwrap();
-      console.log('✅ Profile updated successfully:', response);
+      try {
+        const response = await dispatch(updateProfileImage(formdata)).unwrap();
+        console.log('✅ Profile updated successfully:', response);
 
-      // 🧠 Update local state on success
-      setFullProfileData((prev) => ({
-        ...prev,
-        customer_profiles: {
-          ...prev?.customer_profiles,
-          profile_image_url: response?.updated_image_url || image.uri,
-        },
-      }));
+        // 🧠 Update local state on success
+        setFullProfileData((prev) => ({
+          ...prev,
+          customer_profiles: {
+            ...prev?.customer_profiles,
+            profile_image_url: response?.updated_image_url || image.uri,
+          },
+        }));
 
-      // Optional: show success toast
-      // Toast.show('Profile updated successfully!');
-    } catch (error) {
-      console.error('❌ Error updating profile:', error);
+        // Optional: show success toast
+        // Toast.show('Profile updated successfully!');
+      } catch (error) {
+        console.error('❌ Error updating profile:', error);
+      }
     }
-  }
-};
+  };
 
 
 
@@ -448,8 +498,8 @@ const handleProfilePick = async () => {
                 </ScrollView>
               )}
             </View> :
-                <View style={styles.logoutUserContainer}>
-      <ImageBackground
+            <View style={styles.logoutUserContainer}>
+              {/* <ImageBackground
         source={imagePaths.LoginBg}
         resizeMode="cover"
         style={styles.backgroundImage}
@@ -465,8 +515,76 @@ const handleProfilePick = async () => {
           <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
             <Text style={[styles.tempButtonText, styles.signUpButtonText]}>SignUp</Text>
           </TouchableOpacity>
-      </ImageBackground>
-    </View>
+      </ImageBackground> */}
+              <ImageBackground
+                source={imagePaths.LoginBg}
+                resizeMode="cover"
+                style={styles.backgroundImage}
+              >
+                <ScrollView
+                  contentContainerStyle={styles.scrollContainer}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {/* Logo Section */}
+                  <View style={styles.logoContainer}>
+                    <Image
+                      source={imagePaths.logo}
+                      style={styles.headerLogo}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.tagline}>Discover Your</Text>
+                    <Text style={styles.taglineSecond}>Best Photo Studio, Photographers</Text>
+                  </View>
+
+                  {/* Form Section */}
+                  <View style={styles.formContainer}>
+
+                    {/* Login Button */}
+                    <TouchableOpacity
+                      style={styles.loginButton}
+                      onPress={navigateToLogin}
+                    >
+                      <Text style={styles.loginButtonText}>
+                        Log In
+                      </Text>
+                    </TouchableOpacity>
+
+                    {/* Signup Button */}
+                    <TouchableOpacity
+                      style={styles.signupButton}
+                      onPress={navigateToSignUp}
+                    >
+                      <Text style={styles.signupButtonText}>
+                        Log In
+                      </Text>
+                    </TouchableOpacity>
+
+                  </View>
+
+                  {/* Why Choose Book My Shoot? */}
+                  <View style={styles.section}>
+                    <Text style={styles.whyHeading}>Why Choose Book My Shoot?</Text>
+                    <FlatList
+                      data={whyChooseData}
+                      ref={flatListRef}
+                      renderItem={renderWhuChooseCard}
+                      keyExtractor={(item) => item.id}
+                      horizontal
+                      pagingEnabled
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.studioList}
+                      onMomentumScrollEnd={handleScroll}
+                    />
+                    <View style={styles.dotsRow}>
+                      {whyChooseData.map((item, index) => (
+                        <View key={index} style={currentIndex == index ? styles.dotActive : styles.dot} />
+                      ))}
+                    </View>
+                  </View>
+
+                </ScrollView>
+              </ImageBackground>
+            </View>
 
           }
         </>}
@@ -475,12 +593,68 @@ const handleProfilePick = async () => {
 };
 
 const styles = StyleSheet.create({
-    logoutUserContainer: {
+  logoutUserContainer: {
     flex: 1,
   },
   backgroundImage: {
     flex: 1,
     alignItems: 'center',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 15,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 30,
+  },
+  headerLogo: {
+    width: 160,
+    height: 120,
+    marginBottom: 10
+  },
+  tagline: {
+    fontSize: 18,
+    color: '#2C5530',
+    ...typography.bold,
+    textAlign: 'center',
+  },
+  taglineSecond: {
+    fontSize: 18,
+    color: '#2C5530',
+    ...typography.bold,
+    textAlign: 'center',
+  },
+  formContainer: {
+    marginTop: 50,
+    flex: 1,
+  },
+  loginButton: {
+    backgroundColor: '#034833',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginVertical: 10
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    ...typography.bold,
+  },
+  signupButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#034833',
+    marginVertical: 10
+  },
+  signupButtonText: {
+    color: '#034833',
+    fontSize: 18,
+    ...typography.bold,
   },
   tempButton: {
     width: "90%",
@@ -726,7 +900,69 @@ const styles = StyleSheet.create({
     ...typography.bold,
     color: '#034833',
   },
-
+  section: {
+    marginVertical: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+      whyHeading: {
+      marginBottom: 10,
+    fontSize: 18,
+    ...typography.bold,
+    color: '#034833',
+  },
+  studioList: {
+    paddingBottom: 5,
+  },
+  whyCard: {
+    borderRadius: 14,
+    padding: 25,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  whyIconImage: {
+    width: 90,
+    height: 90,
+  },
+  whyTextContent: {
+    flex: 1,
+    marginLeft: 20,
+  },
+  whyTitle: {
+    fontSize: 16,
+    ...typography.bold,
+    color: COLORS.text.primary,
+    marginBottom: 6,
+  },
+  whySubtitle: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    lineHeight: 16,
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 3,
+    marginHorizontal: 3,
+    backgroundColor: '#D9D9D9',
+  },
+  dotActive: {
+    width: 16,
+    height: 4,
+    borderRadius: 3,
+    marginHorizontal: 3,
+    backgroundColor: '#034833',
+  },
   editIconOutline: {
     padding: 5,
     backgroundColor: '#034833',
