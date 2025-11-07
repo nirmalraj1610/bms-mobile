@@ -13,7 +13,11 @@ import {
   TextInput,
   ActivityIndicator,
   Modal,
+  Platform,
+  Linking,
 } from 'react-native';
+import { PermissionsAndroid } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
@@ -44,6 +48,17 @@ const HomeScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [photoErrorIds, setPhotoErrorIds] = useState<{ [key: string]: boolean }>({});
+
+  // Location modal state
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [locationQuery, setLocationQuery] = useState('');
+  const [locationSearchResults, setLocationSearchResults] = useState<any[]>([]);
+  const [selectedLocationName, setSelectedLocationName] = useState<string>('Chennai');
+  const [tempSelectedLocationName, setTempSelectedLocationName] = useState<string>('Chennai');
+  const [isSearchingLocations, setIsSearchingLocations] = useState(false);
+  const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [permissionBlocked, setPermissionBlocked] = useState<boolean>(false);
 
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
@@ -116,6 +131,211 @@ console.log(studiosState,'studiooooooo');
     const width = event.nativeEvent.layoutMeasurement.width;
     const index = Math.round(offsetX / width);
     setCurrentIndex(index);
+  };
+
+  // Open/close location modal
+  const openLocationModal = () => {
+    setLocationModalVisible(true);
+    setLocationQuery('');
+    setLocationSearchResults([]);
+    setTempSelectedLocationName(selectedLocationName);
+  };
+  const closeLocationModal = () => {
+    setLocationModalVisible(false);
+  };
+
+  // Search locations using OpenStreetMap Nominatim
+  const searchLocations = async (q: string) => {
+    setLocationQuery(q);
+    if (q.trim().length < 2) {
+      setLocationSearchResults([]);
+      return;
+    }
+    try {
+      setIsSearchingLocations(true);
+      console.log('[Location] Searching locations:', q);
+      const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=8`);
+      const data = await resp.json();
+      console.log('[Location] Search results count:', (data || []).length);
+      setLocationSearchResults(data || []);
+    } catch (e) {
+      console.log('[Location] Search error:', e);
+      setLocationSearchResults([]);
+    } finally {
+      setIsSearchingLocations(false);
+    }
+  };
+
+  // Helper to reverse geocode lat/lon to a readable city/state
+  const normalizeCityName = (name: string | undefined | null): string => {
+    const n = (name || '').trim();
+    if (!n) return '';
+    // Simple synonym mapping for commonly expected local names
+    const map: Record<string, string> = {
+      Puducherry: 'Pondicherry',
+      'Tiruchirappalli': 'Trichy',
+    };
+    return map[n] || n;
+  };
+
+  const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
+    try {
+      console.log('[Location] Reverse geocoding coords:', lat, lon);
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`;
+      const resp = await fetch(url, {
+        headers: {
+          'User-Agent': 'BookMyShoot/1.0 (contact: support@bookmyshoot.app)',
+          'Accept-Language': 'en',
+        },
+      });
+      if (!resp.ok) throw new Error(`Nominatim status ${resp.status}`);
+      const data = await resp.json();
+      const addr = data?.address || {};
+      const cityRaw =
+        addr.city ||
+        addr.town ||
+        addr.village ||
+        addr.hamlet ||
+        addr.municipality ||
+        addr.county ||
+        addr.state_district;
+      const state = addr.state || addr.region;
+      const country = addr.country;
+      let resolved = normalizeCityName(cityRaw) || normalizeCityName(data?.name) || normalizeCityName(data?.display_name?.split(',')[0]) || normalizeCityName(state) || normalizeCityName(country);
+      if (!resolved) throw new Error('No city/state from Nominatim');
+      console.log('[Location] Reverse geocode resolved name:', resolved);
+      return resolved;
+    } catch {
+      console.log('[Location] Reverse geocode error; trying BigDataCloud fallback');
+      try {
+        const url2 = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+        const resp2 = await fetch(url2);
+        if (!resp2.ok) throw new Error(`BDC status ${resp2.status}`);
+        const d2 = await resp2.json();
+        const resolved2 = normalizeCityName(d2.city || d2.locality || d2.principalSubdivision || d2.countryName);
+        if (resolved2) {
+          console.log('[Location] BigDataCloud resolved name:', resolved2);
+          return resolved2;
+        }
+      } catch (e) {
+        console.log('[Location] BigDataCloud fallback failed:', e);
+      }
+      console.log('[Location] All reverse geocoders failed; falling back to coords string');
+      return `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+    }
+  };
+
+  // Fetch current GPS location and set temp selection
+  const fetchCurrentLocation = async () => {
+    try {
+      console.log('[Location] Fetch current location: begin');
+      setLocationError(null);
+      setPermissionBlocked(false);
+      setIsFetchingCurrentLocation(true);
+      let canUseGeo = true;
+      if (Platform.OS === 'android') {
+        console.log('[Location] Requesting Android fine/coarse location permissions');
+        const results = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+        ]);
+        const fine = results[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
+        const coarse = results[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION];
+        const granted = fine === PermissionsAndroid.RESULTS.GRANTED || coarse === PermissionsAndroid.RESULTS.GRANTED;
+        const blocked = fine === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN || coarse === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
+        console.log('[Location] Permission results => fine:', fine, 'coarse:', coarse);
+        if (!granted) {
+          canUseGeo = false;
+          setPermissionBlocked(blocked);
+          const msg = blocked ? 'Location permission denied (blocked). Open Settings.' : 'Location permission denied';
+          setLocationError(msg);
+          console.log('[Location] Permission not granted. blocked?', blocked);
+        }
+      }
+
+      // Try device geolocation first (using react-native-geolocation-service)
+      const getPosition = () =>
+        new Promise<any>((resolve, reject) => {
+          console.log('[Location] Using Geolocation.getCurrentPosition');
+          Geolocation.getCurrentPosition(
+            (pos: any) => resolve(pos),
+            (err: any) => reject(err),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+          );
+        });
+
+      let lat: number | null = null;
+      let lon: number | null = null;
+      if (canUseGeo) {
+        try {
+          console.log('[Location] Attempting device geolocation');
+          const position = await getPosition();
+          lat = (position as any)?.coords?.latitude ?? null;
+          lon = (position as any)?.coords?.longitude ?? null;
+          console.log('[Location] Device coords:', lat, lon);
+        } catch (e) {
+          console.log('[Location] Device geolocation failed:', e);
+        }
+      }
+
+      // Fallback to IP-based location if device coords unavailable
+      if (lat == null || lon == null) {
+        try {
+          console.log('[Location] Falling back to IP-based location');
+          const resp = await fetch('https://ipapi.co/json/');
+          const data = await resp.json();
+          lat = data?.latitude ?? null;
+          lon = data?.longitude ?? null;
+          console.log('[Location] IP-based coords:', lat, lon);
+        } catch (e) {
+          console.log('[Location] IP-based location request failed:', e);
+        }
+      }
+
+      // Secondary IP provider fallback
+      if (lat == null || lon == null) {
+        try {
+          console.log('[Location] Trying secondary IP provider');
+          const resp2 = await fetch('https://freeipapi.com/api/json');
+          const data2 = await resp2.json();
+          lat = data2?.latitude ?? null;
+          lon = data2?.longitude ?? null;
+          console.log('[Location] Secondary IP coords:', lat, lon);
+        } catch (e) {
+          console.log('[Location] Secondary IP provider failed:', e);
+        }
+      }
+
+      if (lat != null && lon != null) {
+        const name = await reverseGeocode(lat, lon);
+        setTempSelectedLocationName(name);
+        console.log('[Location] Temp selected name set:', name);
+      } else {
+        console.log('[Location] Unable to obtain coordinates');
+        setLocationError('Unable to obtain current location');
+      }
+    } catch (e) {
+      // ignore, keep temp name unchanged
+      console.log('[Location] Fetch current location error:', e);
+    } finally {
+      console.log('[Location] Fetch current location: end');
+      setIsFetchingCurrentLocation(false);
+    }
+  };
+
+  const openAppSettings = async () => {
+    try {
+      console.log('[Location] Opening app settings');
+      await Linking.openSettings();
+    } catch (e) {
+      console.log('[Location] Failed to open settings:', e);
+    }
+  };
+
+  // Confirm location selection
+  const confirmLocationSelection = () => {
+    setSelectedLocationName(tempSelectedLocationName);
+    closeLocationModal();
   };
 
   const navigateToStudioDetails = (studioId: string) => {
@@ -517,10 +737,10 @@ const renderRated = ({ item }: { item: any }) => {
                 </TouchableOpacity>
                 <View style={styles.locationContainer}>
                   <Text style={styles.locationLabel}>Current Location</Text>
-                  <View style={styles.locationRow}>
+                  <TouchableOpacity style={styles.locationRow} onPress={openLocationModal}>
                     <Icon name="location-on" size={16} color="#FF6B35" />
-                    <Text style={styles.locationText}>Chennai</Text>
-                  </View>
+                    <Text style={styles.locationText}>{selectedLocationName}</Text>
+                  </TouchableOpacity>
                 </View>
                 
                
@@ -542,6 +762,17 @@ const renderRated = ({ item }: { item: any }) => {
               <TouchableOpacity style={styles.searchIconButton} onPress={navigateToSearch}>
                 <Icon name="search" size={20} color={COLORS.background} />
               </TouchableOpacity>
+              {locationError ? (
+                <View style={{ marginTop: 8 }}>
+                  <Text style={styles.locationErrorText}>{locationError}</Text>
+                  {permissionBlocked ? (
+                    <TouchableOpacity style={[styles.useCurrentButton, { marginTop: 8 }]} onPress={openAppSettings}>
+                      <Icon name="settings" size={18} color={COLORS.background} />
+                      <Text style={styles.useCurrentText}>Open Settings</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ) : null}
             </View>
           </View>
         </View>
@@ -658,6 +889,73 @@ const renderRated = ({ item }: { item: any }) => {
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
                 <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Location Selection Modal */}
+      <Modal visible={locationModalVisible} transparent animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Location</Text>
+            </View>
+            <View style={styles.locationModalBody}>
+              <TextInput
+                style={styles.locationSearchInput}
+                placeholder="Search location..."
+                placeholderTextColor={COLORS.text.secondary}
+                value={locationQuery}
+                onChangeText={searchLocations}
+              />
+              <TouchableOpacity style={styles.useCurrentButton} onPress={fetchCurrentLocation}>
+                <Icon name="my-location" size={18} color={COLORS.background} />
+                <Text style={styles.useCurrentText}>
+                  {isFetchingCurrentLocation ? 'Fetching current location...' : 'Use current location'}
+                </Text>
+              </TouchableOpacity>
+              {locationError ? (
+                <Text style={styles.locationErrorText}>{locationError}</Text>
+              ) : null}
+
+              {isSearchingLocations && (
+                <ActivityIndicator size="small" color={COLORS.bg} style={{ marginTop: 8 }} />
+              )}
+
+              <FlatList
+                data={locationSearchResults}
+                keyExtractor={(item) => item.place_id?.toString?.() || Math.random().toString()}
+                style={{ maxHeight: 200, marginTop: 8 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.locationResultItem}
+                    onPress={() => setTempSelectedLocationName(item.display_name)}
+                  >
+                    <Icon name="place" size={16} color={COLORS.text.secondary} />
+                    <Text style={styles.locationResultText} numberOfLines={1}>{item.display_name}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  locationQuery.trim().length >= 2 && !isSearchingLocations
+                    ? () => (<Text style={styles.locationEmpty}>No matches</Text>)
+                    : undefined
+                }
+              />
+
+              <View style={styles.selectedPreviewRow}>
+                <Text style={styles.modalLabel}>Selected:</Text>
+                <Text style={styles.selectedPreviewText} numberOfLines={1}>{tempSelectedLocationName}</Text>
+              </View>
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButtonModal} onPress={closeLocationModal}>
+                <Text style={styles.confirmButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmButton} onPress={confirmLocationSelection}>
+                <Text style={styles.confirmButtonText}>OK</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1347,6 +1645,65 @@ ratedPerHour: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
+  },
+
+  // Location modal styles
+  locationModalBody: {
+    marginTop: 4,
+  },
+  locationSearchInput: {
+    borderWidth: 1,
+    borderColor: COLORS.bg,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: COLORS.text.primary,
+  },
+  useCurrentButton: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.bg,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    alignSelf: 'flex-start',
+    gap: 8,
+  },
+  useCurrentText: {
+    color: '#fff',
+    ...typography.semibold,
+  },
+  locationResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#e0e0e0',
+  },
+  locationResultText: {
+    flex: 1,
+    color: COLORS.text.primary,
+  },
+  locationEmpty: {
+    marginTop: 10,
+    color: COLORS.text.secondary,
+  },
+  selectedPreviewRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectedPreviewText: {
+    flex: 1,
+    color: '#FF6B35',
+    ...typography.semibold,
+  },
+  locationErrorText: {
+    marginTop: 8,
+    color: 'red',
   },
 
 });
