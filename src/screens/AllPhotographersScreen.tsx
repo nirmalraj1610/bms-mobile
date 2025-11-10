@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../constants';
+import imagePaths from '../constants/imagePaths';
 import { typography } from '../constants/typography';
 import { RootState, AppDispatch } from '../store/store';
 import { getphotographersSearch } from '../features/photographers/photographersSlice';
@@ -37,6 +38,8 @@ const AllPhotographersScreen: React.FC = () => {
     const rating = item?.average_rating || 0;
     const reviews = item?.total_reviews || 0;
     const city = item?.location?.city || 'Unknown';
+    const services = Array.isArray(item?.services) ? item.services : [];
+    const minPrice = services.length > 0 ? Math.min(...services.map((s: any) => Number(s?.base_price ?? 0))) : undefined;
     const id = item?.id ?? item?._id ?? name;
     const showPlaceholder = !imageUrl || failedImageIds.has(id);
 
@@ -56,11 +59,23 @@ const AllPhotographersScreen: React.FC = () => {
         <View style={styles.info}>
           <Text style={styles.name}>{name}</Text>
           <View style={styles.ratingRow}>
-            <Icon name="star" size={14} color="#FFA500" />
+            {[1,2,3,4,5].map(i => (
+              <Icon key={i} name="star" size={12} color={i <= Math.round(Number(rating)) ? '#FFA500' : '#FFD0BF'} />
+            ))}
             <Text style={styles.ratingText}>{Number(rating).toFixed(1)}</Text>
             <Text style={styles.reviewText}>({reviews} reviews)</Text>
           </View>
-          <Text style={styles.locationText}>{city}</Text>
+          <View style={styles.metaRow}>
+            <Image source={imagePaths.Location} resizeMode='contain' style={styles.metaIcon} />
+            <Text style={styles.locationText}>Available</Text>
+          </View>
+          {/* {minPrice !== undefined ? (
+            <View style={styles.priceRow}>
+              <Text style={styles.fromText}>From</Text>
+              <Text style={styles.priceText}>₹{Number(minPrice).toLocaleString()}</Text>
+              <Text style={styles.perSessionText}>Per session</Text>
+            </View>
+          ) : null} */}
         </View>
       </TouchableOpacity>
     );
@@ -221,7 +236,13 @@ const styles = StyleSheet.create({
   },
   ratingText: { marginLeft: 4, fontSize: 13, color: COLORS.text.primary },
   reviewText: { marginLeft: 6, fontSize: 12, color: COLORS.text.secondary },
-  locationText: { marginTop: 6, fontSize: 12, color: COLORS.text.secondary },
+  locationText: {marginLeft:6, fontSize: 12, color: COLORS.text.secondary },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+  metaIcon: { width: 12, height: 12 },
+  priceRow: { marginTop: 6 },
+  fromText: { fontSize: 12, color: COLORS.text.secondary },
+  priceText: { fontSize: 16, ...typography.bold, color: '#FF6B35' },
+  perSessionText: { fontSize: 12, color: COLORS.text.secondary },
 });
 
 export default AllPhotographersScreen;

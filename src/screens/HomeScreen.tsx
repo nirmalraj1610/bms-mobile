@@ -45,6 +45,8 @@ const HomeScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState('');
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -125,6 +127,28 @@ console.log(studiosState,'studiooooooo');
       checkAuthAndLoadFavorites();
     }, [])
   );
+
+  // Live search studios when typing in Home search bar
+  useEffect(() => {
+    const q = query.trim();
+    const handle = setTimeout(() => {
+      dispatch(
+        studiosSearchThunk({
+          q,
+          city: (selectedLocationName || '').trim(),
+          page: 1,
+          limit: 10,
+        })
+      );
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [query, selectedLocationName, dispatch]);
+
+  // Toggle overlay visibility based on focus and query
+  useEffect(() => {
+    const hasQuery = query.trim().length > 0;
+    setShowOverlay(isSearchFocused && hasQuery);
+  }, [isSearchFocused, query]);
 
 
 
@@ -717,7 +741,12 @@ const renderRated = ({ item }: { item: any }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="always"
+        nestedScrollEnabled
+        scrollEnabled={!showOverlay}
+      >
         {/* Header */}
         <View style={styles.headerOutline}>
           {/* Top Row: Logo, Greeting, Location, Notification */}
@@ -764,7 +793,20 @@ const renderRated = ({ item }: { item: any }) => {
                 placeholder="Search Studios..."
                 placeholderTextColor={'#B7B7B7'}
                 value={query}
-                onChangeText={setQuery}
+                onChangeText={(text) => {
+                  setQuery(text);
+                  // show overlay immediately when typing
+                  setShowOverlay(!!text.trim());
+                }}
+                onFocus={() => {
+                  setIsSearchFocused(true);
+                  setShowOverlay(!!query.trim());
+                }}
+                onBlur={() => {
+                  setIsSearchFocused(false);
+                  // small delay so item taps can register
+                  setTimeout(() => setShowOverlay(false), 100);
+                }}
               />
               <TouchableOpacity style={styles.searchIconButton} onPress={navigateToSearch}>
                 <Image source={imagePaths.Search} style={styles.searchIcon} /> 
@@ -781,6 +823,61 @@ const renderRated = ({ item }: { item: any }) => {
                 </View>
               ) : null}
             </View>
+            {showOverlay && (
+              <View style={styles.searchOverlay}>
+                <FlatList
+                  data={((studiosState.search?.results ?? []) as any[])
+                    .filter((item: any) => {
+                      const q = query.trim().toLowerCase();
+                      if (!q) return false;
+                      const name: string = (item?.name || item?.studioName || '').toLowerCase();
+                      const city: string = (item?.location?.city || item?.city || '').toLowerCase();
+                      return name.includes(q) || city.includes(q);
+                    })
+                    .slice(0, 8)}
+                  keyExtractor={(item: any) => String(item?.id)}
+                  keyboardShouldPersistTaps={'always'}
+                  nestedScrollEnabled
+                  renderItem={({ item }: { item: any }) => {
+                    const name = item?.name || item?.studioName || 'Studio';
+                    const city = item?.location?.city || item?.city || '—';
+                    const price = item?.pricing?.hourly_rate || item?.pricing?.hourlyRate || item?.pricing?.price || item?.price || null;
+                    // Prefer API field studio_images[0].image_url and fall back to images[0]
+                    const imageUri = getStudioPrimaryImage(item) || null;
+                    const studioId = String(item?.id ?? name);
+                    return (
+                      <TouchableOpacity
+                        style={styles.searchOverlayItem}
+                        onPress={() => {
+                          setShowOverlay(false);
+                          navigateToStudioDetails(studioId);
+                        }}
+                      >
+                        {imageUri ? (
+                          <Image source={{ uri: imageUri }} style={styles.searchOverlayThumb} />
+                        ) : (
+                          <Image source={imagePaths.StudioPlaceHolderImage} style={styles.searchOverlayThumb} />
+                        )}
+                        <View style={styles.searchOverlayTexts}>
+                          <Text style={styles.searchOverlayTitle} numberOfLines={1}>{name}</Text>
+                          <Text style={styles.searchOverlaySubtitle} numberOfLines={1}>{city}</Text>
+                        </View>
+                        {price ? (
+                          <Text style={styles.searchOverlayPrice}>
+                            ₹{price}
+                          </Text>
+                        ) : null}
+                      </TouchableOpacity>
+                    );
+                  }}
+                  ListEmptyComponent={() => (
+                    <View style={styles.searchOverlayEmpty}> 
+                      <Text style={styles.searchOverlayEmptyText}>No studios found</Text>
+                    </View>
+                  )}
+                />
+              </View>
+            )}
           </View>
         </View>
 
@@ -1477,6 +1574,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginTop: 20,
     marginHorizontal: 4,
+    position: 'relative',
   },
   searchInput: {
     flexDirection: 'row',
@@ -1509,6 +1607,68 @@ const styles = StyleSheet.create({
   searchIcon: {
     height: 24,
     width: 24,
+  },
+  searchOverlay: {
+    position: 'absolute',
+    top: 56,
+    left: 4,
+    right: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#034833',
+    maxHeight: 280,
+    zIndex: 20,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    overflow: 'hidden',
+  },
+  searchOverlayItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E4E4E4',
+    backgroundColor: '#FFFFFF',
+  },
+  searchOverlayThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#F2F2F2',
+  },
+  searchOverlayTexts: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  searchOverlayTitle: {
+    fontSize: 14,
+    ...typography.semibold,
+    color: COLORS.text.primary,
+  },
+  searchOverlaySubtitle: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginTop: 2,
+  },
+  searchOverlayPrice: {
+    fontSize: 12,
+    ...typography.semibold,
+    color: '#FF6B35',
+    marginLeft: 8,
+  },
+  searchOverlayEmpty: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchOverlayEmptyText: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
   },
   // ratingStar: {
   //   height: 9,

@@ -36,20 +36,20 @@ const StudioDetailsScreen: React.FC = () => {
 
   // Use actual studio data or fallback to search results or mock data
   const studio: Studio | StudioDetail = useMemo(() => {
-    console.log('=== StudioDetailsScreen Debug ===');
-    console.log('studioId from route:', studioId);
-    console.log('studioData from API:', studioData);
-    console.log('searchResults:', searchResults);
-    console.log('loading:', loading);
-    console.log('error:', error);
-    console.log('Redux state - studios.detail:', { data: studioData, loading, error });
+    // console.log('=== StudioDetailsScreen Debug ===');
+    // console.log('studioId from route:', studioId);
+    // console.log('studioData from API:', studioData);
+    // console.log('searchResults:', searchResults);
+    // console.log('loading:', loading);
+    // console.log('error:', error);
+    // console.log('Redux state - studios.detail:', { data: studioData, loading, error });
     
     // First priority: Use API detail data if available
     if (studioData) {
-      console.log('✅ Using API detail data');
-      console.log('API studio object:', JSON.stringify(studioData, null, 2));
-      console.log('API studio ID:', studioData.id);
-      console.log('API studio ID type:', typeof studioData.id);
+      // console.log('✅ Using API detail data');
+      // console.log('API studio object:', JSON.stringify(studioData, null, 2));
+      // console.log('API studio ID:', studioData.id);
+      // console.log('API studio ID type:', typeof studioData.id);
       return studioData;
     }
     
@@ -57,9 +57,9 @@ const StudioDetailsScreen: React.FC = () => {
     if (searchResults && searchResults.length > 0 && studioId) {
       const studioFromSearch = searchResults.find((s: any) => s.id === studioId);
       if (studioFromSearch) {
-        console.log('✅ Using studio from search results');
-        console.log('Search studio object:', JSON.stringify(studioFromSearch, null, 2));
-        console.log('Search studio ID:', studioFromSearch.id);
+        // console.log('✅ Using studio from search results');
+        // console.log('Search studio object:', JSON.stringify(studioFromSearch, null, 2));
+        // console.log('Search studio ID:', studioFromSearch.id);
         return studioFromSearch;
       }
     }
@@ -303,14 +303,24 @@ const StudioDetailsScreen: React.FC = () => {
         </View>
 
         {/* Links */}
-        <View style={styles.linkRow}>
+        <TouchableOpacity
+          style={styles.linkRow}
+          onPress={() => navigation.navigate('Gallery')}
+          accessibilityRole="button"
+          accessibilityLabel="Open Gallery"
+        >
           <Text style={styles.linkText}>Gallery</Text>
           <Icon name="chevron-right" size={22} color={COLORS.text.secondary} />
-        </View>
-        <View style={styles.linkRow}>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.linkRow}
+          onPress={() => navigation.navigate('OurWorks')}
+          accessibilityRole="button"
+          accessibilityLabel="Open Our Works"
+        >
           <Text style={styles.linkText}>Our works</Text>
           <Icon name="chevron-right" size={22} color={COLORS.text.secondary} />
-        </View>
+        </TouchableOpacity>
 
         {/* CTA */}
         <TouchableOpacity style={styles.bookBtn} onPress={handlePressBookNow}>

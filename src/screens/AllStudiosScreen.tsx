@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
 
 const AllStudiosScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const studiosState = useSelector((state: RootState) => state.studios);
   const [searchText, setSearchText] = useState('');
@@ -69,17 +69,18 @@ const AllStudiosScreen: React.FC = () => {
   }, [results, searchText]);
 
   const renderItem = ({ item }: any) => {
-    const id = item?.id;
     const name = item?.name || 'Unknown Studio';
+    const id = item?.id ?? item?._id ?? item?.studio_id ?? item?.studioId ?? name;
     const city = item?.location?.city || 'Unknown';
     const rating = item?.average_rating || 0;
     const reviews = item?.total_reviews || item?.reviews?.length || 0;
     const imageUrl = item?.studio_images?.[0]?.image_url || item?.images?.[0] || null;
+    const hourly = item?.pricing?.hourly_rate ?? item?.pricing?.hourly ?? item?.hourly_rate ?? undefined;
 
     const favorited = isStudioFavorited(id);
 
     return (
-      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('StudioDetails' as never, { studioId: id } as never)}>
+      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('StudioDetails', { studioId: String(id) })}>
         {imageUrl ? (
           <Image source={{ uri: imageUrl }} style={styles.thumb} />
         ) : (
@@ -105,7 +106,22 @@ const AllStudiosScreen: React.FC = () => {
             <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
             <Text style={styles.reviewText}>({reviews} reviews)</Text>
           </View>
-          <Text style={styles.cityText}>{city}</Text>
+          <View style={styles.metaRow}>
+            <Image source={imagePaths.Location} resizeMode='contain' style={styles.metaIcon} />
+            <Text style={styles.cityText}>{city}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Image source={imagePaths.SquareFt} resizeMode='contain' style={styles.metaIcon} />
+            <Text style={styles.sqftText}>800 sq ft</Text>
+          </View>
+
+          {/* {hourly !== undefined ? (
+            <View style={styles.priceRow}>
+              <Text style={styles.fromText}>From</Text>
+              <Text style={styles.priceText}>₹{Number(hourly).toLocaleString()}</Text>
+              <Text style={styles.perHourText}>Per hour</Text>
+            </View>
+          ) : null} */}
         </View>
       </TouchableOpacity>
     );
@@ -319,7 +335,43 @@ const styles = StyleSheet.create({
   cityText: {
     fontSize: 13,
     color: COLORS.text.secondary,
+    marginLeft: 4,
+    // marginTop: 6,
+  },
+  sqftText: {
+    fontSize: 13,
+    color: COLORS.text.secondary,
+    marginTop: 3,
+    marginLeft: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  metaIcon: {
+    width: 12,
+    height: 12,
+  },
+  priceRow: {
     marginTop: 6,
+    alignItems: 'flex-end',
+  },
+  fromText: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    textAlign: 'right',
+  },
+  priceText: {
+    fontSize: 14,
+    ...typography.bold,
+    color: '#FF6B35',
+    textAlign: 'right',
+  },
+  perHourText: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    textAlign: 'right',
   },
   loadingContainer: {
     flex: 1,

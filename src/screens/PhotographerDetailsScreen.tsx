@@ -523,6 +523,7 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
   },
   scrollContent: {
+    paddingHorizontal: 16,
     paddingBottom: 24,
   },
   header: {
@@ -552,9 +553,9 @@ const styles = StyleSheet.create({
   heroImage: {
     width: '100%',
     height: 220,
-    marginHorizontal: 16,
     borderRadius: 16,
     marginBottom: 16,
+    alignSelf: 'center',
   },
   photographerInfo: {
     paddingHorizontal: 16,
