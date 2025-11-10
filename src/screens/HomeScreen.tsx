@@ -897,7 +897,10 @@ const renderRated = ({ item }: { item: any }) => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recommended Studios for you</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AllStudios')} accessibilityRole="button" accessibilityLabel={'Show all studios'}>
-              <Icon name={'keyboard-arrow-down'} size={24} color={COLORS.text.primary} />
+              <View style={styles.viewAllRow}>
+                <Text style={styles.viewAllButton}>View all</Text>
+                <Image source={imagePaths.rightArrow} style={styles.viewAllIcon} />
+              </View>
             </TouchableOpacity>
           </View>
           {studiosState.loading ? (
@@ -923,7 +926,10 @@ const renderRated = ({ item }: { item: any }) => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Rated Photographers</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AllPhotographers' as never)} accessibilityRole="button" accessibilityLabel={'Show all photographers'}>
-              <Icon name={'keyboard-arrow-down'} size={24} color={COLORS.text.primary} />
+              <View style={styles.viewAllRow}>
+                <Text style={styles.viewAllButton}>View all</Text>
+                <Image source={imagePaths.rightArrow} style={styles.viewAllIcon} />
+              </View>
             </TouchableOpacity>
           </View>
           {photographersState.loading ? (
@@ -1132,9 +1138,20 @@ const styles = StyleSheet.create({
     alignSelf:'center',
   },
   viewAllButton: {
-    fontSize: 14,
-    color: COLORS.primary,
+    fontSize: 12,
+    color: COLORS.bg,
     ...typography.semibold,
+  },
+  viewAllRow: {
+    marginBottom:10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  viewAllIcon: {
+    width: 16,
+    height: 16,
+    tintColor: COLORS.bg,
   },
   categoryChip: {
     flexDirection: 'row',

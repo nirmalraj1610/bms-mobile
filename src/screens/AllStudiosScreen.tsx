@@ -132,7 +132,7 @@ const AllStudiosScreen: React.FC = () => {
       <View style={styles.content}>
         <View style={styles.topRow}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-back" size={20} color={COLORS.text.primary} />
+            <Image source={imagePaths.backArrow} style={{ width: 22, height: 22, tintColor: COLORS.text.primary }} />
           </TouchableOpacity>
         </View>
 

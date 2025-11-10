@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import HeaderBar from '../components/HeaderBar';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
 
@@ -122,18 +122,7 @@ const GalleryScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.topRow}>
-          <TouchableOpacity 
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Icon name="arrow-back" size={24} color={COLORS.text.primary} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.headerBlock}>
-          <Text style={styles.screenTitle}>Our Gallery</Text>
-        </View>
+        <HeaderBar title="Our Gallery" onBack={() => navigation.goBack()} />
       </View>
 
       {/* Gallery Grid */}

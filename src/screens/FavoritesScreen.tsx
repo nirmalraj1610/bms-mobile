@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import imagePaths from '../constants/imagePaths';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../constants';
@@ -202,7 +203,7 @@ const FavoritesScreen: React.FC = () => {
     <View style={styles.emptyWrap}>
       <View style={styles.emptyHeadRow}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Icon name="arrow-back" size={22} color={COLORS.text.primary} />
+          <Image source={imagePaths.backArrow} style={{ width: 22, height: 22, tintColor: COLORS.text.primary }} />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
       </View>
@@ -272,7 +273,7 @@ const FavoritesScreen: React.FC = () => {
               onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home'))}
               style={styles.backBtn}
             >
-              <Icon name="arrow-back" size={22} color={COLORS.text.primary} />
+              <Image source={imagePaths.backArrow} style={{ width: 22, height: 22, tintColor: COLORS.text.primary }} />
             </TouchableOpacity>
             <View style={{ flex: 1 }} />
           </View>

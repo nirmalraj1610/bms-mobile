@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, A
 import { BlurView } from '@react-native-community/blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import HeaderBar from '../components/HeaderBar';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
@@ -541,14 +542,8 @@ console.log('bookings:', bookings);
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {/* Header */}
-        <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-back" size={22} color={COLORS.text.primary} />
-          </TouchableOpacity>
-        </View>
-        
+        <HeaderBar title="My Bookings" onBack={() => navigation.goBack()} />
         <View style={styles.headerBlock}>
-          <Text style={styles.screenTitle}>My Bookings</Text>
           <Text style={styles.screenSubtitle}>View your upcoming & past sessions</Text>
         </View>
 

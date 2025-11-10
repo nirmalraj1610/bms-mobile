@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import imagePaths from '../../constants/imagePaths';
 import { launchImageLibrary } from "react-native-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch } from "react-redux";
@@ -1150,7 +1151,7 @@ else{
         <View style={styles.actionButtonOutline}>
           {selectedTab !== 1 ? (
             <TouchableOpacity onPress={onpressPrevious} style={styles.previousButton}>
-              <Icon name={"arrow-back-ios"} size={16} color="#FFFFFF" />
+              <Image source={imagePaths.backArrow} style={{ width: 18, height: 18, tintColor: '#FFFFFF' }} />
               <Text style={styles.previousText}>Previous</Text>
             </TouchableOpacity>
           ) : (

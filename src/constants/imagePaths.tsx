@@ -10,13 +10,15 @@ const imagePaths = {
     Apple: require('../assets/images/socialIcons/Apple.png'),
     Facebook: require('../assets/images/socialIcons/Facebook.png'),
     logo: require('../assets/images/logoo.png'),
+    backArrow: require('../assets/images/backArrow.png'),
     Search: require('../assets/images/searchNew.png'),
     StudioPlaceHolderImage: require('../assets/images/studio_placeholder.png'),
     Splash: require('../assets/images/Splash_Screen.png'),
     Location: require('../assets/images/location.png'),
     SquareFt: require('../assets/images/SquareFt.png'),
     Heart: require('../assets/images/heart.png'),
-    HeartSelected: require('../assets/images/HeartSelected.png')
+    HeartSelected: require('../assets/images/HeartSelected.png'),
+    rightArrow: require('../assets/images/rightArrow.png')
 };
 
 export default imagePaths;

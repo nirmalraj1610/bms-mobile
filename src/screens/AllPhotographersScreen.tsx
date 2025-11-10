@@ -86,7 +86,7 @@ const AllPhotographersScreen: React.FC = () => {
       <View style={styles.content}>
         <View style={styles.topRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-back" size={20} color={COLORS.text.primary} />
+            <Image source={imagePaths.backArrow} style={{ width: 22, height: 22, tintColor: COLORS.text.primary }} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerBlock}>

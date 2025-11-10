@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import HeaderBar from '../components/HeaderBar';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
 import { mockFavoriteStudios, mockStudios } from '../utils/mockData';
@@ -229,11 +230,7 @@ const StudioDetailsScreen: React.FC = () => {
   if (loading && !studioData) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-back" size={22} color={COLORS.text.primary} />
-          </TouchableOpacity>
-        </View>
+        <HeaderBar onBack={() => navigation.goBack()} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Loading studio details...</Text>
@@ -245,12 +242,8 @@ const StudioDetailsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Back */}
-        <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-back" size={22} color={COLORS.text.primary} />
-          </TouchableOpacity>
-        </View>
+        {/* Header */}
+        <HeaderBar onBack={() => navigation.goBack()} />
 
         {/* Hero Image */}
         {(() => {

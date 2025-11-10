@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import HeaderBar from '../components/HeaderBar';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
 import { RootState, AppDispatch } from '../store/store';
@@ -404,14 +405,14 @@ const PhotographerDetailsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Icon name="arrow-back" size={22} color={COLORS.text.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.shareBtn}>
-            <Icon name="share" size={22} color={COLORS.text.primary} />
-          </TouchableOpacity>
-        </View>
+        <HeaderBar
+          onBack={() => navigation.goBack()}
+          right={
+            <TouchableOpacity style={styles.shareBtn}>
+              <Icon name="share" size={22} color={COLORS.text.primary} />
+            </TouchableOpacity>
+          }
+        />
 
         {/* Hero Image */}
         <Image 
