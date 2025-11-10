@@ -10,7 +10,7 @@ const imagePaths = {
     Apple: require('../assets/images/socialIcons/Apple.png'),
     Facebook: require('../assets/images/socialIcons/Facebook.png'),
     logo: require('../assets/images/logoo.png'),
-    Search: require('../assets/images/Search.png'),
+    Search: require('../assets/images/searchNew.png'),
     StudioPlaceHolderImage: require('../assets/images/studio_placeholder.png'),
     Splash: require('../assets/images/Splash_Screen.png'),
     Location: require('../assets/images/location.png'),
