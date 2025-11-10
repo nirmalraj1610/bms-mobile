@@ -1,4 +1,3 @@
-import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -8,6 +7,7 @@ import DashboardFilterPopup from "./DashboardFilter";
 import { createStudioEquipThunk, getStudioEquipmentThunk, loadMyStudioThunk, updateStudioEquipThunk } from "../../features/studios/studiosSlice";
 import { COLORS } from "../../constants";
 import imagePaths from "../../constants/imagePaths";
+import { Dropdown } from "react-native-element-dropdown";
 
 
 // --- Main Component ---
@@ -146,10 +146,11 @@ export const ManageEquipmentComponent = () => {
             (studio) => studio.value === selectedStudio
         )?.label || '';
         console.log(selectedStudioName, 'selectedStudioName');
+        const itemStudioId = item?.id || selectedStudio || '';
 
 
         setaddStudio({
-            studioId: item?.id ? item?.id : '',
+            studioId: itemStudioId,
             studioName: selectedStudioName ? selectedStudioName : '',
             equipmentName: item?.item_name ? item?.item_name : '',
             equipmentType: item?.item_type ? String(item?.item_type) : '',
@@ -431,19 +432,24 @@ export const ManageEquipmentComponent = () => {
                                         <Text style={styles.addButtonText}>Filter</Text>
                                     </TouchableOpacity>
                                 </View>
-                                <View style={styles.pickerWrapper}>
-                                    <Picker
-                                        selectedValue={selectedStudio} // Must match one of Picker.Item values
-                                        onValueChange={(value) => setSelectedStudio(value)}
-                                        dropdownIconColor="#034833" // Color of the arrow
-                                        style={{ color: '#101010' }} // Color of the selected text
-                                    >
-                                        <Picker.Item label="Select a studio" value="" />
-                                        {studioList.map((studio, index) => (
-                                            <Picker.Item key={index} label={studio.label} value={studio.value} />
-                                        ))}
-                                    </Picker>
-                                </View>
+                                 <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle}
+                            data={studioList}
+                            search
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select a studio"
+                            searchPlaceholder="Search studio..."
+                            value={selectedStudio}
+                            onChange={(item) => {
+                                setSelectedStudio(item.value);
+                            }}
+                        />
 
                                 {/* Studio Cards Grid */}
                                 <FlatList
@@ -473,30 +479,36 @@ export const ManageEquipmentComponent = () => {
                             </> :
                                 <>
                                     <Text style={styles.labelText} >Select a Studio<Text style={styles.required}> *</Text></Text>
+                                        {addStudio?.studioName && editEquip ?
                                     <View style={styles.pickerWrapper}>
-                                        {addStudio?.studioName ?
                                             <View style={styles.infoRow}>
                                                 <Text style={styles.infoLabel}>{addStudio?.studioName || '-'}</Text>
-                                            </View> :
-                                            <Picker
-                                                selectedValue={addStudio.studioName} // Must match one of Picker.Item values
-                                                onValueChange={(value) => {
-                                                    const selectedStudioObj = studioList.find(studio => studio.value === value);
+                                            </View> 
+                                            </View>:
+                                            <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle}
+                            data={studioList}
+                            search
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select a studio"
+                            searchPlaceholder="Search studio..."
+                            value={addStudio.studioId}
+                            onChange={(item) => {
+                                                    const selectedStudioObj = studioList.find(studio => studio.value === item.value);
                                                     setaddStudio({
                                                         ...addStudio,
-                                                        studioId: value,
+                                                        studioId: item.value,
                                                         studioName: selectedStudioObj?.label || "",
                                                     });
                                                 }}
-                                                dropdownIconColor="#034833" // Color of the arrow
-                                                style={{ color: '#101010' }} // Color of the selected text
-                                            >
-                                                <Picker.Item label="Select a studio" value="" />
-                                                {studioList.map((studio, index) => (
-                                                    <Picker.Item key={index} label={studio.label} value={studio.value} />
-                                                ))}
-                                            </Picker>}
-                                    </View>
+                        />
+                                            }
                                     <Text style={styles.labelText} >Equipment Image<Text style={styles.required}> *</Text></Text>
 
                                     {selectedImages.length > 0 ? (
@@ -535,19 +547,22 @@ export const ManageEquipmentComponent = () => {
                                         }
                                     />
                                     <Text style={styles.labelText} >Equipment Type<Text style={styles.required}> *</Text></Text>
-                                    <View style={styles.pickerWrapper}>
-                                        <Picker
-                                            selectedValue={addStudio.equipmentType} // Must match one of Picker.Item values
-                                            onValueChange={(value) => setaddStudio({ ...addStudio, equipmentType: value })}
-                                            dropdownIconColor="#034833" // Color of the arrow
-                                            style={{ color: '#101010' }} // Color of the selected text
-                                        >
-                                            <Picker.Item label="Select a equipment type" value="" />
-                                            {equipmentList.map((equipment, index) => (
-                                                <Picker.Item key={index} label={equipment.label} value={equipment.value} />
-                                            ))}
-                                        </Picker>
-                                    </View>
+                                     <Dropdown
+                                                                style={styles.dropdown}
+                                                                placeholderStyle={styles.placeholderStyle}
+                                                                selectedTextStyle={styles.selectedTextStyle}
+                                                                inputSearchStyle={styles.inputSearchStyle}
+                                                                containerStyle={styles.dropdownContainerStyle}
+                                                                data={equipmentList}
+                                                                maxHeight={300}
+                                                                labelField="label"
+                                                                valueField="value"
+                                                                placeholder="Select a equipment type"
+                                                                value={addStudio.equipmentType}
+                                                                onChange={(item) => {
+                                                                    setaddStudio({ ...addStudio, equipmentType: item.value });
+                                                                }}
+                                                            />
                                     <Text style={styles.labelText} >Description</Text>
 
                                     <TextInput
@@ -622,19 +637,22 @@ export const ManageEquipmentComponent = () => {
                                     />
                                     <Text style={styles.labelText} >Condition<Text style={styles.required}> *</Text></Text>
 
-                                    <View style={styles.pickerWrapper}>
-                                        <Picker
-                                            selectedValue={addStudio.Condition} // Must match one of Picker.Item values
-                                            onValueChange={(value) => setaddStudio({ ...addStudio, Condition: value })}
-                                            dropdownIconColor="#034833" // Color of the arrow
-                                            style={{ color: '#101010' }} // Color of the selected text
-                                        >
-                                            <Picker.Item label="Select a Condition" value="" />
-                                            {ConditionList.map((Condition, index) => (
-                                                <Picker.Item key={index} label={Condition.label} value={Condition.value} />
-                                            ))}
-                                        </Picker>
-                                    </View>
+                                    <Dropdown
+                                                                style={styles.dropdown}
+                                                                placeholderStyle={styles.placeholderStyle}
+                                                                selectedTextStyle={styles.selectedTextStyle}
+                                                                inputSearchStyle={styles.inputSearchStyle}
+                                                                containerStyle={styles.dropdownContainerStyle}
+                                                                data={ConditionList}
+                                                                maxHeight={300}
+                                                                labelField="label"
+                                                                valueField="value"
+                                                                placeholder="Select a equipment type"
+                                                                value={addStudio.Condition}
+                                                                onChange={(item) => {
+                                                                    setaddStudio({ ...addStudio, Condition: item.value });
+                                                                }}
+                                                            />
 
                                     {/* Save button section  */}
                                     <TouchableOpacity onPress={createOrEditEquipment} style={styles.createButton}>
@@ -736,12 +754,6 @@ const styles = StyleSheet.create({
     textArea: {
         height: 100,
         textAlignVertical: "top",
-    },
-    pickerWrapper: {
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        marginBottom: 12,
     },
     viewButton: {
         paddingVertical: 8,
@@ -947,5 +959,41 @@ const styles = StyleSheet.create({
     },
     toggleButtonTextActive: {
         color: COLORS.background,
+    },
+    dropdown: {
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        backgroundColor: '#fff',
+        marginBottom: 12,
+    },
+    placeholderStyle: {
+        fontSize: 14,
+        color: '#999',
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+        color: '#101010',
+        fontWeight: '600',
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 14,
+        color: '#101010',
+        borderRadius: 10
+    },
+    dropdownContainerStyle: {
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        backgroundColor: '#fff',
+        paddingVertical: 6,
+        elevation: 5, // for Android shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
     },
 });

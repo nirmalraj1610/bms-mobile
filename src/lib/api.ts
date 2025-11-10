@@ -157,6 +157,30 @@ export async function photographerBookingCreate(payload: { booking_id: string; p
   return apiFetch<BookingCreateResponse>('/booking-photographer', { method: 'POST', body: payload });
 }
 
+// ✅ 1️⃣ Base API call with query params
+export async function photographerBookings(params: {
+  status?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  // Build query string dynamically
+  const queryParams = new URLSearchParams();
+
+  if (params?.status) queryParams.append("status", params.status);
+  if (params?.from_date) queryParams.append("from_date", params.from_date);
+  if (params?.to_date) queryParams.append("to_date", params.to_date);
+  if (params?.limit !== undefined) queryParams.append("limit", String(params.limit));
+  if (params?.offset !== undefined) queryParams.append("offset", String(params.offset));
+
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+
+  return apiFetch<{ bookings: any[] }>(`/photographer-bookings${queryString}`, {
+    method: "GET",
+  });
+}
+
 export async function createPhotographerBooking(payload: { 
   photographer_id: string; 
   service_id: string; 

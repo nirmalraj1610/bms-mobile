@@ -130,7 +130,7 @@ export const PortfolioComponent = () => {
     }
 
     return (
-        <View style={{ marginBottom: 360 }}>
+        <View style={{ marginBottom: 400 }}>
 
             {/* Tabs */}
             <View style={styles.toggleContainer}>

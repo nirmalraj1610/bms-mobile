@@ -5,7 +5,8 @@ import {
   photographerCreate, 
   photographerServices, 
   photographerAvailability,
-  createPhotographerBooking
+  createPhotographerBooking,
+  photographerBookings
 } from '../../lib/api';
 import { PhotographerBookingCreateResponse } from '../../types/api';
 
@@ -126,6 +127,17 @@ export const createphotographer = async (payload: {
   amenities: string[];
 }) => {
   return photographerCreate(payload);
+};
+
+// ✅ 2️⃣ Wrapper Function
+export const getPhotographerBookings = async (params: {
+  status?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}) => {
+  return photographerBookings(params);
 };
 
 export const createPhotographerBookingService = async (payload: { 

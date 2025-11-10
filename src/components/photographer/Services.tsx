@@ -1,36 +1,102 @@
-import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
-import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../../constants";
+import { Dropdown } from "react-native-element-dropdown";
+import { useDispatch } from "react-redux";
+import { useRoute } from "@react-navigation/native";
+import { getUserData } from "../../lib/http";
+import { getPhotographerServices } from "../../features/photographers/photographersSlice";
+import imagePaths from "../../constants/imagePaths";
 
 
 // --- Main Component ---
 export const ServicesComponent = () => {
+    const dispatch = useDispatch();
     const [selectedFile, setSelectedFile] = useState('');
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [photographerServices, setPhotographerServices] = useState([]);
+        const [editService, setEditService] = useState(false);
+    const [editServiceId, setEditServiceId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [addService, setAddservice] = useState({
         photographyTitle: "",
         basePrice: "",
         serviceDesc: "",
         durationHours: "",
         serviceType: "",
-        equipmentIncluded: "",
+        equipmentIncluded: [],
     });
     const [activeTab, setActiveTab] = useState("Services"); // 'Services' or 'Add Service'
 
-    const serviceTypeList = [
-        "Wedding",
-        "Birthday",
-        "Vaccation",
-    ]
+const serviceTypeList = [
+  { label: "Wedding", value: "Wedding" },
+  { label: "Birthday", value: "Birthday" },
+  { label: "Vacation", value: "Vacation" },
+];
 
-    const equipmentList = [
-        "Camera",
-        "Lighting",
-        "Lenses",
-        "Tripod",
-    ]
+const equipmentList = [
+  { label: "Camera", value: "Camera" },
+  { label: "Lighting", value: "Lighting" },
+  { label: "Lenses", value: "Lenses" },
+  { label: "Tripod", value: "Tripod" },
+];
+
+    useEffect(() => {
+        if (activeTab === "Services") {
+            clearStateValues();
+            fetchPhotographerService();
+        }
+    }, [activeTab]);
+
+    const fetchPhotographerService = async () => {
+        setIsLoading(true);
+        const userData = await getUserData();
+        const photographerId = userData?.customer?.customer_profiles?.customer_id
+        
+            //             {
+            // photographer_id
+    
+            try {
+                const serviceData = await dispatch(getPhotographerServices(photographerId)).unwrap(); // ✅ unwrap to get actual data
+                console.log('📦 serviceData from API:', serviceData);
+    
+                // response looks like { serviceData: [ ... ], total: 16 }
+                setPhotographerServices(serviceData?.services || []);
+            } catch (error) {
+                console.log('❌ Failed to load photographer services:', error);
+            }
+            finally {
+                setIsLoading(false);
+            }
+        };
+
+            const onAddServicesPress = () => {
+        setActiveTab('Add Service')
+    }
+
+        const clearStateValues = () => {
+
+        // set initial state value
+        setAddservice({
+        photographyTitle: "",
+        basePrice: "",
+        serviceDesc: "",
+        durationHours: "",
+        serviceType: "",
+        equipmentIncluded: [],
+    })
+
+        // clear selected images values
+        setSelectedImages([]);
+
+        // move to list equipment tab
+
+        setActiveTab("Services");
+        setEditService(false);
+        setEditServiceId('');
+    }
 
     // --- Data for the Studio Cards ---
     const serviceData = [
@@ -78,15 +144,25 @@ export const ServicesComponent = () => {
 
     const onEditServicePress = (item: any) => {
         setActiveTab("Add Service");
-        setSelectedFile(item?.image ? { uri: item?.image } : '')
+        setEditService(true);
+        setEditServiceId(item?.id ? item?.id : '')
+
         setAddservice({
             photographyTitle: item?.title ? item?.title : '',
-            basePrice: item?.baseprice ? item?.baseprice : '',
-            serviceDesc: item?.desc ? item?.desc : '',
-            durationHours: item?.durationHuous ? item?.durationHuous : '',
-            serviceType: item?.serviceType ? item?.serviceType : '',
-            equipmentIncluded: item?.equipIncluded ? item?.equipIncluded : '',
-        })
+            basePrice: item?.base_price ? String(item?.base_price) : '',
+            serviceDesc: item?.description ? item?.description : '',
+            durationHours: item?.duration_hours ? String(item?.duration_hours) : '',
+            serviceType: item?.service_type ? String(item?.service_type) : '',
+            equipmentIncluded: item?.equipment_included ? item?.equipment_included : [],
+        });
+
+        // if (item?.equipment_images?.[0]?.image_url) {
+        //     const formattedImages = item?.equipment_images?.map(img => ({
+        //         ...img,
+        //         uri: img.image_url,
+        //     }));
+        //     setSelectedImages(formattedImages);
+        // }
     }
 
     const handleDocumentPick = async () => {
@@ -105,7 +181,7 @@ export const ServicesComponent = () => {
             serviceDesc: "",
             durationHours: "",
             serviceType: "",
-            equipmentIncluded: "",
+            equipmentIncluded: [],
         })
 
         // move to list equipment tab
@@ -123,7 +199,7 @@ export const ServicesComponent = () => {
                     {/* Studio Image */}
                     <Image
                         // Using a placeholder that simulates the image's structure
-                        source={{ uri: item.image }}
+                        source={imagePaths.PhotographerPlaceHolderImage}
                         resizeMode="cover"
                         style={styles.cardImage}
                     />
@@ -131,11 +207,16 @@ export const ServicesComponent = () => {
                     {/* Text Info */}
                     <View style={styles.cardTextContainer}>
                         <Text style={styles.studioName}>{item.title}</Text>
-                        <Text style={styles.studioDesc}>{item.desc}</Text>
-                        <Text style={styles.avaliable}>Duration : <Text style={{ ...styles.avaliable, fontWeight: '600' }}> {item.durationHuous} hours</Text></Text>
-                        <Text style={styles.avaliable}>Service : <Text style={{ ...styles.avaliable, fontWeight: '600' }}>{item.serviceType}</Text></Text>
-                        <Text style={styles.avaliable}>Equipment : <Text style={{ ...styles.avaliable, fontWeight: '600' }}>{item.equipIncluded}</Text></Text>
-                        <Text style={styles.avaliable}>Base Price : <Text style={styles.price}>₹ {item.baseprice}</Text></Text>
+                        <Text style={styles.studioDesc}>{item.description}</Text>
+                        <Text style={styles.avaliable}>Duration : <Text style={{ ...styles.avaliable, fontWeight: '600' }}> {item.duration_hours} hours</Text></Text>
+                        <Text style={styles.avaliable}>Service : <Text style={{ ...styles.avaliable, fontWeight: '600' }}>{item.service_type}</Text></Text>
+                        <Text style={styles.avaliable}>Equipments included:</Text>
+                        {item.equipment_included?.length > 0 ? (
+  <Text style={{ ...styles.avaliable, fontWeight: '600' }}>
+    {item.equipment_included.join(', ')}
+  </Text>
+) : null}
+                        <Text style={styles.avaliable}>Base Price : <Text style={styles.price}>₹ {item.base_price}</Text></Text>
 
                         {/* Edit Button (Bordered)  */}
                         <TouchableOpacity onPress={() => onEditServicePress(item)} style={styles.viewButton}>
@@ -149,7 +230,14 @@ export const ServicesComponent = () => {
     }
 
     return (
-        <View style={{ marginBottom: 360 }}>
+         <>
+                    {
+                        isLoading ?
+                            <View style={styles.loading}>
+                                <ActivityIndicator size="large" color="#034833" />
+                                <Text style={styles.loadingText}>Loading....</Text>
+                            </View> :
+        <View style={{ marginBottom: 400 }}>
 
             {/* Tabs */}
             <View style={styles.toggleContainer}>
@@ -181,7 +269,7 @@ export const ServicesComponent = () => {
                     onPress={() => setActiveTab("Add Service")}
                 >
                     <Icon
-                        name="add-circle-outline"
+                        name={editService ? "edit" : "add-circle-outline"}
                         size={16}
                         color={activeTab === "Add Service" ? COLORS.background : COLORS.text.secondary}
                     />
@@ -189,7 +277,7 @@ export const ServicesComponent = () => {
                         styles.toggleButtonText,
                         activeTab === "Add Service" && styles.toggleButtonTextActive
                     ]}>
-                        Add service
+                    {editService ? "Edit service" : "Add service"}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -198,9 +286,24 @@ export const ServicesComponent = () => {
 
                     {/* Studio Cards Grid */}
                     <FlatList
-                        data={serviceData}
+                        data={photographerServices}
                         keyExtractor={(item) => item.id}
                         renderItem={renderStudioCard}
+                         ListEmptyComponent={
+                                                                <View style={styles.noStudioOutline}>
+                                                                    <Icon name="handyman" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                                                                    <Text style={styles.noStudioText}>
+                                                                        Services not found
+                                                                    </Text>
+                                                                    <Text style={styles.addStudioDesc}>
+                                                                        Add new services to show
+                                                                    </Text>
+                                                                    <TouchableOpacity onPress={onAddServicesPress} style={styles.addStudioBtn}>
+                                                                        <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
+                                                                        <Text style={styles.addStudioText}>Add services</Text>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            }
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.listContent}
                     />
@@ -275,42 +378,74 @@ export const ServicesComponent = () => {
                         />
 
                         <Text style={styles.labelText} >Service Type<Text style={styles.required}> *</Text></Text>
-                        <View style={styles.pickerWrapper}>
-                            <Picker
-                                selectedValue={addService.serviceType} // Must match one of Picker.Item values
-                                onValueChange={(value) => setAddservice({ ...addService, serviceType: value })}
-                                dropdownIconColor="#034833" // Color of the arrow
-                                style={{ color: '#101010' }} // Color of the selected text
-                            >
-                                <Picker.Item label="Select service type" />
-                                {serviceTypeList.map((studio, index) => (
-                                    <Picker.Item key={index} label={studio} value={studio} />
-                                ))}
-                            </Picker>
-                        </View>
+                        <Dropdown
+                                                                style={styles.dropdown}
+                                                                placeholderStyle={styles.placeholderStyle}
+                                                                selectedTextStyle={styles.selectedTextStyle}
+                                                                inputSearchStyle={styles.inputSearchStyle}
+                                                                containerStyle={styles.dropdownContainerStyle}
+                                                                data={serviceTypeList}
+                                                                maxHeight={300}
+                                                                labelField="label"
+                                                                valueField="value"
+                                                                placeholder="Select a equipment type"
+                                                                value={addService.serviceType}
+                                                                onChange={(item) => {
+                                                                    setAddservice({ ...addService, serviceType: item.label });
+                                                                }}
+                                                            />
                         <Text style={styles.labelText} >Equipment Included<Text style={styles.required}> *</Text></Text>
-                        <View style={styles.pickerWrapper}>
-                            <Picker
-                                selectedValue={addService.equipmentIncluded} // Must match one of Picker.Item values
-                                onValueChange={(value) => setAddservice({ ...addService, equipmentIncluded: value })}
-                                dropdownIconColor="#034833" // Color of the arrow
-                                style={{ color: '#101010' }} // Color of the selected text
-                            >
-                                <Picker.Item label="Select equipment" value="" />
-                                {equipmentList.map((equipment, index) => (
-                                    <Picker.Item key={index} label={equipment} value={equipment} />
-                                ))}
-                            </Picker>
-                        </View>
+                        {/* <Dropdown
+                                                                style={styles.dropdown}
+                                                                placeholderStyle={styles.placeholderStyle}
+                                                                selectedTextStyle={styles.selectedTextStyle}
+                                                                inputSearchStyle={styles.inputSearchStyle}
+                                                                containerStyle={styles.dropdownContainerStyle}
+                                                                data={equipmentList}
+                                                                maxHeight={300}
+                                                                labelField="label"
+                                                                valueField="value"
+                                                                placeholder="Select a equipment type"
+                                                                value={addService.equipmentIncluded}
+                                                                onChange={(item) => {
+                                                                    setAddservice({ ...addService, equipmentIncluded: item.value });
+                                                                }}
+                                                            /> */}
+
+                                                            <Dropdown
+  style={styles.dropdown}
+  placeholderStyle={styles.placeholderStyle}
+  selectedTextStyle={styles.selectedTextStyle}
+  inputSearchStyle={styles.inputSearchStyle}
+  containerStyle={styles.dropdownContainerStyle}
+  data={equipmentList}
+  maxHeight={300}
+  labelField="label"
+  valueField="value"
+  placeholder="Select equipment type(s)"
+  value={addService.equipmentIncluded}
+  onChange={(selectedItems) => {
+    setAddservice({ ...addService, equipmentIncluded: selectedItems });
+  }}
+  multiple={true} // ✅ enable multiple selection
+  renderSelectedItem={(item, unSelect) => (
+    <TouchableOpacity onPress={() => unSelect && unSelect(item)}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 5 }}>
+        <Text style={{ fontSize: 14 }}>{item.label}</Text>
+      </View>
+    </TouchableOpacity>
+  )}
+/>
                         {/* Save button section  */}
                         <TouchableOpacity onPress={createEquipment} style={styles.createButton}>
-                            <Text style={styles.createButtonText}>Save service</Text>
+                            <Text style={styles.createButtonText}>{editService ? 'Update service'  : "Add service"}</Text>
                         </TouchableOpacity>
 
                     </>
                 }
             </ScrollView>
-        </View>
+        </View>}
+        </>
     )
 };
 
@@ -344,7 +479,6 @@ const styles = StyleSheet.create({
         width: 130,
         height: 180,
         borderRadius: 10,
-        resizeMode: 'contain',
         borderWidth: 1,
         borderColor: '#00000026',
     },
@@ -398,12 +532,6 @@ const styles = StyleSheet.create({
     textArea: {
         height: 100,
         textAlignVertical: "top",
-    },
-    pickerWrapper: {
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        marginBottom: 12,
     },
     viewButton: {
         paddingVertical: 8,
@@ -506,5 +634,81 @@ const styles = StyleSheet.create({
     },
     toggleButtonTextActive: {
         color: COLORS.background,
+    },
+    dropdown: {
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        backgroundColor: '#fff',
+        marginBottom: 12,
+    },
+    placeholderStyle: {
+        fontSize: 14,
+        color: '#999',
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+        color: '#101010',
+        fontWeight: '600',
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 14,
+        color: '#101010',
+        borderRadius: 10
+    },
+    dropdownContainerStyle: {
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        backgroundColor: '#fff',
+        paddingVertical: 6,
+        elevation: 5, // for Android shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+    },
+    noStudioOutline: {
+        alignItems: 'center',
+        marginVertical: 30
+    },
+    loading: {
+        marginTop: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 20,
+        color: "#101010",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    noStudioText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500'
+    },
+    addStudioDesc: {
+        fontSize: 14,
+        color: '#999',
+        marginTop: 4
+    },
+    addStudioBtn: {
+        marginTop: 10,
+        backgroundColor: '#034833',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 5,
+        borderRadius: 6,
+    },
+    addStudioText: {
+        marginLeft: 10,
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

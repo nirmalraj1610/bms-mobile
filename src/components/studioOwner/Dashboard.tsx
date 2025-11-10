@@ -4,11 +4,11 @@ import DashboardFilterPopup from "./DashboardFilter";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loadMyStudioThunk, loadStudioBookingsThunk } from "../../features/studios/studiosSlice";
-import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CancelStudioBookingModal from "./CancelStudioBookingModal";
 import AcceptStudioBookingModal from "./AcceptStudioBookingModal";
 import imagePaths from "../../constants/imagePaths";
+import { Dropdown } from 'react-native-element-dropdown';
 
 export const DashboardComponent = () => {
     const dispatch = useDispatch();
@@ -332,21 +332,28 @@ export const DashboardComponent = () => {
                                 <Text style={styles.addButtonText}>Filter</Text>
                             </TouchableOpacity>
                         </View>
+                        <Text style={styles.labelText}>
+                            Select studio to view bookings<Text style={styles.required}> *</Text>
+                        </Text>
 
-                        <Text style={styles.labelText} >Select studio to view bookings<Text style={styles.required}> *</Text></Text>
-                        <View style={styles.pickerWrapper}>
-                            <Picker
-                                selectedValue={selectedStudio}
-                                onValueChange={(value) => setSelectedStudio(value)} // ✅ value is already the selected one
-                                dropdownIconColor="#034833"
-                                style={{ color: '#101010' }}
-                            >
-                                <Picker.Item label="Select a studio" value="" />
-                                {studioList.map((studio, index) => (
-                                    <Picker.Item key={index} label={studio.label} value={studio.value} />
-                                ))}
-                            </Picker>
-                        </View>
+                        <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle} 
+                            data={studioList}
+                            search
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select a studio"
+                            searchPlaceholder="Search studio..."
+                            value={selectedStudio}
+                            onChange={(item) => {
+                                setSelectedStudio(item.value);
+                            }}
+                        />
 
                         <Text style={styles.labelText} >Select date range<Text style={styles.required}> *</Text></Text>
 
@@ -646,12 +653,6 @@ const styles = StyleSheet.create({
         fontWeight: "500",
         marginBottom: 6,
     },
-    pickerWrapper: {
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        marginBottom: 12,
-    },
     required: {
         color: '#DC3545'
     },
@@ -686,4 +687,40 @@ const styles = StyleSheet.create({
         color: '#999',
         marginTop: 4
     },
+    dropdown: {
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        backgroundColor: '#fff',
+        marginBottom: 12,
+    },
+    placeholderStyle: {
+        fontSize: 14,
+        color: '#999',
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+        color: '#101010',
+        fontWeight: '600',
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 14,
+        color: '#101010',
+        borderRadius: 10
+    },
+    dropdownContainerStyle: {
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  backgroundColor: '#fff',
+  paddingVertical: 6,
+  elevation: 5, // for Android shadow
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+},
 })

@@ -1,63 +1,96 @@
-import { FlatList, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardFilterPopup from "./DashboardFilter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { loadPhotographerBookingsThunk } from "../../features/photographers/photographersSlice";
+import imagePaths from "../../constants/imagePaths";
+import CancelPhotographerBookingModal from "./CancelPhotographerBookingModal";
+import AcceptPhotographerBookingModal from "./AcceptPhotographerBookingModal";
 
 export const DashboardComponent = () => {
     const filterOptions = [
-  { label: "Pending", value: "pending" },
-  { label: "Confirmed", value: "confirmed" },
-  { label: "Completed", value: "completed" },
-  { label: "Cancelled", value: "cancelled" },
-];
+        { label: "Pending", value: "pending" },
+        { label: "Confirmed", value: "confirmed" },
+        { label: "Completed", value: "completed" },
+        { label: "Cancelled", value: "cancelled" },
+    ];
+    const dispatch = useDispatch();
     const [showFilter, setShowFilter] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [studioBookingList, setPhotographerBookingList] = useState([]);
+    const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
+    const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
+    const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
     const onFilterPress = () => {
         setShowFilter(!showFilter)
     }
-    const bookingData = [
-        {
-            id: '1',
-            bookingId: 'BMS001',
-            studio: 'Studio Elite Mumbai',
-            date: '25-09-2024',
-            time: '2:00 PM - 6:00 PM',
-            price: '10,000',
-            status: 'Pending',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-        {
-            id: '2',
-            bookingId: 'BMS002',
-            studio: 'Studio Elite Mumbai',
-            date: '25-09-2024',
-            time: '2:00 PM - 6:00 PM',
-            price: '8,000',
-            status: 'Confirmed',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-        {
-            id: '3',
-            bookingId: 'BMS003',
-            studio: 'Studio Elite Mumbai',
-            date: '25-09-2024',
-            time: '2:00 PM - 6:00 PM',
-            price: '8,000',
-            status: 'Completed',
-            image: 'https://cdn.shopify.com/s/files/1/2303/2711/files/Beauty_backdrop_lighting_setup_1024x1024.jpg'
-        },
-    ];
+
+    useEffect(() => {
+        if (!showCancelModal.status && !showAcceptModal.status) {
+            fetchPhotographerBookings();
+        }
+    }, [selectedFilter, showCancelModal, showAcceptModal]);
+
+    const fetchPhotographerBookings = async (overrideParams?: any) => {
+        setIsLoading(true);
+
+        //   status?: string;
+        //   from_date?: string;
+        //   to_date?: string;
+        //   limit?: number;
+        //   offset?: number;
+        // }
+        let params = {}
+        if (selectedFilter) {
+            params = { ...params, status: selectedFilter, }
+        }
+
+        if (overrideParams) params = { ...params, ...overrideParams };
+
+        try {
+            const photographerBookings = await dispatch(loadPhotographerBookingsThunk(params)).unwrap(); // ✅ unwrap to get actual data
+            console.log('📦 photographerBookings from API:', photographerBookings);
+
+            // response looks like { photographerBookings: [ ... ], total: 16 }
+            setPhotographerBookingList(photographerBookings || []);
+        } catch (error) {
+            console.log('❌ Failed to load photographer bookings:', error);
+        }
+        finally {
+            setIsLoading(false);
+        }
+    };
+
+    const onCloseCancelModal = () => {
+        setShowCancelModal({ status: false, selectedBooking: {} })
+    }
+
+    const onOpenCancelModal = (item: any) => {
+        setShowCancelModal({ status: true, selectedBooking: item })
+    }
+
+    const onCloseAcceptModal = () => {
+        setShowAcceptModal({ status: false, selectedBooking: {} })
+    }
+
+    const onOpenAcceptModal = (item: any) => {
+        setShowAcceptModal({ status: true, selectedBooking: item })
+    }
 
     const renderItem = ({ item }: any) => {
         let statusColor = '#FE9A55'; // default Pending orange
-        if (item.status === 'Confirmed') statusColor = '#FFC107'; // yellow
-        if (item.status === 'Completed') statusColor = '#0D6EFD'; // blue
-        if (item.status === 'Cancelled') statusColor = '#DC3545'; // red
+        if (item.status === 'pending') statusColor = '#FFC107'; // yellow
+        if (item.status === 'confirmed') statusColor = '#0D6EFD'; // yellow
+        if (item.status === 'completed') statusColor = '#034833'; // blue 
+        if (item.status === 'cancelled') statusColor = '#DC3545'; // red
 
         let statusTextColor = '#FFFFFF'; // default Pending orange
-        if (item.status === 'Confirmed') statusTextColor = '#2F2F2F'; // yellow
-        if (item.status === 'Completed') statusTextColor = '#FFFFFF'; // blue
-        if (item.status === 'Cancelled') statusTextColor = '#FFFFFF'; // white
+        if (item.status === 'pending') statusTextColor = '#FFFFFF'; // yellow
+        if (item.status === 'confirmed') statusTextColor = '#FFFFFF'; // yellow
+        if (item.status === 'completed') statusTextColor = '#FFFFFF'; // blue
+        if (item.status === 'cancelled') statusTextColor = '#FFFFFF'; // white
 
         return (
             <View style={styles.card}>
@@ -67,99 +100,180 @@ export const DashboardComponent = () => {
                 </View>
 
                 <View style={styles.cardContent}>
-                    <Image source={{ uri: item.image }} resizeMode="cover" style={styles.image} />
+                    <Image source={imagePaths.PhotographerPlaceHolderImage} resizeMode="cover" style={styles.image} />
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>
-                            Booking ID: {item.bookingId}
+                            Booking ID:<Text style={{ fontWeight: '600' }}> {item.id}</Text>
                         </Text>
-                        <Text style={styles.name}>{item.studio}</Text>
-                        <Text style={styles.date}>{item.date}</Text>
-                        <Text style={styles.time}>{item.time}</Text>
-                        <Text style={styles.price}>₹{item.price}</Text>
-
-                        {/* Action Buttons */}
-                        <View style={styles.actions}>
-                            {item.status === 'Pending' && (
-                                <TouchableOpacity style={styles.contactBtn}>
-                                    <Text style={styles.contactBtnText}>Contact</Text>
-                                </TouchableOpacity>
-                            )}
-                            {item.status === 'Confirmed' && (
-                                <>
-                                    <TouchableOpacity style={styles.acceptBtn}>
-                                        <Text style={styles.acceptText}>Accept</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Decline</Text>
-                                    </TouchableOpacity>
-                                </>
-                            )}
-                        </View>
+                        <Text style={styles.time}>Booked on :<Text style={{ fontWeight: '600' }}> {item.booking_date}</Text></Text>
+                        <Text style={styles.name}>{item?.customer?.full_name}</Text>
+                        <Text style={styles.studio}>{item?.service?.service_type} ({item?.booking_type})</Text>
+                        <Text style={styles.time}>{item.start_time} - {item.end_time}</Text>
+                        <Text style={styles.price}><Text style={{ ...styles.price, color: '#2F2F2F', fontSize: 14 }}>Total price : </Text>₹{item.total_amount}</Text>
                     </View>
                 </View>
+                {/* Action Buttons */}
+                <View style={styles.actions}>
+                    {item.status === 'pending' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenAcceptModal(item)} style={styles.acceptBtn}>
+                                <Text style={styles.acceptText}>Accept</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            } style={styles.contactBtn}>
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+
+                    {(item.status === 'cancelled' || item.status === 'completed') && (
+
+                        <TouchableOpacity
+                            style={styles.contactBtn}
+                            onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            }
+                        >
+                            <Text style={styles.contactBtnText}>
+                                {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {item.status === 'confirmed' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            } style={styles.contactBtn}>
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+                {expandedBookingId === item.id && (
+                    <View style={[styles.card, { marginTop: 20, marginBottom: 0 }]}>
+                        <View style={styles.info}>
+                            <Text style={styles.labelText}>Contact Information:</Text>
+                            <Text style={styles.time}>
+                                Phone: <Text style={{ fontWeight: '600' }}>+91 {item?.customer?.phone}</Text>
+                            </Text>
+                            <Text style={[styles.time, { marginBottom: 10 }]}>
+                                Email: <Text style={{ fontWeight: '600' }}>{item?.customer?.email}</Text>
+                            </Text>
+                        </View>
+                    </View>
+                )}
             </View>
         );
 
-    }
+    };
+
+
     return (
-        <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Dashboard views one */}
-            <View style={styles.statusViewsOutline}>
-                <View style={styles.bgImageCard}>
-                    <Icon name="camera-alt" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>24</Text>
-                        <Text style={styles.bgText}>Total Bookings</Text>
-                    </View>
-                </View>
+        <>
+            {
+                isLoading ?
+                    <View style={styles.loading}>
+                        <ActivityIndicator size="large" color="#034833" />
+                        <Text style={styles.loadingText}>Loading....</Text>
+                    </View> :
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        {/* Dashboard views one */}
+                        <View style={styles.statusViewsOutline}>
+                            <View style={styles.bgImageCard}>
+                                <Icon name="camera-alt" size={32} color="#2F2F2F" />
+                                <View>
+                                    <Text style={styles.bgCountText}>24</Text>
+                                    <Text style={styles.bgText}>Total Bookings</Text>
+                                </View>
+                            </View>
 
-                <View style={styles.bgImageCard}>
-                    <Icon name="currency-rupee" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>₹65,000</Text>
-                        <Text style={styles.bgText}>Total Spent</Text>
-                    </View>
-                </View>
-            </View>
-            {/* Dashboard views two */}
-            <View style={styles.statusViewsOutline}>
-                <View style={styles.bgImageCard}>
-                    <Icon name="favorite" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>8</Text>
-                        <Text style={styles.bgText}>Favorite Studios</Text>
-                    </View>
-                </View>
-            </View>
-            {/* Menu renders here*/}
+                            <View style={styles.bgImageCard}>
+                                <Icon name="currency-rupee" size={32} color="#2F2F2F" />
+                                <View>
+                                    <Text style={styles.bgCountText}>₹65,000</Text>
+                                    <Text style={styles.bgText}>Total Spent</Text>
+                                </View>
+                            </View>
+                        </View>
+                        {/* Dashboard views two */}
+                        <View style={styles.statusViewsOutline}>
+                            <View style={styles.bgImageCard}>
+                                <Icon name="favorite" size={32} color="#2F2F2F" />
+                                <View>
+                                    <Text style={styles.bgCountText}>8</Text>
+                                    <Text style={styles.bgText}>Favorite Studios</Text>
+                                </View>
+                            </View>
+                        </View>
+                        {/* Menu renders here*/}
 
-            <View style={styles.header}>
-                <Text style={styles.title}>Recent Booking</Text>
-                <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
-                    <Icon name="filter-list" size={24} color="#1B4332" />
-                    <Text style={styles.addButtonText}>Filter</Text>
-                </TouchableOpacity>
-            </View>
+                        <View style={styles.header}>
+                            <Text style={styles.title}>Recent Booking</Text>
+                            <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
+                                <Icon name="filter-list" size={24} color="#1B4332" />
+                                <Text style={styles.addButtonText}>Filter</Text>
+                            </TouchableOpacity>
+                        </View>
 
-            <FlatList
-                data={bookingData}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
-            />
-            <DashboardFilterPopup
-                visible={showFilter}
-                options={filterOptions}
-                selectedValue={selectedFilter}
-                onSelect={(val) => setSelectedFilter(val)}
-                onApply={(val) => setSelectedFilter(val)}
-                onClear={() => setSelectedFilter(null)}
-                onClose={() => setShowFilter(false)}
-            />
+                        <FlatList
+                            data={studioBookingList}
+                            keyExtractor={(item) => item.id}
+                            renderItem={renderItem}
+                            ListEmptyComponent={
+                                <View style={styles.noStudioOutline}>
+                                    <Icon name="camera-alt" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                                    <Text style={styles.noStudioText}>
+                                        No bookings found
+                                    </Text>
+                                    <Text style={styles.addStudioDesc}>
+                                        Start getting bookings — they’ll appear here once received.
+                                    </Text>
+                                </View>
+                            }
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
+                        />
+                        <DashboardFilterPopup
+                            visible={showFilter}
+                            options={filterOptions}
+                            selectedValue={selectedFilter}
+                            onSelect={(val) => setSelectedFilter(val)}
+                            onApply={(val) => setSelectedFilter(val)}
+                            onClear={() => setSelectedFilter(null)}
+                            onClose={() => setShowFilter(false)}
+                        />
 
-        </ScrollView>
+                        <CancelPhotographerBookingModal
+                            visible={showCancelModal.status}
+                            booking={showCancelModal.selectedBooking}
+                            onClose={onCloseCancelModal}
+                        />
+                        <AcceptPhotographerBookingModal
+                            visible={showAcceptModal.status}
+                            booking={showAcceptModal.selectedBooking}
+                            onClose={onCloseAcceptModal}
+                        />
+                    </ScrollView>}
+        </>
     )
 };
 
@@ -242,8 +356,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     image: {
-        width: 100,
-        height: 140,
+        width: 120,
+        height: 160,
         borderRadius: 8,
         marginRight: 12,
     },
@@ -279,13 +393,16 @@ const styles = StyleSheet.create({
     actions: {
         flexDirection: 'row',
         marginTop: 8,
+        alignItems: 'center',
+        justifyContent: 'center'
     },
     contactBtn: {
         borderWidth: 1,
         borderColor: '#007BFF',
         paddingHorizontal: 20,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 6,
+        marginRight: 8,
     },
     contactBtnText: {
         color: '#007BFF',
@@ -296,8 +413,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#DC3545',
         paddingHorizontal: 20,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 6,
+        marginRight: 8,
     },
     declineText: {
         color: '#DC3545',
@@ -307,7 +425,7 @@ const styles = StyleSheet.create({
     acceptBtn: {
         backgroundColor: '#034833',
         paddingHorizontal: 20,
-        paddingVertical: 6,
+        paddingVertical: 8,
         borderRadius: 6,
         marginRight: 8,
     },
@@ -315,5 +433,36 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 12,
         fontWeight: '600',
+    },
+    datelableOutline: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        marginBottom: 10
+    },
+    noStudioOutline: {
+        alignItems: 'center',
+        marginBottom: 60
+    },
+    loading: {
+        marginTop: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 20,
+        color: "#101010",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    noStudioText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500'
+    },
+    addStudioDesc: {
+        fontSize: 14,
+        color: '#999',
+        marginTop: 4
     },
 })

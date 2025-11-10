@@ -1,4 +1,3 @@
-import { Picker } from "@react-native-picker/picker";
 import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
@@ -17,6 +16,7 @@ import { launchImageLibrary } from "react-native-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch } from "react-redux";
 import { createStudioThunk, updateStudioThunk } from "../../features/studios/studiosSlice";
+import { Dropdown } from "react-native-element-dropdown";
 
 const AddStudioComponent = ({
   editStudio = false,
@@ -248,14 +248,14 @@ if (editStudioValues?.studio_images?.[0]?.image_url) {
     additionalRules: "",
   });
 
-  const studioTypes = [
-    "Portrait studio",
-    "Fashion studio",
-    "Product photography studio",
-    "Wedding studio",
-    "Commercial studio",
-    "Multi-purpose studio",
-  ]
+const studioTypes = [
+  { label: "Portrait studio", value: "Portrait studio" },
+  { label: "Fashion studio", value: "Fashion studio" },
+  { label: "Product photography studio", value: "Product photography studio" },
+  { label: "Wedding studio", value: "Wedding studio" },
+  { label: "Commercial studio", value: "Commercial studio" },
+  { label: "Multi-purpose studio", value: "Multi-purpose studio" },
+];
 
   const minBookingHours = [
     { label: "1 Hour", value: "1" },
@@ -271,18 +271,18 @@ if (editStudioValues?.studio_images?.[0]?.image_url) {
     { label: "24 Hours", value: "24" },
   ];
 
-  const cancellationPolicy = [
-    "Free cancellation upto 24 hours",
-    "Free cancellation upto 48 hours",
-    "Free cancellation upto 72 hours",
-    "Strict-No cancellation",
-  ]
+const cancellationPolicy = [
+  { label: "Free cancellation up to 24 hours", value: "Free cancellation up to 24 hours" },
+  { label: "Free cancellation up to 48 hours", value: "Free cancellation up to 48 hours" },
+  { label: "Free cancellation up to 72 hours", value: "Free cancellation up to 72 hours" },
+  { label: "Strict - No cancellation", value: "Strict - No cancellation" },
+];
 
-  const paymentPolicy = [
-    "50% advance payment required",
-    "100% advance payment required",
-    "Flexible payment terms",
-  ]
+const paymentPolicy = [
+  { label: "50% advance payment required", value: "50% advance payment required" },
+  { label: "100% advance payment required", value: "100% advance payment required" },
+  { label: "Flexible payment terms", value: "Flexible payment terms" },
+];
 
   const tabs = [
     { id: 1, name: "Basic Info" },
@@ -691,19 +691,20 @@ else{
             }
           />
           <Text style={styles.labelText} >Studio Type<Text style={styles.required}> *</Text></Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={basicInfo.studioType} // Must match one of Picker.Item values
-              onValueChange={(value) => setBasicInfo({ ...basicInfo, studioType: value })}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Select studio type" value="" />
-              {studioTypes.map((type, index) => (
-                <Picker.Item key={index} label={type} value={type} />
-              ))}
-            </Picker>
-          </View>
+          <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle} 
+                            data={studioTypes}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select studio type"
+                            value={basicInfo.studioType}
+                            onChange={(item) => setBasicInfo({ ...basicInfo, studioType: item.value })}
+                        />
           <Text style={styles.labelText} >Description<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={{ ...styles.input, ...styles.textArea }}
@@ -792,33 +793,35 @@ else{
             }
           />
           <Text style={styles.labelText} >Min Booking Hours<Text style={styles.required}> *</Text></Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={details.minBookingHours} // Must match one of Picker.Item values
-              onValueChange={(value) => setDetails({ ...details, minBookingHours: value })}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Select min hours" value="" />
-              {minBookingHours.map((minHours, index) => (
-                <Picker.Item key={index} label={minHours.label} value={minHours.value} />
-              ))}
-            </Picker>
-          </View>
+          <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle} 
+                            data={minBookingHours}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select min hours"
+                            value={details.minBookingHours}
+                            onChange={(item) => setDetails({ ...details, minBookingHours: item.value })}
+                        />
           <Text style={styles.labelText} >Max Booking Hours<Text style={styles.required}> *</Text></Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={details.maxBookingHours} // Must match one of Picker.Item values
-              onValueChange={(value) => setDetails({ ...details, maxBookingHours: value })}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Select max hours" value="" />
-              {maxBookingHours.map((maxHours, index) => (
-                <Picker.Item key={index} label={maxHours.label} value={maxHours.value} />
-              ))}
-            </Picker>
-          </View>
+          <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle} 
+                            data={maxBookingHours}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select max hours"
+                            value={details.maxBookingHours}
+                            onChange={(item) => setDetails({ ...details, maxBookingHours: item.value })}
+                        />
           <Text style={styles.labelText} >Base Price (per Hour)<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={styles.input}
@@ -942,33 +945,36 @@ else{
             </TouchableOpacity>
           )}
           <Text style={styles.labelText} >Cancellation Policy<Text style={styles.required}> *</Text></Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={images.cancellationPolicy} // Must match one of Picker.Item values
-              onValueChange={(value) => setImages({ ...images, cancellationPolicy: value })}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Select Cancellation Policy" value="" />
-              {cancellationPolicy.map((Cancellation, index) => (
-                <Picker.Item key={index} label={Cancellation} value={Cancellation} />
-              ))}
-            </Picker>
-          </View>
+          <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle} 
+                            data={cancellationPolicy}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select Cancellation Policy"
+                            value={images.cancellationPolicy}
+                            onChange={(item) => setImages({ ...images, cancellationPolicy: item.value })}
+                        />
           <Text style={styles.labelText} >Payment Policy<Text style={styles.required}> *</Text></Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={images.paymentPolicy} // Must match one of Picker.Item values
-              onValueChange={(value) => setImages({ ...images, paymentPolicy: value })}
-              dropdownIconColor="#034833" // Color of the arrow
-              style={{ color: '#101010' }} // Color of the selected text
-            >
-              <Picker.Item label="Select Payment Policy" value="" />
-              {paymentPolicy.map((payment, index) => (
-                <Picker.Item key={index} label={payment} value={payment} />
-              ))}
-            </Picker>
-          </View>
+
+          <Dropdown
+                            style={styles.dropdown}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                            inputSearchStyle={styles.inputSearchStyle}
+                            containerStyle={styles.dropdownContainerStyle} 
+                            data={paymentPolicy}
+                            maxHeight={300}
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Select Payment Policy"
+                            value={images.paymentPolicy}
+                            onChange={(item) => setImages({ ...images, paymentPolicy: item.value })}
+                        />
           <Text style={styles.labelText} >Additional Rules & Policies<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={{ ...styles.input, ...styles.textArea }}
@@ -1233,12 +1239,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 6,
   },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    marginBottom: 12,
-  },
   actionButtonOutline: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1425,4 +1425,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center'
   },
+  dropdown: {
+        height: 50,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        backgroundColor: '#fff',
+        marginBottom: 12,
+    },
+    placeholderStyle: {
+        fontSize: 14,
+        color: '#999',
+    },
+    selectedTextStyle: {
+        fontSize: 14,
+        color: '#101010',
+        fontWeight: '600',
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 14,
+        color: '#101010',
+        borderRadius: 10
+    },
+    dropdownContainerStyle: {
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  backgroundColor: '#fff',
+  paddingVertical: 6,
+  elevation: 5, // for Android shadow
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+},
 });

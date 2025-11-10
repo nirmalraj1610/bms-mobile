@@ -17,7 +17,6 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { philosopherTypography, typography } from '../constants/typography';
-import { Picker } from "@react-native-picker/picker";
 import { updateProfile, updateProfileImage } from "../features/profile/profileSlice";
 import { useDispatch } from "react-redux";
 import { getUserProfile } from "../lib/api";
@@ -25,9 +24,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { clearToken, clearUserData } from "../lib/http";
 import imagePaths from "../constants/imagePaths";
 import LinearGradient from "react-native-linear-gradient";
+import { Dropdown } from "react-native-element-dropdown";
 
 const ProfileScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const dispatch = useDispatch();
   const flatListRef = useRef(null);
   const isFocused = useIsFocused();
@@ -76,14 +76,22 @@ const ProfileScreen: React.FC = () => {
     description: "",
   });
 
-  const [locations, setLocations] = useState([
-    "Mumbai",
-    "Delhi",
-    "Bangalore",
-    "Chennai",
-    "Hyderabad",
-    "Pune",
-  ]);
+  const locations = [
+    { label: "Mumbai", value: "Mumbai" },
+    { label: "Delhi", value: "Delhi" },
+    { label: "Bangalore", value: "Bangalore" },
+    { label: "Chennai", value: "Chennai" },
+    { label: "Hyderabad", value: "Hyderabad" },
+    { label: "Pune", value: "Pune" },
+  ];
+
+  const documentTypes = [
+    { label: "Aadhar Card", value: "aadhar" },
+    { label: "Voter ID", value: "voter" },
+    { label: "PAN Card", value: "pan" },
+    { label: "Passport", value: "passport" },
+    { label: "Driving Licence", value: "licence" },
+  ];
 
   // VERIFICATION STATES
   const [selectedDocType, setSelectedDocType] = useState("");
@@ -142,9 +150,9 @@ const ProfileScreen: React.FC = () => {
   const renderWhuChooseCard = ({ item, index }: { item: whyChoose, index: number }) => (
     <LinearGradient key={item.id}
       start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 0 }}
-  colors={['#2CBA9E', '#CEF9ED']} 
-  style={[styles.whyCard, { marginLeft: index == 0 ? 5 : -5, marginRight: whyChooseData.length - 1 ? 10 : 5, width: WHY_CHOOSE_CARD_WIDTH }]}>
+      end={{ x: 1, y: 0 }}
+      colors={['#2CBA9E', '#CEF9ED']}
+      style={[styles.whyCard, { marginLeft: index == 0 ? 5 : -5, marginRight: whyChooseData.length - 1 ? 10 : 5, width: WHY_CHOOSE_CARD_WIDTH }]}>
       <View>
         <Image
           source={item.image}
@@ -410,19 +418,21 @@ const ProfileScreen: React.FC = () => {
 
                         {/* Dropdown */}
                         <Text style={styles.labelText} >Location</Text>
-                        <View style={styles.pickerWrapper}>
-                          <Picker
-                            selectedValue={profile.location} // Must match one of Picker.Item values
-                            onValueChange={(value) => setProfile({ ...profile, location: value })}
-                            dropdownIconColor="#034833" // Color of the arrow
-                            style={{ color: '#101010' }} // Color of the selected text
-                          >
-                            <Picker.Item label="Choose location" value="" />
-                            {locations.map((loc, index) => (
-                              <Picker.Item key={index} label={loc} value={loc} />
-                            ))}
-                          </Picker>
-                        </View>
+
+                        <Dropdown
+                          style={styles.dropdown}
+                          placeholderStyle={styles.placeholderStyle}
+                          selectedTextStyle={styles.selectedTextStyle}
+                          inputSearchStyle={styles.inputSearchStyle}
+                          containerStyle={styles.dropdownContainerStyle}
+                          data={locations}
+                          maxHeight={300}
+                          labelField="label"
+                          valueField="value"
+                          placeholder="Select your location"
+                          value={profile.location}
+                          onChange={(item) => setProfile({ ...profile, location: item.value })}
+                        />
 
                         <Text style={styles.labelText} >About</Text>
 
@@ -450,34 +460,22 @@ const ProfileScreen: React.FC = () => {
               {activeTab === "verification" && !loading && (
                 <ScrollView contentContainerStyle={{ padding: 16 }}>
                   <Text style={styles.labelText} >Select Document Type</Text>
-                  <View style={styles.pickerWrapper}>
-                    <Picker
-                      selectedValue={selectedDocType} // Must match one of Picker.Item values
-                      onValueChange={(value) => setSelectedDocType(value)}
-                      dropdownIconColor="#034833" // Color of the arrow
-                      style={{ color: '#101010' }} // Color of the selected text
-                    >
-                      <Picker.Item label="Choose document type" value="" />
-                      <Picker.Item label="Aadhar Card" value="aadhar" />
-                      <Picker.Item label="Voter ID" value="voter" />
-                      <Picker.Item label="PAN Card" value="pan" />
-                      <Picker.Item label="Passport" value="passport" />
-                      <Picker.Item label="Driving Licence" value="licence" />
-                    </Picker>
-                  </View>
+                  <Dropdown
+                    style={styles.dropdown}
+                    placeholderStyle={styles.placeholderStyle}
+                    selectedTextStyle={styles.selectedTextStyle}
+                    inputSearchStyle={styles.inputSearchStyle}
+                    containerStyle={styles.dropdownContainerStyle}
+                    data={documentTypes}
+                    maxHeight={300}
+                    labelField="label"
+                    valueField="value"
+                    placeholder="Choose document type"
+                    value={selectedDocType}
+                    onChange={(item) => setSelectedDocType(item.value)}
+                  />
 
                   <Text style={styles.labelText} >Select a Document</Text>
-
-                  {/* <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-                    <Image
-                      source={selectedFile ? { uri: selectedFile?.uri } : require('../assets/images/camera.png')}
-                      style={selectedFile ? styles.selectedImage : styles.placeholderImage}
-                      resizeMode={selectedFile ? "cover" : 'contain'}
-                    />
-                    <Text style={styles.uploadText}>
-                      {selectedFile ? selectedFile.fileName : "Select Document"}
-                    </Text>
-                  </TouchableOpacity> */}
                   {selectedFile ?
                     <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
                       <Image
@@ -726,12 +724,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     color: "#101010",
   },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    marginBottom: 12,
-  },
   textArea: {
     height: 100,
     textAlignVertical: "top",
@@ -912,8 +904,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-      whyHeading: {
-      marginBottom: 10,
+  whyHeading: {
+    marginBottom: 10,
     fontSize: 18,
     ...typography.bold,
     color: '#034833',
@@ -1044,6 +1036,42 @@ const styles = StyleSheet.create({
   },
   toggleButtonTextActive: {
     color: COLORS.background,
+  },
+  dropdown: {
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+    marginBottom: 12,
+  },
+  placeholderStyle: {
+    fontSize: 14,
+    color: '#999',
+  },
+  selectedTextStyle: {
+    fontSize: 14,
+    color: '#101010',
+    fontWeight: '600',
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 14,
+    color: '#101010',
+    borderRadius: 10
+  },
+  dropdownContainerStyle: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    paddingVertical: 6,
+    elevation: 5, // for Android shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
 });
 

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { photographersState } from './photographers.types';
-import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi , createphotographer, createPhotographerBookingService } from './photographers.service';
+import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi , createphotographer, createPhotographerBookingService, getPhotographerBookings } from './photographers.service';
 
 const initialState: photographersState = {
   search: { items: [], total: 0, loading: false, error: null },
@@ -64,6 +64,41 @@ export const getPhotographerAvailability = createAsyncThunk(
     }
   }
 );
+
+
+// ✅ 3️⃣ Thunk with optional params
+export const loadPhotographerBookingsThunk = createAsyncThunk(
+  "photographer-bookings",
+  async (params: {
+  status?: string;
+  from_date?: string;
+  to_date?: string;
+  limit?: number;
+  offset?: number;
+}, { rejectWithValue }) => {
+    try {
+      const res = await getPhotographerBookings(params);
+      console.log("API Response:", res);
+      const bookings = res.bookings || [];
+      return bookings;
+    } catch (err: any) {
+      console.log("loadPhotographerBookingsThunk Error:", err);
+
+      // Handle authentication errors gracefully
+      if (
+        err?.status === 401 ||
+        err?.error?.includes("unauthorized") ||
+        err?.error?.includes("authentication")
+      ) {
+        console.log("Authentication error detected, user not logged in");
+        return [];
+      }
+
+      return rejectWithValue(err?.error || "Failed to load photographer bookings");
+    }
+  }
+);
+
 
 export const createReview = createAsyncThunk(
   'photographers/createReview',

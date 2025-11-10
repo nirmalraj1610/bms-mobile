@@ -6,7 +6,7 @@ import { useDispatch } from "react-redux";
 import { doAcceptBooking } from "../../features/bookings/bookingsSlice";
 import imagePaths from "../../constants/imagePaths";
 
-const AcceptStudioBookingModal = ({ visible = false, onClose = () => { }, booking = {} }) => {
+const AcceptPhotographerBookingModal = ({ visible = false, onClose = () => { }, booking = {} }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
 
@@ -52,20 +52,20 @@ const AcceptStudioBookingModal = ({ visible = false, onClose = () => { }, bookin
 
           <View style={{ marginVertical: 8 }}>
             <View style={styles.cardContent}>
-              <Image source={imagePaths.StudioPlaceHolderImage} resizeMode="cover" style={styles.image} />
+                    <Image source={imagePaths.PhotographerPlaceHolderImage} resizeMode="cover" style={styles.image} />
 
-              <View style={styles.info}>
-                <Text style={styles.bookingId}>
-                  Booking ID: <Text style={{ fontWeight: '600' }}>{booking?.id}</Text>
-                </Text>
-                <Text style={styles.name}>{booking?.customer?.full_name}</Text>
-                <Text style={styles.date}>Date: <Text style={{ fontWeight: '600' }}>{booking?.booking_date}</Text></Text>
-                <Text style={styles.time}>Booking type: <Text style={{ fontWeight: '600' }}>{booking?.booking_type}</Text></Text>
-                <Text style={styles.time}>Start time: <Text style={{ fontWeight: '600' }}>{booking?.start_time}</Text></Text>
-                <Text style={styles.time}>End time: <Text style={{ fontWeight: '600' }}>{booking?.end_time}</Text></Text>
-                <Text style={styles.price}>₹{booking?.total_amount}</Text>
-              </View>
-            </View>
+                    <View style={styles.info}>
+                        <Text style={styles.bookingId}>
+                            Booking ID:<Text style={{ fontWeight: '600' }}> {booking.id}</Text>
+                        </Text>
+                        <Text style={styles.time}>Booked on :<Text style={{ fontWeight: '600' }}> {booking.booking_date}</Text></Text>
+                        <Text style={styles.name}>{booking?.customer?.full_name}</Text>
+                        <Text style={styles.studio}>{booking?.service?.service_type} ({booking?.booking_type})</Text>
+                        <Text style={styles.time}>{booking?.start_time} - {booking?.end_time}</Text>
+                        <Text style={styles.studio}>+91 {booking?.customer?.phone}</Text>
+                        <Text style={styles.price}><Text style={{ ...styles.price, color: '#2F2F2F', fontSize: 14 }}>Total price : </Text>₹{booking?.total_amount}</Text>
+                    </View>
+                </View>
           </View>
 
           <View style={styles.modalActions}>
@@ -86,7 +86,7 @@ const AcceptStudioBookingModal = ({ visible = false, onClose = () => { }, bookin
   )
 }
 
-export default AcceptStudioBookingModal;
+export default AcceptPhotographerBookingModal;
 
 const styles = StyleSheet.create({
   modalBackdrop: {
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: 120,
-    height: 180,
+    height: 160,
     borderRadius: 8,
     marginRight: 12,
   },

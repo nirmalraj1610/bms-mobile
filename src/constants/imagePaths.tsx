@@ -18,7 +18,8 @@ const imagePaths = {
     SquareFt: require('../assets/images/SquareFt.png'),
     Heart: require('../assets/images/heart.png'),
     HeartSelected: require('../assets/images/HeartSelected.png'),
-    rightArrow: require('../assets/images/rightArrow.png')
+    rightArrow: require('../assets/images/rightArrow.png'),
+    PhotographerPlaceHolderImage: require('../assets/images/photographer_placeholder.jpg')
 };
 
 export default imagePaths;
