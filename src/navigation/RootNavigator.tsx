@@ -14,6 +14,8 @@ import OurWorksScreen from '../screens/OurWorksScreen';
 import GalleryScreen from '../screens/GalleryScreen';
 import { RootStackParamList } from '../types';
 import { typography } from '../constants/typography';
+import AllStudiosScreen from '../screens/AllStudiosScreen';
+import AllPhotographersScreen from '../screens/AllPhotographersScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -31,6 +33,20 @@ const RootNavigator: React.FC = () => {
         <Stack.Screen name="GettingStarted" component={GettingStartedScreen} />
         <Stack.Screen name="Auth" component={AuthNavigator} />
         <Stack.Screen name="Main" component={MainTabNavigator} />
+        <Stack.Screen 
+          name="AllStudios" 
+          component={AllStudiosScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="AllPhotographers" 
+          component={AllPhotographersScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen 
           name="StudioDetails" 
           component={StudioDetailsScreen}

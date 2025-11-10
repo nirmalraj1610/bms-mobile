@@ -49,6 +49,7 @@ const HomeScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [photoErrorIds, setPhotoErrorIds] = useState<{ [key: string]: boolean }>({});
+  // View-all now navigates to a dedicated AllStudios screen
 
   // Location modal state
   const [locationModalVisible, setLocationModalVisible] = useState(false);
@@ -798,6 +799,9 @@ const renderRated = ({ item }: { item: any }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recommended Studios for you</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('AllStudios')} accessibilityRole="button" accessibilityLabel={'Show all studios'}>
+              <Icon name={'keyboard-arrow-down'} size={24} color={COLORS.text.primary} />
+            </TouchableOpacity>
           </View>
           {studiosState.loading ? (
             <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
@@ -807,13 +811,13 @@ const renderRated = ({ item }: { item: any }) => {
             </Text>
           ) : (
             <FlatList
-               data={studiosState.search.results as unknown as Studio[]}
-               renderItem={renderRecommendCard}
-               keyExtractor={(item) => item.id}
-               horizontal
-               showsHorizontalScrollIndicator={false}
-               contentContainerStyle={styles.studioList}
-             />
+              data={studiosState.search.results as unknown as Studio[]}
+              renderItem={renderRecommendCard}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.studioList}
+            />
           )}
         </View>
 
@@ -821,9 +825,9 @@ const renderRated = ({ item }: { item: any }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Rated Photographers</Text>
-            {/* <TouchableOpacity onPress={navigateToBrowse}>
-              <Text style={styles.viewAllButton}>View All</Text>
-            </TouchableOpacity> */}
+            <TouchableOpacity onPress={() => navigation.navigate('AllPhotographers' as never)} accessibilityRole="button" accessibilityLabel={'Show all photographers'}>
+              <Icon name={'keyboard-arrow-down'} size={24} color={COLORS.text.primary} />
+            </TouchableOpacity>
           </View>
           {photographersState.loading ? (
             <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />

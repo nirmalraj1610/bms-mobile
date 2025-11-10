@@ -118,6 +118,8 @@ export type RootStackParamList = {
   GettingStarted: undefined;
   Auth: undefined;
   Main: undefined;
+  AllStudios: undefined;
+  AllPhotographers: undefined;
   StudioDetails: { studioId: string };
   PhotographerDetails: { photographerId: string };
   Booking: { studioId: string };
