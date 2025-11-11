@@ -325,6 +325,7 @@ export interface PhotographerServicePayload {
   base_price: number;
   duration_hours: number;
   equipment_included: string[];
+  image_url?: string
 }
 
 export interface PhotographerServiceUpdatePayload {
@@ -336,6 +337,7 @@ export interface PhotographerServiceUpdatePayload {
   duration_hours: number;
   equipment_included: string[];
   active: boolean;
+  image_url?: string
 }
 
 export interface PhotographerServiceItem {

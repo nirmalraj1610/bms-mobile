@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { photographersState } from './photographers.types';
-import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi , createphotographer, createPhotographerBookingService, getPhotographerBookings } from './photographers.service';
+import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi, createphotographer, createPhotographerBookingService, getPhotographerBookings } from './photographers.service';
+import { postPhotographerService, updatePhotographerServiceApi } from '../../lib/api';
+import { PhotographerServicePayload, PhotographerServiceUpdatePayload } from '../../types/api';
 
 const initialState: photographersState = {
   search: { items: [], total: 0, loading: false, error: null },
@@ -54,6 +56,28 @@ export const getPhotographerServices = createAsyncThunk(
   }
 );
 
+export const createPhotographerServices = createAsyncThunk(
+  'photographers/services/create',
+  async (payload: PhotographerServicePayload, { rejectWithValue }) => {
+    try {
+      return await postPhotographerService(payload);
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to create photographer services');
+    }
+  }
+);
+
+export const updatePhotographerServices = createAsyncThunk(
+  'photographers/services/update',
+  async (payload: PhotographerServiceUpdatePayload, { rejectWithValue }) => {
+    try {
+      return await updatePhotographerServiceApi(payload);
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to create photographer services');
+    }
+  }
+);
+
 export const getPhotographerAvailability = createAsyncThunk(
   'photographers/availability',
   async ({ id, date }: { id: string; date?: string }, { rejectWithValue }) => {
@@ -70,12 +94,12 @@ export const getPhotographerAvailability = createAsyncThunk(
 export const loadPhotographerBookingsThunk = createAsyncThunk(
   "photographer-bookings",
   async (params: {
-  status?: string;
-  from_date?: string;
-  to_date?: string;
-  limit?: number;
-  offset?: number;
-}, { rejectWithValue }) => {
+    status?: string;
+    from_date?: string;
+    to_date?: string;
+    limit?: number;
+    offset?: number;
+  }, { rejectWithValue }) => {
     try {
       const res = await getPhotographerBookings(params);
       console.log("API Response:", res);
@@ -115,12 +139,12 @@ export const createReview = createAsyncThunk(
 export const createphotographers = createAsyncThunk(
   'photographers/create',
   async (payload: {
-  name: string;
-  description: string;
-  location: object; 
-  pricing: object;  
-  amenities: string[];
-}, { rejectWithValue }) => {
+    name: string;
+    description: string;
+    location: object;
+    pricing: object;
+    amenities: string[];
+  }, { rejectWithValue }) => {
     try {
       const res = await createphotographer(payload);
       return res;
@@ -132,13 +156,13 @@ export const createphotographers = createAsyncThunk(
 
 export const createPhotographerBooking = createAsyncThunk(
   'booking-photographer',
-  async (payload: { 
-    photographer_id: string; 
-    service_id: string; 
-    booking_date: string; 
-    start_time: string; 
-    end_time: string; 
-    total_amount: number 
+  async (payload: {
+    photographer_id: string;
+    service_id: string;
+    booking_date: string;
+    start_time: string;
+    end_time: string;
+    total_amount: number
   }, { rejectWithValue }) => {
     try {
       const res = await createPhotographerBookingService(payload);
@@ -195,7 +219,7 @@ const photographersSlice = createSlice({
         state.review.submitting = false;
         const newReview = action.payload?.review;
         if (newReview && state.detail.photographer) {
-          const existing = state.detail.photographer.total_reviews  || [];
+          const existing = state.detail.photographer.total_reviews || [];
         }
       })
       .addCase(createReview.rejected, (state, action) => {

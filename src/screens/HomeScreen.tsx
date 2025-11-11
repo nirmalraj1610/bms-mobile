@@ -35,6 +35,8 @@ import { studiosSearchThunk, toggleFavoriteThunk, loadFavoritesThunk } from '../
 import { getphotographersSearch } from '../features/photographers/photographersSlice';
 import { getUserData } from '../lib/http';
 import imagePaths from '../constants/imagePaths';
+import RecommendCardSkeleton from '../components/skeletonLoaders/RecommendCardSkeleton';
+import RatedCardSkeleton from '../components/skeletonLoaders/RatedCardSkeleton';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -67,7 +69,7 @@ const HomeScreen: React.FC = () => {
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
   const photographersState = useSelector((state: RootState) => state.photographers);
-console.log(studiosState,'studiooooooo');
+  console.log(studiosState, 'studiooooooo');
 
   // Get studios and photographers data
   const studiosError = studiosState.searchError;
@@ -79,7 +81,7 @@ console.log(studiosState,'studiooooooo');
       const token = await AsyncStorage.getItem('auth_token');
       console.log('=== Auth Check Debug ===');
       console.log('Token exists:', !!token);
-      
+
       if (token) {
         console.log('User is authenticated, loading favorites...');
         dispatch(loadFavoritesThunk());
@@ -95,7 +97,7 @@ console.log(studiosState,'studiooooooo');
   useEffect(() => {
     console.log('=== HomeScreen useEffect Debug ===');
     console.log('Component mounted, dispatching initial data fetches...');
-    
+
     // Fetch studios with basic search parameters
     dispatch(studiosSearchThunk({
       q: '',
@@ -114,7 +116,7 @@ console.log(studiosState,'studiooooooo');
       page: 1,
       limit: 10
     }));
-    
+
     // Check authentication before loading favorites
     checkAuthAndLoadFavorites();
   }, [dispatch]);
@@ -385,7 +387,7 @@ console.log(studiosState,'studiooooooo');
     let token: string | null = null;
     try {
       token = await AsyncStorage.getItem('auth_token');
-    } catch {}
+    } catch { }
 
     // 2) If no token, prompt login immediately
     if (!token) {
@@ -404,7 +406,7 @@ console.log(studiosState,'studiooooooo');
           return;
         }
       }
-    } catch {}
+    } catch { }
 
     // 4) Proceed to toggle favorite and catch auth errors to prompt login
     const isFavorited = isStudioFavorited(studioId);
@@ -419,7 +421,7 @@ console.log(studiosState,'studiooooooo');
         return;
       }
       // Swallow other errors silently or log
-      try { console.log('toggleFavorite error:', err); } catch {}
+      try { console.log('toggleFavorite error:', err); } catch { }
     }
   };
 
@@ -442,7 +444,7 @@ console.log(studiosState,'studiooooooo');
     // add more if needed
   };
 
-    const whyChooseImages = {
+  const whyChooseImages = {
     camera: require('../assets/images/camera.png'),
     // add more if needed
   };
@@ -453,7 +455,7 @@ console.log(studiosState,'studiooooooo');
     image: ImageSourcePropType;
   };
 
-    type whyChoose = {
+  type whyChoose = {
     id: string;
     image: ImageSourcePropType;
     title: string;
@@ -467,7 +469,7 @@ console.log(studiosState,'studiooooooo');
     { id: 'wedding', label: 'Wedding', image: tabImages.wedding },
   ];
 
-    const whyChooseData: whyChoose[] = [
+  const whyChooseData: whyChoose[] = [
     { id: '1', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
     { id: '2', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
     { id: '3', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
@@ -561,36 +563,36 @@ console.log(studiosState,'studiooooooo');
           source={getStudioPrimaryImage(item) ? { uri: getStudioPrimaryImage(item) } : require('../assets/images/studio_placeholder.png')}
           style={styles.recommendImage}
         />
-        
+
         {/* Rating Badge */}
         <View style={styles.ratingBadge}>
-          <Image source={imagePaths.Favorites} resizeMode='contain' tintColor={'#FF7441'} style={styles.locationIcon}/>
+          <Image source={imagePaths.Favorites} resizeMode='contain' tintColor={'#FF7441'} style={styles.locationIcon} />
           <Text style={styles.ratingBadgeText}>{item.rating}</Text>
         </View>
-        
+
         {/* Heart Icon */}
-          <TouchableOpacity 
-            style={styles.heartIcon}
-            onPress={() => handleToggleFavorite(item.id)}
-          >
-          <Image resizeMode='contain' source={isStudioFavorited(item.id) ? imagePaths.HeartSelected : imagePaths.Heart} tintColor={'#FF7441'} style={styles.favorites}/>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.heartIcon}
+          onPress={() => handleToggleFavorite(item.id)}
+        >
+          <Image resizeMode='contain' source={isStudioFavorited(item.id) ? imagePaths.HeartSelected : imagePaths.Heart} tintColor={'#FF7441'} style={styles.favorites} />
+        </TouchableOpacity>
       </View>
-      
+
       <View style={styles.recommendInfo}>
         <View style={styles.recommendBottomRow}>
           <View style={styles.recommendLeftInfo}>
-               <Text style={styles.recommendName} numberOfLines={1}>{item.name}</Text>
+            <Text style={styles.recommendName} numberOfLines={1}>{item.name}</Text>
             <View style={styles.recommendMeta}>
               <Image source={imagePaths.Location} resizeMode='contain' style={styles.locationIcon} />
               <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
             </View>
             <View style={styles.recommendMeta}>
               <Image source={imagePaths.SquareFt} resizeMode='contain' style={styles.locationIcon} />
-            <Text style={styles.recommendSqft}>800 sq ft</Text>
+              <Text style={styles.recommendSqft}>800 sq ft</Text>
             </View>
           </View>
-          
+
           <View style={styles.recommendPriceRow}>
             <Text style={styles.recommendFromText}>From</Text>
             <Text style={styles.recommendPrice}>₹{(item.pricing?.hourly_rate || item.pricing?.hourly || 0).toLocaleString()}</Text>
@@ -600,131 +602,131 @@ console.log(studiosState,'studiooooooo');
       </View>
     </TouchableOpacity>
   );
-// Replace the renderRated function with this:
-const renderRated = ({ item }: { item: any }) => {
-  // Handle photographer data structure from actual API
-  const isPhotographer = item.services && Array.isArray(item.services);
-  
-  if (isPhotographer) {
-    // Photographer data structure
-    const minPrice = item.services.length > 0 
-      ? Math.min(...item.services.map((s: any) => s.base_price))
-      : 0;
-    const imageUrl = (item.portfolio && item.portfolio.length > 0 
-      ? item.portfolio[0].image_url 
-      : item.profile_image_url) || '';
-    
-    return (
-      <TouchableOpacity 
-        style={styles.ratedCard} 
-        onPress={() => navigateToPhotographerDetails(item.id)}
-      >
-        <View style={styles.ratedImageContainer}>
-          <Image 
-            source={photoErrorIds[item.id] || !imageUrl ? require('../assets/images/photographer_placeholder.jpg') : { uri: imageUrl }}
-            style={styles.ratedImage}
-            onError={() => setPhotoErrorIds(prev => ({ ...prev, [item.id]: true }))}
-          />
-          <TouchableOpacity 
-            style={styles.ratedHeartIcon}
-            onPress={() => handleToggleFavorite(item.id)}
-          >
-            <Image resizeMode='contain' source={isStudioFavorited(item.id) ? imagePaths.HeartSelected : imagePaths.Heart} tintColor={'#FF7441'} style={styles.favorites}/>
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.ratedInfo}>
-          <View style={styles.ratedTopRow}>
-            {renderStars(item.rating || 0)}
-          </View>
-          
-          <Text style={styles.ratedName} numberOfLines={1}>Photographer </Text>
-          
-          <View style={styles.ratedLocationRow}>
-            <Image resizeMode='contain' source={imagePaths.Location} style={styles.locationIcon}/>
-            <Text style={styles.ratedLocation} numberOfLines={1}>Available</Text>
-          </View>
-          
-          <View style={styles.ratedBottomRow}>
-            <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{minPrice?.toLocaleString() || 'N/A'}</Text> <Text style={styles.ratedPerHour}>Per session</Text></Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  } else {
-    // Studio data structure (existing logic)
-    return (
-      <TouchableOpacity 
-        style={styles.ratedCard} 
-        onPress={() => navigateToStudioDetails(item.id)}
-      >
-        <View style={styles.ratedImageContainer}>
-          <Image 
-            source={{ uri: getStudioPrimaryImage(item) }} 
-            style={styles.ratedImage} 
-          />
-          <TouchableOpacity 
-            style={styles.ratedHeartIcon}
-            onPress={() => handleToggleFavorite(item.id)}
-          >
-            <Icon 
-              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
-              size={16} 
-              color="#FF6D38" 
+  // Replace the renderRated function with this:
+  const renderRated = ({ item }: { item: any }) => {
+    // Handle photographer data structure from actual API
+    const isPhotographer = item.services && Array.isArray(item.services);
+
+    if (isPhotographer) {
+      // Photographer data structure
+      const minPrice = item.services.length > 0
+        ? Math.min(...item.services.map((s: any) => s.base_price))
+        : 0;
+      const imageUrl = (item.portfolio && item.portfolio.length > 0
+        ? item.portfolio[0].image_url
+        : item.profile_image_url) || '';
+
+      return (
+        <TouchableOpacity
+          style={styles.ratedCard}
+          onPress={() => navigateToPhotographerDetails(item.id)}
+        >
+          <View style={styles.ratedImageContainer}>
+            <Image
+              source={photoErrorIds[item.id] || !imageUrl ? require('../assets/images/photographer_placeholder.jpg') : { uri: imageUrl }}
+              style={styles.ratedImage}
+              onError={() => setPhotoErrorIds(prev => ({ ...prev, [item.id]: true }))}
             />
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.ratedInfo}>
-          <View style={styles.ratedTopRow}>
-            {renderStars(item.average_rating || 0)}
+            <TouchableOpacity
+              style={styles.ratedHeartIcon}
+              onPress={() => handleToggleFavorite(item.id)}
+            >
+              <Image resizeMode='contain' source={isStudioFavorited(item.id) ? imagePaths.HeartSelected : imagePaths.Heart} tintColor={'#FF7441'} style={styles.favorites} />
+            </TouchableOpacity>
           </View>
-          
-          <Text style={styles.ratedName} numberOfLines={1}>{item.name}</Text>
-          
-          <View style={styles.ratedLocationRow}>
-            <Icon name="place" size={14} color={COLORS.text.secondary} />
-            <Text style={styles.ratedLocation} numberOfLines={1}>{item.location?.city || 'Location not specified'}</Text>
-          </View>
-          
-          <View style={styles.ratedBottomRow}>
-            <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{item.pricing?.hourly_rate?.toLocaleString() || 'N/A'}</Text> <Text style={styles.ratedPerHour}>Per hour</Text></Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-};
 
+          <View style={styles.ratedInfo}>
+            <View style={styles.ratedTopRow}>
+              {renderStars(item.rating || 0)}
+            </View>
 
-  const renderWhuChooseCard =({item, index}: {item: whyChoose, index: number }) => (
-    <LinearGradient
-  key={item.id}
-  colors={['#2CBA9E', '#CEF9ED']}
-  start={{ x: 0, y: 0 }}   // gradient starts from the left
-  end={{ x: 1, y: 0 }}     // gradient ends at the right
-  style={[
-    styles.whyCard,
-    {
-      marginLeft: index === 0 ? 10 : 5,
-      marginRight: index === whyChooseData.length - 1 ? 10 : 5,
-    },
-  ]}
->
-            <View>
-              <Image 
-                source={item.image} 
-                style={styles.whyIconImage}
-                resizeMode="contain"
+            <Text style={styles.ratedName} numberOfLines={1}>Photographer </Text>
+
+            <View style={styles.ratedLocationRow}>
+              <Image resizeMode='contain' source={imagePaths.Location} style={styles.locationIcon} />
+              <Text style={styles.ratedLocation} numberOfLines={1}>Available</Text>
+            </View>
+
+            <View style={styles.ratedBottomRow}>
+              <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{minPrice?.toLocaleString() || 'N/A'}</Text> <Text style={styles.ratedPerHour}>Per session</Text></Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    } else {
+      // Studio data structure (existing logic)
+      return (
+        <TouchableOpacity
+          style={styles.ratedCard}
+          onPress={() => navigateToStudioDetails(item.id)}
+        >
+          <View style={styles.ratedImageContainer}>
+            <Image
+              source={{ uri: getStudioPrimaryImage(item) }}
+              style={styles.ratedImage}
+            />
+            <TouchableOpacity
+              style={styles.ratedHeartIcon}
+              onPress={() => handleToggleFavorite(item.id)}
+            >
+              <Icon
+                name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"}
+                size={16}
+                color="#FF6D38"
               />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.ratedInfo}>
+            <View style={styles.ratedTopRow}>
+              {renderStars(item.average_rating || 0)}
             </View>
-            <View style={styles.whyTextContent}>
-              <Text style={styles.whyTitle}>{item.title}</Text>
-              <Text style={styles.whySubtitle}>
-                {item.desc}
-              </Text>
+
+            <Text style={styles.ratedName} numberOfLines={1}>{item.name}</Text>
+
+            <View style={styles.ratedLocationRow}>
+              <Icon name="place" size={14} color={COLORS.text.secondary} />
+              <Text style={styles.ratedLocation} numberOfLines={1}>{item.location?.city || 'Location not specified'}</Text>
             </View>
-          </LinearGradient>
+
+            <View style={styles.ratedBottomRow}>
+              <Text style={styles.ratedFromText}>From <Text style={styles.ratedPrice}>₹{item.pricing?.hourly_rate?.toLocaleString() || 'N/A'}</Text> <Text style={styles.ratedPerHour}>Per hour</Text></Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+  };
+
+
+  const renderWhuChooseCard = ({ item, index }: { item: whyChoose, index: number }) => (
+    <LinearGradient
+      key={item.id}
+      colors={['#2CBA9E', '#CEF9ED']}
+      start={{ x: 0, y: 0 }}   // gradient starts from the left
+      end={{ x: 1, y: 0 }}     // gradient ends at the right
+      style={[
+        styles.whyCard,
+        {
+          marginLeft: index === 0 ? 10 : 5,
+          marginRight: index === whyChooseData.length - 1 ? 10 : 5,
+        },
+      ]}
+    >
+      <View>
+        <Image
+          source={item.image}
+          style={styles.whyIconImage}
+          resizeMode="contain"
+        />
+      </View>
+      <View style={styles.whyTextContent}>
+        <Text style={styles.whyTitle}>{item.title}</Text>
+        <Text style={styles.whySubtitle}>
+          {item.desc}
+        </Text>
+      </View>
+    </LinearGradient>
   )
 
   // const renderGridCard = ({ item }: { item: Studio }) => (
@@ -761,10 +763,10 @@ const renderRated = ({ item }: { item: any }) => {
                 Hello<Text style={styles.userName}> Jana !</Text>
               </Text>
             </View>
-            
+
             <View style={styles.headerRight}>
               <View style={styles.rightColumn}>
-                 <TouchableOpacity style={styles.notificationIconOutline}>
+                <TouchableOpacity style={styles.notificationIconOutline}>
                   <Image
                     source={require('../assets/images/notification.png')}
                     style={styles.notificationIcon}
@@ -778,12 +780,12 @@ const renderRated = ({ item }: { item: any }) => {
                     <Text style={styles.locationText}>{selectedLocationName}</Text>
                   </TouchableOpacity>
                 </View>
-                
-               
+
+
               </View>
             </View>
           </View>
-          
+
           {/* Search Bar */}
           <View style={styles.searchContainer}>
             <View style={styles.searchInput}>
@@ -808,9 +810,9 @@ const renderRated = ({ item }: { item: any }) => {
                   setTimeout(() => setShowOverlay(false), 100);
                 }}
               />
-              <TouchableOpacity style={styles.searchIconButton} onPress={navigateToSearch}>
-                <Image source={imagePaths.Search} style={styles.searchIcon} /> 
-              </TouchableOpacity>
+              <View style={styles.searchIconButton} >
+                <Image source={imagePaths.Search} style={styles.searchIcon} />
+              </View>
               {locationError ? (
                 <View style={{ marginTop: 8 }}>
                   <Text style={styles.locationErrorText}>{locationError}</Text>
@@ -871,7 +873,7 @@ const renderRated = ({ item }: { item: any }) => {
                     );
                   }}
                   ListEmptyComponent={() => (
-                    <View style={styles.searchOverlayEmpty}> 
+                    <View style={styles.searchOverlayEmpty}>
                       <Text style={styles.searchOverlayEmptyText}>No studios found</Text>
                     </View>
                   )}
@@ -903,8 +905,13 @@ const renderRated = ({ item }: { item: any }) => {
               </View>
             </TouchableOpacity>
           </View>
-          {studiosState.loading ? (
-            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+
+          {studiosState.search.loading ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {[1, 2, 3, 4].map((_, index) => (
+                <RecommendCardSkeleton key={index} />
+              ))}
+            </ScrollView>
           ) : studiosError ? (
             <Text style={{ color: 'red', textAlign: 'center', marginVertical: 20 }}>
               Error loading studios: {studiosError}
@@ -919,6 +926,7 @@ const renderRated = ({ item }: { item: any }) => {
               contentContainerStyle={styles.studioList}
             />
           )}
+
         </View>
 
         {/* Browse Photographers */}
@@ -932,8 +940,13 @@ const renderRated = ({ item }: { item: any }) => {
               </View>
             </TouchableOpacity>
           </View>
-          {photographersState.loading ? (
-            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
+
+          {photographersState.search.loading ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {[1, 2, 3].map((_, i) => (
+                <RatedCardSkeleton key={i} />
+              ))}
+            </ScrollView>
           ) : photographersError ? (
             <Text style={{ color: 'red', textAlign: 'center', marginVertical: 20 }}>
               Error loading photographers: {photographersError}
@@ -965,8 +978,8 @@ const renderRated = ({ item }: { item: any }) => {
             onMomentumScrollEnd={handleScroll}
           />
           <View style={styles.dotsRow}>
-            {whyChooseData.map((item, index)  => (
-              <View key={index} style={currentIndex == index ? styles.dotActive : styles.dot} />              
+            {whyChooseData.map((item, index) => (
+              <View key={index} style={currentIndex == index ? styles.dotActive : styles.dot} />
             ))}
           </View>
         </View>
@@ -1131,11 +1144,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 16,
     ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 15,
-    alignSelf:'center',
+    alignSelf: 'center',
   },
   viewAllButton: {
     fontSize: 12,
@@ -1143,7 +1156,7 @@ const styles = StyleSheet.create({
     ...typography.semibold,
   },
   viewAllRow: {
-    marginBottom:10,
+    marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -1191,7 +1204,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   studioList: {
-    paddingBottom: 5,
+    padding: 5,
   },
   recommendCard: {
     width: RECOMMEND_CARD_WIDTH,
@@ -1204,13 +1217,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     overflow: 'hidden',
-    
+
   },
   locationIcon: {
     height: 12,
     width: 12
   },
-    favorites: {
+  favorites: {
     height: 16,
     width: 16
   },
@@ -1229,7 +1242,7 @@ const styles = StyleSheet.create({
     left: 8,
     backgroundColor: '#FFFFFF99',
     borderRadius: 12,
-    paddingHorizontal:4,
+    paddingHorizontal: 4,
     paddingVertical: 2,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1606,8 +1619,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderBottomLeftRadius: 30,
     color: '#101010',
-    backgroundColor:'#FFFFFF',
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0.5,
     borderColor: '#034833',
   },
   searchIconButton: {
@@ -1618,7 +1631,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#034833',
     justifyContent: 'center',
     alignItems: 'center',
-    
+
 
   },
   searchIcon: {
@@ -1692,90 +1705,90 @@ const styles = StyleSheet.create({
   //   width: 9
   // }
   // Update these existing styles:
-ratingStar: {
-  height: 12,
-  width: 12,
-  marginHorizontal: 1,
-},
+  ratingStar: {
+    height: 12,
+    width: 12,
+    marginHorizontal: 1,
+  },
 
-// Add these new styles for the Top Rated section:
-ratedCard: {
-  width: width * 0.8,
-  backgroundColor: COLORS.background,
-  borderRadius: 12,
-  marginRight: 15,
-  elevation: 2,
-  shadowColor: '#000000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.08,
-  shadowRadius: 6,
-  overflow: 'hidden',
-  flexDirection: 'row',
-  padding: 12,
-},
-ratedImageContainer: {
-  position: 'relative',
-  width: 150,
-  height: 120,
-  borderRadius: 8,
-  overflow: 'hidden',
-},
-ratedImage: {
-  width: '100%',
-  height: '100%',
-},
-ratedHeartIcon: {
-  position: 'absolute',
-  top: 8,
-  right: 8,
-  backgroundColor: '#FFFFFF99',
-  borderRadius: 15,
-  padding: 5,
-},
-ratedInfo: {
-  flex: 1,
-  marginLeft: 12,
-  justifyContent: 'space-between',
-},
-ratedTopRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginTop: 10,
-},
+  // Add these new styles for the Top Rated section:
+  ratedCard: {
+    width: width * 0.8,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    marginRight: 15,
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    padding: 12,
+  },
+  ratedImageContainer: {
+    position: 'relative',
+    width: 150,
+    height: 120,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  ratedImage: {
+    width: '100%',
+    height: '100%',
+  },
+  ratedHeartIcon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FFFFFF99',
+    borderRadius: 15,
+    padding: 5,
+  },
+  ratedInfo: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: 'space-between',
+  },
+  ratedTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
   ratedName: {
     fontSize: 16,
     ...typography.semibold,
     color: COLORS.text.primary,
     // marginTop: 4,
-    
+
   },
-ratedLocationRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  // marginTop: 4,
-  marginBottom: 15,
-},
-ratedLocation: {
-  fontSize: 13,
-  color: COLORS.text.secondary,
-  marginLeft: 4,
-},
-ratedBottomRow: {
-  marginTop: 8,
-},
-ratedFromText: {
-  fontSize: 13,
-  color: COLORS.text.secondary,
-},
+  ratedLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // marginTop: 4,
+    marginBottom: 15,
+  },
+  ratedLocation: {
+    fontSize: 13,
+    color: COLORS.text.secondary,
+    marginLeft: 4,
+  },
+  ratedBottomRow: {
+    marginTop: 8,
+  },
+  ratedFromText: {
+    fontSize: 13,
+    color: COLORS.text.secondary,
+  },
   ratedPrice: {
     fontSize: 16,
     ...typography.bold,
     color: '#FF6B35',
   },
-ratedPerHour: {
-  fontSize: 13,
-  color: COLORS.text.secondary,
-},
+  ratedPerHour: {
+    fontSize: 13,
+    color: COLORS.text.secondary,
+  },
 
   // Modal styles for login prompt
   modalBackdrop: {
