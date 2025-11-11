@@ -14,6 +14,8 @@ import { Studio } from '../types';
 import { StudioDetail } from '../types/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
+import { studioEquipmentList } from '../lib/api';
+import type { Equipment as ApiEquipment } from '../types/api';
 
 const StudioDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
@@ -23,6 +25,11 @@ const StudioDetailsScreen: React.FC = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [heroImageError, setHeroImageError] = useState(false);
+  const [amenitiesOpen, setAmenitiesOpen] = useState(false);
+  const [equipmentOpen, setEquipmentOpen] = useState(false);
+  const [equipmentLoading, setEquipmentLoading] = useState(false);
+  const [equipmentError, setEquipmentError] = useState<string | null>(null);
+  const [equipmentItems, setEquipmentItems] = useState<ApiEquipment[]>([]);
 
   // Get studio data from Redux
   const { data: studioData, loading, error } = useAppSelector(state => state.studios.detail);
@@ -169,20 +176,34 @@ const StudioDetailsScreen: React.FC = () => {
     return 0;
   };
 
-  const getEquipment = (): Array<{ id: number | string; name: string }> => {
-    // For API data (amenities)
+
+  const getAmenities = (): string[] => {
     if (studio?.amenities && Array.isArray(studio.amenities)) {
-      return studio.amenities.map((amenity: string, index: number) => ({ id: index, name: amenity }));
+      return studio.amenities as string[];
     }
-    // For mock data (equipment)
-    if ('equipment' in studio && studio.equipment && Array.isArray(studio.equipment)) {
-      return studio.equipment;
+    return [];
+  };
+
+  const toggleEquipment = async () => {
+    const nextOpen = !equipmentOpen;
+    setEquipmentOpen(nextOpen);
+    if (nextOpen && equipmentItems.length === 0 && studioId) {
+      try {
+        setEquipmentLoading(true);
+        setEquipmentError(null);
+        const res = await studioEquipmentList(studioId, true);
+        const list = (res as any)?.equipment || [];
+        setEquipmentItems(list);
+      } catch (err: any) {
+        if (err?.status === 401 || String(err?.error || '').toLowerCase().includes('unauthorized')) {
+          setEquipmentError('Login required to view equipment');
+        } else {
+          setEquipmentError('Failed to load equipment');
+        }
+      } finally {
+        setEquipmentLoading(false);
+      }
     }
-    return [
-      { id: 1, name: 'Professional Lighting' },
-      { id: 2, name: 'Camera Equipment' },
-      { id: 3, name: 'Backdrop Options' }
-    ];
   };
 
   const closeLoginModal = () => setShowLoginModal(false);
@@ -260,13 +281,13 @@ const StudioDetailsScreen: React.FC = () => {
         })()}
 
         {/* Chips */}
-        <View style={styles.chipsRow}>
+        {/* <View style={styles.chipsRow}>
           <View style={styles.chip}><Text style={styles.chipText}>Mon, 11th</Text></View>
           <View style={styles.chip}><Text style={styles.chipText}>2.00 PM</Text></View>
           <View style={styles.locationChip}>
             <Text style={styles.locationChipText}>{getOwnerName()}, {getLocationCity()}</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* Title & Rating */}
         <View style={styles.titleBlock}>
@@ -284,36 +305,141 @@ const StudioDetailsScreen: React.FC = () => {
         {/* Description */}
         <Text style={styles.description}>{studio?.description || 'No description available.'}</Text>
 
-        {/* Equipment Included */}
-        <Text style={styles.sectionTitle}>Equipment Included</Text>
-        <View style={styles.bullets}>
-          {getEquipment().slice(0, 3).map((e: { id: number | string; name: string }) => (
-            <View key={e.id} style={styles.bulletRow}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.bulletText}>{e.name}</Text>
-            </View>
-          ))}
-        </View>
+     
+        <Text style={styles.sectionTitle}>Booking Policies</Text>
+        <Text style={styles.sectionSubTitle}>Cancellation Policy</Text>
+        <Text style={styles.subTitle}>Refer to studio policy.</Text>
+        <Text style={styles.sectionSubTitle}>Payment Policy</Text>
+        <Text style={styles.subTitle}>Advance payment may be required.</Text>
+        <Text style={styles.sectionSubTitle}>Overtime Charges</Text>
+        <Text style={styles.subTitle}>-</Text>
+        <Text style={styles.sectionSubTitle}>Security Deposit</Text>
+        <Text style={styles.subTitle}>-</Text>
+        
 
         {/* Links */}
         <TouchableOpacity
           style={styles.linkRow}
-          onPress={() => navigation.navigate('Gallery')}
+          onPress={toggleEquipment}
+          accessibilityRole="button"
+          accessibilityLabel="Toggle equipment"
+          accessibilityState={{ expanded: equipmentOpen }}
+        >
+          <Text style={styles.linkText}>Equipments</Text>
+          <Icon name={equipmentOpen ? 'expand-less' : 'chevron-right'} size={22} color={COLORS.bg} />
+        </TouchableOpacity>
+        {equipmentOpen && (
+          <View style={styles.expandCard}>
+            {equipmentLoading ? (
+              <Text style={styles.expandEmpty}>Loading equipment…</Text>
+            ) : equipmentError ? (
+              <Text style={styles.expandEmpty}>{equipmentError}</Text>
+            ) : equipmentItems.length === 0 ? (
+              <Text style={styles.expandEmpty}>No equipment listed.</Text>
+            ) : (
+              <View>
+                {equipmentItems.map((eq) => {
+                  const thumb = (eq as any)?.equipment_images?.[0]?.image_url || null;
+                  const imgCount = Array.isArray((eq as any)?.equipment_images) ? (eq as any).equipment_images.length : 0;
+                  const hourly = eq?.rental_price_hourly;
+                  const daily = eq?.rental_price_daily;
+                  const qty = eq?.quantity_available;
+                  return (
+                    <View key={eq.id} style={styles.equipCard}>
+                      {thumb ? (
+                        <Image source={{ uri: thumb }} style={styles.equipThumb} />
+                      ) : (
+                        <View style={[styles.equipThumb, styles.equipThumbPlaceholder]} />
+                      )}
+                      <View style={styles.equipContent}>
+                        <View style={styles.equipTitleRow}>
+                          <Text style={styles.equipName}>{eq.item_name}</Text>
+                          {!!eq.item_type && <Text style={styles.equipTag}>{eq.item_type}</Text>}
+                        </View>
+                        {!!eq.description && (
+                          <Text style={styles.equipDesc}>{String(eq.description)}</Text>
+                        )}
+                        <View style={styles.equipMetaRow}>
+                          {hourly !== undefined && hourly !== null && (
+                            <View style={styles.equipMeta}>
+                              <Icon name="access-time" size={16} color={COLORS.bg} style={styles.equipMetaIcon} />
+                              <Text style={styles.equipMetaText}>{`₹${hourly}/hr`}</Text>
+                            </View>
+                          )}
+                          {daily !== undefined && daily !== null && (
+                            <View style={styles.equipMeta}>
+                              <Icon name="event" size={16} color={COLORS.bg} style={styles.equipMetaIcon} />
+                              <Text style={styles.equipMetaText}>{`₹${daily}/day`}</Text>
+                            </View>
+                          )}
+                          {qty !== undefined && qty !== null && (
+                            <View style={styles.equipMeta}>
+                              <Icon name="inventory" size={16} color={COLORS.bg} style={styles.equipMetaIcon} />
+                              <Text style={styles.equipMetaText}>{`${qty} available`}</Text>
+                            </View>
+                          )}
+                        </View>
+                        {/* {imgCount > 0 && (
+                          <View style={styles.equipImagesPill}>
+                            <Icon name="image" size={16} color={COLORS.background} style={{ marginRight: 6 }} />
+                            <Text style={styles.equipImagesText}>{`${imgCount} image${imgCount > 1 ? 's' : ''}`}</Text>
+                          </View>
+                        )} */}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.linkRow}
+          onPress={() => setAmenitiesOpen(prev => !prev)}
+          accessibilityRole="button"
+          accessibilityLabel="Toggle amenities"
+          accessibilityState={{ expanded: amenitiesOpen }}
+        >
+          <Text style={styles.linkText}>Amenities & Facilities</Text>
+          <Icon name={amenitiesOpen ? 'expand-less' : 'chevron-right'} size={22} color={COLORS.bg} />
+        </TouchableOpacity>
+        {amenitiesOpen && (
+          <View style={styles.expandCard}>
+            {getAmenities().length === 0 ? (
+              <Text style={styles.expandEmpty}>No amenities listed.</Text>
+            ) : (
+              <View style={styles.amenitiesGrid}>
+                {getAmenities().map((item, idx) => (
+                  <View key={`${idx}-${item}`} style={styles.amenityItem}>
+                    <Icon name="check" size={18} color={COLORS.bg} style={styles.expandCheck} />
+                    <Text style={styles.expandText}>{item}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.linkRow}
+          onPress={() => {
+            const imgs = getStudioImages();
+            navigation.navigate('Gallery', { images: imgs, title: studio?.name || 'Gallery' });
+          }}
           accessibilityRole="button"
           accessibilityLabel="Open Gallery"
         >
           <Text style={styles.linkText}>Gallery</Text>
-          <Icon name="chevron-right" size={22} color={COLORS.text.secondary} />
+          <Icon name="chevron-right" size={22} color={COLORS.bg} />
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.linkRow}
           onPress={() => navigation.navigate('OurWorks')}
           accessibilityRole="button"
           accessibilityLabel="Open Our Works"
         >
           <Text style={styles.linkText}>Our works</Text>
-          <Icon name="chevron-right" size={22} color={COLORS.text.secondary} />
-        </TouchableOpacity>
+          <Icon name="chevron-right" size={22} color={COLORS.bg} />
+        </TouchableOpacity> */}
 
         {/* CTA */}
         <TouchableOpacity style={styles.bookBtn} onPress={handlePressBookNow}>
@@ -357,7 +483,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingBottom: 24,
   },
   topRow: {
@@ -376,9 +502,9 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 220,
+    height: 360,
     borderRadius: 16,
-    marginTop: 12,
+    marginTop: 20,
   },
   // Modal styles for login prompt
   modalBackdrop: {
@@ -460,11 +586,11 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
   },
   titleBlock: {
-    marginTop: 12,
+    marginTop: 18,
   },
   title: {
     fontSize: 22,
-    ...typography.bold,
+    ...typography.semibold  ,
     color: COLORS.text.primary,
   },
   ratingRow: {
@@ -477,38 +603,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   starGlyph: {
-    fontSize: 14,
+    fontSize: 20,
     lineHeight: 16,
     marginRight: 2,
   },
   ratingText: {
-    fontSize: 13,
+    fontSize: 12,
     ...typography.semibold,
     color: COLORS.text.primary,
     marginLeft: 6,
+    marginTop: 3,
   },
   reviewText: {
     fontSize: 12,
     color: COLORS.text.secondary,
     marginLeft: 6,
+    marginTop: 3,
   },
   priceText: {
     marginTop: 8,
-    fontSize: 14,
-    ...typography.bold,
-    color: COLORS.text.primary,
+    fontSize: 16,
+    ...typography.medium,
+    color: COLORS.orange,
   },
   description: {
     marginTop: 6,
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.text.secondary,
+    ...typography.regular,
+
     lineHeight: 20,
   },
   sectionTitle: {
-    marginTop: 14,
-    fontSize: 14,
-    ...typography.bold,
-    color: COLORS.text.primary,
+    marginTop: 12,
+    fontSize: 15,
+    ...typography.semibold,
+    color: COLORS.title,
+  },
+  sectionSubTitle: {
+    marginTop: 7,
+    fontSize: 12,
+    ...typography.medium,
+    color: COLORS.title,
+  },
+  subTitle: {
+    marginTop: 4,
+    fontSize: 11,
+    ...typography.regular,
+    color: COLORS.text.secondary,
   },
   bullets: {
     marginTop: 8,
@@ -530,8 +672,8 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
   },
   linkRow: {
-    marginTop: 12,
-    backgroundColor: COLORS.surface,
+    marginTop: 16,
+    backgroundColor: COLORS.grey,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -541,8 +683,130 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    color: COLORS.text.primary,
+    color: COLORS.title,
     ...typography.semibold,
+  },
+  expandCard: {
+    marginTop: 8,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#EFF1F4',
+  },
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  amenityItem: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  expandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  expandCheck: {
+    marginRight: 10,
+  },
+  expandText: {
+    fontSize: 13,
+    color: COLORS.title,
+    ...typography.regular,
+  },
+  expandEmpty: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+  },
+  // Equipment rich card styles
+  equipCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#EFF1F4',
+    padding: 10,
+    marginBottom: 10,
+  },
+  equipThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    backgroundColor: '#F2F4F7',
+    marginRight: 12,
+  },
+  equipThumbPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  equipContent: {
+    flex: 1,
+  },
+  equipTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  equipName: {
+    fontSize: 14,
+    color: COLORS.title,
+    ...typography.semibold,
+  },
+  equipTag: {
+    fontSize: 11,
+    color: COLORS.title,
+    backgroundColor: '#EEF6F3',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    ...typography.medium,
+    textTransform: 'capitalize',
+  },
+  equipDesc: {
+    marginTop: 4,
+    fontSize: 12,
+    color: COLORS.text.secondary,
+  },
+  equipMetaRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  equipMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+    marginBottom: 6,
+  },
+  equipMetaIcon: {
+    marginRight: 6,
+  },
+  equipMetaText: {
+    fontSize: 12,
+    color: COLORS.title,
+  },
+  equipImagesPill: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.bg,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  equipImagesText: {
+    fontSize: 12,
+    color: COLORS.background,
+    ...typography.medium,
   },
   bookBtn: {
     marginTop: 16,

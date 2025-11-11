@@ -125,7 +125,7 @@ export type RootStackParamList = {
   Booking: { studioId: string };
   BookingConfirmation: { bookingId: string };
   OurWorks: undefined;
-  Gallery: undefined;
+  Gallery: { images?: string[]; title?: string } | undefined;
 };
 
 export type MainTabParamList = {

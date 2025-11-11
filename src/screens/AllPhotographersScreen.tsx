@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityInd
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import HeaderBar from '../components/HeaderBar';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../constants';
 import imagePaths from '../constants/imagePaths';
@@ -84,11 +85,7 @@ const AllPhotographersScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Image source={imagePaths.backArrow} style={{ width: 22, height: 22, tintColor: COLORS.text.primary }} />
-          </TouchableOpacity>
-        </View>
+        <HeaderBar onBack={() => navigation.goBack()} />
         <View style={styles.headerBlock}>
           <Text style={styles.title}>All Photographers</Text>
           <Text style={styles.subtitle}>Browse and search photographers near you</Text>

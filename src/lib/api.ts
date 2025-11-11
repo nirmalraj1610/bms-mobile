@@ -137,7 +137,7 @@ export async function studioEquipmentList(studio_id: string, available_only?: bo
   if (available_only !== undefined) {
     query.available_only = available_only;
   }
-  return apiFetch<{ equipment: any[] }>('/studio-equipment-list', { method: 'GET', query, auth: false });
+  return apiFetch<{ equipment: any[] }>('/studio-equipment-list', { method: 'GET', query, auth: true });
 }
 
 // Photographers

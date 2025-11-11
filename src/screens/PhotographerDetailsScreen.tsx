@@ -552,6 +552,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroImage: {
+    marginTop: 20,
     width: '100%',
     height: 220,
     borderRadius: 16,

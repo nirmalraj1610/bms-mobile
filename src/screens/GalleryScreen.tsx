@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import HeaderBar from '../components/HeaderBar';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
@@ -77,6 +77,7 @@ const mockGalleryData: GalleryItem[] = [
 
 const GalleryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const toggleFavorite = (itemId: string) => {
@@ -105,11 +106,17 @@ const GalleryScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
+  // Build data: prefer images from route params, fallback to mock
+  const routeImages: string[] | undefined = route?.params?.images;
+  const galleryData: GalleryItem[] = (routeImages && routeImages.length > 0)
+    ? routeImages.map((url, idx) => ({ id: String(idx), title: '', image: url, isFavorite: false }))
+    : mockGalleryData;
+
   // Create rows of 2 items each
   const createRows = () => {
     const rows = [];
-    for (let i = 0; i < mockGalleryData.length; i += 2) {
-      const rowItems = mockGalleryData.slice(i, i + 2);
+    for (let i = 0; i < galleryData.length; i += 2) {
+      const rowItems = galleryData.slice(i, i + 2);
       rows.push(
         <View key={i} style={styles.galleryRow}>
           {rowItems.map(item => renderGalleryItem(item))}
@@ -122,7 +129,7 @@ const GalleryScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <HeaderBar title="Our Gallery" onBack={() => navigation.goBack()} />
+        <HeaderBar title={route?.params?.title || 'Our Gallery'} onBack={() => navigation.goBack()} />
       </View>
 
       {/* Gallery Grid */}

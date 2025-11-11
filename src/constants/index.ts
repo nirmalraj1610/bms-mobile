@@ -10,9 +10,12 @@ export const COLORS = {
   bg2:'#F8F8F8',
   favColor:'#FF7441',
   black:'#000000',
+  orange:'#FF6D38',
+  title:'#101010',
+  grey:'#F0F0F0',
   text: {
     primary: '#034833',
-    secondary: '#6C757D',
+    secondary: '#616161',
     light: '#ADB5BD',
   },
   error: '#DC3545',
