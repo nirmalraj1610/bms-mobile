@@ -9,6 +9,7 @@ import CancelStudioBookingModal from "./CancelStudioBookingModal";
 import AcceptStudioBookingModal from "./AcceptStudioBookingModal";
 import imagePaths from "../../constants/imagePaths";
 import { Dropdown } from "react-native-element-dropdown";
+import BookingsSkeleton from "../skeletonLoaders/StudioOwner/BookingsSkeleton";
 
 export const BookingsComponent = () => {
     const dispatch = useDispatch();
@@ -180,7 +181,7 @@ export const BookingsComponent = () => {
                         <Text style={styles.time}>Booking type: <Text style={{ fontWeight: '600' }}>{item.booking_type}</Text></Text>
                         <Text style={styles.time}>Start time: <Text style={{ fontWeight: '600' }}>{item.start_time}</Text></Text>
                         <Text style={styles.time}>End time: <Text style={{ fontWeight: '600' }}>{item.end_time}</Text></Text>
-                        <Text style={styles.price}>₹{item.total_amount}</Text>
+                        <Text style={styles.time}>Price: <Text style={styles.price}>₹{item.total_amount}</Text></Text>
                     </View>
                 </View>
 
@@ -279,186 +280,186 @@ export const BookingsComponent = () => {
     }
 
     return (
-        <>
-            {
-                isLoading ?
-                    <View style={styles.loading}>
-                        <ActivityIndicator size="large" color="#034833" />
-                        <Text style={styles.loadingText}>Loading....</Text>
-                    </View> :
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        {/* Dashboard views one */}
-                        <View style={styles.statusViewsOutline}>
-                            <View style={styles.bgImageCard}>
-                                <Icon name="storefront" size={32} color="#2F2F2F" />
-                                <View>
-                                    <Text style={styles.bgCountText}>5</Text>
-                                    <Text style={styles.bgText}>Total Bookings</Text>
-                                </View>
-                            </View>
 
-                            <View style={styles.bgImageCard}>
-                                <Icon name="camera-alt" size={32} color="#2F2F2F" />
-                                <View>
-                                    <Text style={styles.bgCountText}>2</Text>
-                                    <Text style={styles.bgText}>Pending Approval</Text>
-                                </View>
-                            </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Dashboard views one */}
+            <View style={styles.statusViewsOutline}>
+                <View style={styles.bgImageCard}>
+                    <Icon name="storefront" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>5</Text>
+                        <Text style={styles.bgText}>Total Bookings</Text>
+                    </View>
+                </View>
+
+                <View style={styles.bgImageCard}>
+                    <Icon name="camera-alt" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>2</Text>
+                        <Text style={styles.bgText}>Pending Approval</Text>
+                    </View>
+                </View>
+            </View>
+            {/* Dashboard views two */}
+            <View style={styles.statusViewsOutline}>
+                <View style={styles.bgImageCard}>
+                    <Icon name="currency-rupee" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>₹30,000</Text>
+                        <Text style={styles.bgText}>Total Earnings</Text>
+                    </View>
+                </View>
+
+                <View style={styles.bgImageCard}>
+                    <Icon name="pending-actions" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>3</Text>
+                        <Text style={styles.bgText}>Pending Payments</Text>
+                    </View>
+                </View>
+            </View>
+            {/* Menu renders here*/}
+
+            <View style={styles.header}>
+                <Text style={styles.title}>Booking Requests & History</Text>
+                <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
+                    <Icon name="filter-list" size={24} color="#1B4332" />
+                    <Text style={styles.addButtonText}>Filter</Text>
+                </TouchableOpacity>
+            </View>
+
+            <Text style={styles.labelText} >Select studio to view bookings<Text style={styles.required}> *</Text></Text>
+            <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                containerStyle={styles.dropdownContainerStyle}
+                data={studioList}
+                search
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select a studio"
+                searchPlaceholder="Search studio..."
+                value={selectedStudio}
+                onChange={(item) => {
+                    setSelectedStudio(item.value);
+                }}
+            />
+
+            <Text style={styles.labelText} >Select date range<Text style={styles.required}> *</Text></Text>
+
+            <View style={styles.timeRow}>
+                <TouchableOpacity
+                    style={styles.timeButton}
+                    onPress={() => setShowStartPicker(true)}
+                >
+                    <Text style={styles.timeLabel}>Start Date</Text>
+                    <Text style={styles.timeValue}>
+                        {startdate
+                            ? new Date(startdate).toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                            })
+                            : "Select"}
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.timeButton}
+                    onPress={() => setShowEndPicker(true)}
+                >
+                    <Text style={styles.timeLabel}>End Date</Text>
+                    <Text style={styles.timeValue}>
+                        {enddate
+                            ? new Date(enddate).toLocaleDateString("en-GB", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                            })
+                            : "Select"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+            {startdate && enddate &&
+                <View style={styles.datelableOutline}>
+                    <TouchableOpacity onPress={cleardatefilter} disabled={!startdate || !enddate} style={{ ...styles.acceptBtn, backgroundColor: '#DC3545', marginRight: 10 }}>
+                        <Text style={styles.acceptText}>Clear</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={fetchStudiosBookings} disabled={!startdate || !enddate} style={styles.acceptBtn}>
+                        <Text style={styles.acceptText}>Apply</Text>
+                    </TouchableOpacity>
+                </View>
+            }
+
+            {isLoading ? (
+                <View style={{ marginBottom: 140, marginTop: 10 }} >
+                    {[1, 2, 3].map((_, i) => <BookingsSkeleton key={i} />)}
+                </View>
+            ) : (
+                <FlatList
+                    data={studioBookingList}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    ListEmptyComponent={
+                        <View style={styles.noStudioOutline}>
+                            <Icon name="camera-alt" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                            <Text style={styles.noStudioText}>
+                                No bookings found
+                            </Text>
+                            <Text style={styles.addStudioDesc}>
+                                Start getting bookings — they’ll appear here once received.
+                            </Text>
                         </View>
-                        {/* Dashboard views two */}
-                        <View style={styles.statusViewsOutline}>
-                            <View style={styles.bgImageCard}>
-                                <Icon name="currency-rupee" size={32} color="#2F2F2F" />
-                                <View>
-                                    <Text style={styles.bgCountText}>₹30,000</Text>
-                                    <Text style={styles.bgText}>Total Earnings</Text>
-                                </View>
-                            </View>
+                    }
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
+                />
+            )}
 
-                            <View style={styles.bgImageCard}>
-                                <Icon name="pending-actions" size={32} color="#2F2F2F" />
-                                <View>
-                                    <Text style={styles.bgCountText}>3</Text>
-                                    <Text style={styles.bgText}>Pending Payments</Text>
-                                </View>
-                            </View>
-                        </View>
-                        {/* Menu renders here*/}
+            <DashboardFilterPopup
+                visible={showFilter}
+                options={filterOptions}
+                selectedValue={selectedFilter}
+                onSelect={(val) => setSelectedFilter(val)}
+                onApply={(val) => setSelectedFilter(val)}
+                onClear={() => setSelectedFilter(null)}
+                onClose={() => setShowFilter(false)}
+            />
 
-                        <View style={styles.header}>
-                            <Text style={styles.title}>Booking Requests & History</Text>
-                            <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
-                                <Icon name="filter-list" size={24} color="#1B4332" />
-                                <Text style={styles.addButtonText}>Filter</Text>
-                            </TouchableOpacity>
-                        </View>
+            {/* ✅ Show native time picker */}
+            {showStartPicker && (
+                <DateTimePicker
+                    mode="date"
+                    value={new Date()}
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={onStartDateChange}
+                />
+            )}
 
-                        <Text style={styles.labelText} >Select studio to view bookings<Text style={styles.required}> *</Text></Text>
-                        <Dropdown
-                            style={styles.dropdown}
-                            placeholderStyle={styles.placeholderStyle}
-                            selectedTextStyle={styles.selectedTextStyle}
-                            inputSearchStyle={styles.inputSearchStyle}
-                            containerStyle={styles.dropdownContainerStyle}
-                            data={studioList}
-                            search
-                            maxHeight={300}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Select a studio"
-                            searchPlaceholder="Search studio..."
-                            value={selectedStudio}
-                            onChange={(item) => {
-                                setSelectedStudio(item.value);
-                            }}
-                        />
+            {showEndPicker && (
+                <DateTimePicker
+                    mode="date"
+                    value={new Date()}
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={onEndDateChange}
+                />
+            )}
 
-                        <Text style={styles.labelText} >Select date range<Text style={styles.required}> *</Text></Text>
+            <CancelStudioBookingModal
+                visible={showCancelModal.status}
+                booking={showCancelModal.selectedBooking}
+                onClose={onCloseCancelModal}
+            />
 
-                        <View style={styles.timeRow}>
-                            <TouchableOpacity
-                                style={styles.timeButton}
-                                onPress={() => setShowStartPicker(true)}
-                            >
-                                <Text style={styles.timeLabel}>Start Date</Text>
-                                <Text style={styles.timeValue}>
-                                    {startdate
-                                        ? new Date(startdate).toLocaleDateString("en-GB", {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric",
-                                        })
-                                        : "Select"}
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.timeButton}
-                                onPress={() => setShowEndPicker(true)}
-                            >
-                                <Text style={styles.timeLabel}>End Date</Text>
-                                <Text style={styles.timeValue}>
-                                    {enddate
-                                        ? new Date(enddate).toLocaleDateString("en-GB", {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric",
-                                        })
-                                        : "Select"}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                        {startdate && enddate &&
-                            <View style={styles.datelableOutline}>
-                                <TouchableOpacity onPress={cleardatefilter} disabled={!startdate || !enddate} style={{ ...styles.acceptBtn, backgroundColor: '#DC3545', marginRight: 10 }}>
-                                    <Text style={styles.acceptText}>Clear</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={fetchStudiosBookings} disabled={!startdate || !enddate} style={styles.acceptBtn}>
-                                    <Text style={styles.acceptText}>Apply</Text>
-                                </TouchableOpacity>
-                            </View>
-                        }
-
-                        <FlatList
-                            data={studioBookingList}
-                            keyExtractor={(item) => item.id}
-                            renderItem={renderItem}
-                            ListEmptyComponent={
-                                <View style={styles.noStudioOutline}>
-                                    <Icon name="camera-alt" size={60} color="#ccc" style={{ marginBottom: 10 }} />
-                                    <Text style={styles.noStudioText}>
-                                        No bookings found
-                                    </Text>
-                                    <Text style={styles.addStudioDesc}>
-                                        Start getting bookings — they’ll appear here once received.
-                                    </Text>
-                                </View>
-                            }
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
-                        />
-                        <DashboardFilterPopup
-                            visible={showFilter}
-                            options={filterOptions}
-                            selectedValue={selectedFilter}
-                            onSelect={(val) => setSelectedFilter(val)}
-                            onApply={(val) => setSelectedFilter(val)}
-                            onClear={() => setSelectedFilter(null)}
-                            onClose={() => setShowFilter(false)}
-                        />
-
-                        {/* ✅ Show native time picker */}
-                        {showStartPicker && (
-                            <DateTimePicker
-                                mode="date"
-                                value={new Date()}
-                                display={Platform.OS === "ios" ? "spinner" : "default"}
-                                onChange={onStartDateChange}
-                            />
-                        )}
-
-                        {showEndPicker && (
-                            <DateTimePicker
-                                mode="date"
-                                value={new Date()}
-                                display={Platform.OS === "ios" ? "spinner" : "default"}
-                                onChange={onEndDateChange}
-                            />
-                        )}
-
-                        <CancelStudioBookingModal
-                            visible={showCancelModal.status}
-                            booking={showCancelModal.selectedBooking}
-                            onClose={onCloseCancelModal}
-                        />
-
-                        <AcceptStudioBookingModal
-                            visible={showAcceptModal.status}
-                            booking={showAcceptModal.selectedBooking}
-                            onClose={onCloseAcceptModal}
-                        />
-                    </ScrollView>}
-        </>
+            <AcceptStudioBookingModal
+                visible={showAcceptModal.status}
+                booking={showAcceptModal.selectedBooking}
+                onClose={onCloseAcceptModal}
+            />
+        </ScrollView>
     )
 };
 

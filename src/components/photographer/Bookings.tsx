@@ -8,6 +8,7 @@ import { loadPhotographerBookingsThunk } from "../../features/photographers/phot
 import imagePaths from "../../constants/imagePaths";
 import CancelPhotographerBookingModal from "./CancelPhotographerBookingModal";
 import AcceptPhotographerBookingModal from "./AcceptPhotographerBookingModal";
+import BookingsSkeleton from "../skeletonLoaders/Photographer/BookingsSkeleton";
 
 export const BookingsComponent = () => {
     const filterOptions = [
@@ -31,7 +32,7 @@ export const BookingsComponent = () => {
     const onFilterPress = () => {
         setShowFilter(!showFilter)
     }
-    
+
 
     useEffect(() => {
         if (!showCancelModal.status && !showAcceptModal.status) {
@@ -147,86 +148,80 @@ export const BookingsComponent = () => {
                         <Text style={styles.price}><Text style={{ ...styles.price, color: '#2F2F2F', fontSize: 14 }}>Total price : </Text>₹{item.total_amount}</Text>
                     </View>
                 </View>
-                        {/* Action Buttons */}
-                        <View style={styles.actions}>
-                            {item.status === 'pending' && (
-                                <>
-                                    <TouchableOpacity onPress={() => onOpenAcceptModal(item)} style={styles.acceptBtn}>
-                                        <Text style={styles.acceptText}>Accept</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Reject</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() =>
-                                    setExpandedBookingId(prev =>
-                                        prev === item.id ? null : item.id
-                                    )
-                                } style={styles.contactBtn}>
-                                        <Text style={styles.contactBtnText}>
-                                            {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </>
-                            )}
+                {/* Action Buttons */}
+                <View style={styles.actions}>
+                    {item.status === 'pending' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenAcceptModal(item)} style={styles.acceptBtn}>
+                                <Text style={styles.acceptText}>Accept</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            } style={styles.contactBtn}>
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
 
-                            {(item.status === 'cancelled' || item.status === 'completed') && (
-                            
-                                                    <TouchableOpacity
-                                                        style={styles.contactBtn}
-                                                        onPress={() =>
-                                                            setExpandedBookingId(prev =>
-                                                                prev === item.id ? null : item.id
-                                                            )
-                                                        }
-                                                    >
-                                                        <Text style={styles.contactBtnText}>
-                                                            {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                )}
+                    {(item.status === 'cancelled' || item.status === 'completed') && (
 
-                            {item.status === 'confirmed' && (
-                                <>
-                                    <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
-                                        <Text style={styles.declineText}>Reject</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() =>
-                                    setExpandedBookingId(prev =>
-                                        prev === item.id ? null : item.id
-                                    )
-                                } style={styles.contactBtn}>
-                                        <Text style={styles.contactBtnText}>
-                                            {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </>
-                            )}
-                        </View>
+                        <TouchableOpacity
+                            style={styles.contactBtn}
+                            onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            }
+                        >
+                            <Text style={styles.contactBtnText}>
+                                {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {item.status === 'confirmed' && (
+                        <>
+                            <TouchableOpacity onPress={() => onOpenCancelModal(item)} style={styles.declineBtn}>
+                                <Text style={styles.declineText}>Reject</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() =>
+                                setExpandedBookingId(prev =>
+                                    prev === item.id ? null : item.id
+                                )
+                            } style={styles.contactBtn}>
+                                <Text style={styles.contactBtnText}>
+                                    {expandedBookingId === item.id ? 'Hide Details' : 'Details'}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
                 {expandedBookingId === item.id && (
-                                    <View style={[styles.card, { marginTop: 20, marginBottom: 0 }]}>
-                                        <View style={styles.info}>
-                                            <Text style={styles.labelText}>Contact Information:</Text>
-                                            <Text style={styles.time}>
-                                                Phone: <Text style={{ fontWeight: '600' }}>+91 {item?.customer?.phone}</Text>
-                                            </Text>
-                                            <Text style={[styles.time, { marginBottom: 10 }]}>
-                                                Email: <Text style={{ fontWeight: '600' }}>{item?.customer?.email}</Text>
-                                            </Text>
-                                        </View>
-                                    </View>
-                                )}
+                    <View style={[styles.card, { marginTop: 20, marginBottom: 0 }]}>
+                        <View style={styles.info}>
+                            <Text style={styles.labelText}>Contact Information:</Text>
+                            <Text style={styles.time}>
+                                Phone: <Text style={{ fontWeight: '600' }}>+91 {item?.customer?.phone}</Text>
+                            </Text>
+                            <Text style={[styles.time, { marginBottom: 10 }]}>
+                                Email: <Text style={{ fontWeight: '600' }}>{item?.customer?.email}</Text>
+                            </Text>
+                        </View>
+                    </View>
+                )}
             </View>
         );
 
     }
     return (
-         <>
-                    {
-                        isLoading ?
-                            <View style={styles.loading}>
-                                <ActivityIndicator size="large" color="#034833" />
-                                <Text style={styles.loadingText}>Loading....</Text>
-                            </View> :
+
         <ScrollView showsVerticalScrollIndicator={false}>
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
@@ -319,24 +314,30 @@ export const BookingsComponent = () => {
                 </View>
             }
 
-            <FlatList
-                data={studioBookingList}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                ListEmptyComponent={
-                    <View style={styles.noStudioOutline}>
-                        <Icon name="camera-alt" size={60} color="#ccc" style={{ marginBottom: 10 }} />
-                        <Text style={styles.noStudioText}>
-                            No bookings found
-                        </Text>
-                        <Text style={styles.addStudioDesc}>
-                            Start getting bookings — they’ll appear here once received.
-                        </Text>
-                    </View>
-                }
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
-            />
+            {isLoading ? (
+                <View style={{ marginBottom: 140, marginTop: 20 }} >
+                    {[1, 2, 3].map((_, i) => <BookingsSkeleton key={i} />)}
+                </View>
+            ) : (
+                <FlatList
+                    data={studioBookingList}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    ListEmptyComponent={
+                        <View style={styles.noStudioOutline}>
+                            <Icon name="camera-alt" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                            <Text style={styles.noStudioText}>
+                                No bookings found
+                            </Text>
+                            <Text style={styles.addStudioDesc}>
+                                Start getting bookings — they’ll appear here once received.
+                            </Text>
+                        </View>
+                    }
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
+                />
+            )}
             <DashboardFilterPopup
                 visible={showFilter}
                 options={filterOptions}
@@ -366,17 +367,16 @@ export const BookingsComponent = () => {
             )}
 
             <CancelPhotographerBookingModal
-                            visible={showCancelModal.status}
-                            booking={showCancelModal.selectedBooking}
-                            onClose={onCloseCancelModal}
-                        />
-                        <AcceptPhotographerBookingModal
-                            visible={showAcceptModal.status}
-                            booking={showAcceptModal.selectedBooking}
-                            onClose={onCloseAcceptModal}
-                        />
-        </ScrollView> }
-        </>
+                visible={showCancelModal.status}
+                booking={showCancelModal.selectedBooking}
+                onClose={onCloseCancelModal}
+            />
+            <AcceptPhotographerBookingModal
+                visible={showAcceptModal.status}
+                booking={showAcceptModal.selectedBooking}
+                onClose={onCloseAcceptModal}
+            />
+        </ScrollView>
     )
 };
 

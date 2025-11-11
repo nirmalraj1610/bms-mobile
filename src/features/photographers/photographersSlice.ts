@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { photographersState } from './photographers.types';
 import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi, createphotographer, createPhotographerBookingService, getPhotographerBookings } from './photographers.service';
-import { postPhotographerService, updatePhotographerServiceApi } from '../../lib/api';
-import { PhotographerServicePayload, PhotographerServiceUpdatePayload } from '../../types/api';
+import { createPhotographerPortfolioApi, getPhotographerProfileApi, postPhotographerService, updatePhotographerServiceApi } from '../../lib/api';
+import { PhotographerPortfolioUploadPayload, PhotographerServicePayload, PhotographerServiceUpdatePayload } from '../../types/api';
 
 const initialState: photographersState = {
   search: { items: [], total: 0, loading: false, error: null },
@@ -52,6 +52,28 @@ export const getPhotographerServices = createAsyncThunk(
       return await fetchPhotographerServices(photographerId);
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to fetch photographer services');
+    }
+  }
+);
+
+export const getPhotographerPortfolio = createAsyncThunk(
+  'photographers/portfolio',
+  async (photographerId: string, { rejectWithValue }) => {
+    try {
+      return await getPhotographerProfileApi(photographerId);
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch photographer portfolio');
+    }
+  }
+);
+
+export const createPhotographerPortfolio = createAsyncThunk(
+  'photographers/portfolio/create',
+  async (payload: PhotographerPortfolioUploadPayload, { rejectWithValue }) => {
+    try {
+      return await createPhotographerPortfolioApi(payload);
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to create photographer portfolio');
     }
   }
 );

@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { loadMyStudioThunk } from "../../features/studios/studiosSlice";
 import { useNavigation } from "@react-navigation/native";
 import imagePaths from "../../constants/imagePaths";
+import MyStudiosSkeleton from "../skeletonLoaders/StudioOwner/MyStudiosSkeleton";
 
 
 // --- Main Component ---
@@ -140,81 +141,86 @@ export const MyStudioComponent = ({
     }
 
     return (
-        <>
-            {isLoading ?
-                <View style={styles.loading}>
-                    <ActivityIndicator size="large" color="#034833" />
-                    <Text style={styles.loadingText}>Loading....</Text>
-                </View> :
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    {/* Dashboard views one */}
-                    <View style={styles.statusViewsOutline}>
-                        <View style={styles.bgImageCard}>
-                            <Icon name="storefront" size={32} color="#2F2F2F" />
-                            <View>
-                                <Text style={styles.bgCountText}>3</Text>
-                                <Text style={styles.bgText}>Active Studios</Text>
-                            </View>
-                        </View>
-                        <View style={styles.bgImageCard}>
-                            <Icon name="pending-actions" size={32} color="#2F2F2F" />
-                            <View>
-                                <Text style={styles.bgCountText}>7</Text>
-                                <Text style={styles.bgText}>Pending Approval</Text>
-                            </View>
-                        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Dashboard views one */}
+            <View style={styles.statusViewsOutline}>
+                <View style={styles.bgImageCard}>
+                    <Icon name="storefront" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>3</Text>
+                        <Text style={styles.bgText}>Active Studios</Text>
                     </View>
-
-                    {/* Header: Title and Add Studio Button */}
-                    <View style={styles.header}>
-                        <Text style={styles.title}>My Studios</Text>
-                        <TouchableOpacity onPress={onAddStudioPress} style={styles.addButton}>
-                            <Icon name="add-circle-outline" size={24} color="#1B4332" />
-                            <Text style={styles.addButtonText}>Add Studio</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
-                            <Icon name="filter-list" size={24} color="#1B4332" />
-                            <Text style={styles.addButtonText}>Filter</Text>
-                        </TouchableOpacity>
+                </View>
+                <View style={styles.bgImageCard}>
+                    <Icon name="pending-actions" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>7</Text>
+                        <Text style={styles.bgText}>Pending Approval</Text>
                     </View>
+                </View>
+            </View>
 
-                    {/* Studio Cards Grid */}
-                    <FlatList
-                        data={studioList}
-                        keyExtractor={(item) => item.id}
-                        renderItem={renderStudioCard}
-                        ListEmptyComponent={
-                            <View style={styles.noStudioOutline}>
-                                <Icon name="storefront" size={60} color="#ccc" style={{ marginBottom: 10 }} />
-                                <Text style={styles.noStudioText}>
-                                    No studios found
-                                </Text>
-                                <Text style={styles.addStudioDesc}>
-                                    Add your first studio to get started!
-                                </Text>
-                                <TouchableOpacity onPress={onAddStudioPress} style={styles.addStudioBtn}>
-                                    <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
-                                    <Text style={styles.addStudioText}>Add Studio</Text>
-                                </TouchableOpacity>
-                            </View>
-                        }
-                        numColumns={2} // Two columns for the grid layout
-                        columnWrapperStyle={styles.row} // Style for the row wrapper
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.listContent}
-                    />
+            {/* Header: Title and Add Studio Button */}
+            <View style={styles.header}>
+                <Text style={styles.title}>My Studios</Text>
+                <TouchableOpacity onPress={onAddStudioPress} style={styles.addButton}>
+                    <Icon name="add-circle-outline" size={24} color="#1B4332" />
+                    <Text style={styles.addButtonText}>Add Studio</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
+                    <Icon name="filter-list" size={24} color="#1B4332" />
+                    <Text style={styles.addButtonText}>Filter</Text>
+                </TouchableOpacity>
+            </View>
 
-                    <DashboardFilterPopup
-                        visible={showFilter}
-                        options={studioStatusOptions}
-                        selectedValue={selectedFilter}
-                        onSelect={(val) => setSelectedFilter(val)}
-                        onApply={(val) => setSelectedFilter(val)}
-                        onClear={() => setSelectedFilter(null)}
-                        onClose={() => setShowFilter(false)}
-                    />
-                </ScrollView>}
-        </>
+            {/* Studio Cards Grid */}
+            {isLoading ? (
+                <FlatList
+                    data={[1, 2, 3, 4]}
+                    numColumns={2}
+                    keyExtractor={(item) => item.toString()}
+                    renderItem={() => <MyStudiosSkeleton />}
+                    columnWrapperStyle={{ justifyContent: "space-between" }}
+                    contentContainerStyle={{ paddingBottom: 80 }}
+                />
+            ) : (
+                <FlatList
+                    data={studioList}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderStudioCard}
+                    ListEmptyComponent={
+                        <View style={styles.noStudioOutline}>
+                            <Icon name="storefront" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                            <Text style={styles.noStudioText}>
+                                No studios found
+                            </Text>
+                            <Text style={styles.addStudioDesc}>
+                                Add your first studio to get started!
+                            </Text>
+                            <TouchableOpacity onPress={onAddStudioPress} style={styles.addStudioBtn}>
+                                <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
+                                <Text style={styles.addStudioText}>Add Studio</Text>
+                            </TouchableOpacity>
+                        </View>
+                    }
+                    numColumns={2} // Two columns for the grid layout
+                    columnWrapperStyle={styles.row} // Style for the row wrapper
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.listContent}
+                />
+            )}
+
+            <DashboardFilterPopup
+                visible={showFilter}
+                options={studioStatusOptions}
+                selectedValue={selectedFilter}
+                onSelect={(val) => setSelectedFilter(val)}
+                onApply={(val) => setSelectedFilter(val)}
+                onClear={() => setSelectedFilter(null)}
+                onClose={() => setShowFilter(false)}
+            />
+        </ScrollView>
     )
 };
 

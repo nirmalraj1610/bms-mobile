@@ -7,6 +7,7 @@ import { loadPhotographerBookingsThunk } from "../../features/photographers/phot
 import imagePaths from "../../constants/imagePaths";
 import CancelPhotographerBookingModal from "./CancelPhotographerBookingModal";
 import AcceptPhotographerBookingModal from "./AcceptPhotographerBookingModal";
+import BookingsSkeleton from "../skeletonLoaders/Photographer/BookingsSkeleton";
 
 export const DashboardComponent = () => {
     const filterOptions = [
@@ -188,92 +189,91 @@ export const DashboardComponent = () => {
 
 
     return (
-        <>
-            {
-                isLoading ?
-                    <View style={styles.loading}>
-                        <ActivityIndicator size="large" color="#034833" />
-                        <Text style={styles.loadingText}>Loading....</Text>
-                    </View> :
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        {/* Dashboard views one */}
-                        <View style={styles.statusViewsOutline}>
-                            <View style={styles.bgImageCard}>
-                                <Icon name="camera-alt" size={32} color="#2F2F2F" />
-                                <View>
-                                    <Text style={styles.bgCountText}>24</Text>
-                                    <Text style={styles.bgText}>Total Bookings</Text>
-                                </View>
-                            </View>
 
-                            <View style={styles.bgImageCard}>
-                                <Icon name="currency-rupee" size={32} color="#2F2F2F" />
-                                <View>
-                                    <Text style={styles.bgCountText}>₹65,000</Text>
-                                    <Text style={styles.bgText}>Total Spent</Text>
-                                </View>
-                            </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Dashboard views one */}
+            <View style={styles.statusViewsOutline}>
+                <View style={styles.bgImageCard}>
+                    <Icon name="camera-alt" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>24</Text>
+                        <Text style={styles.bgText}>Total Bookings</Text>
+                    </View>
+                </View>
+
+                <View style={styles.bgImageCard}>
+                    <Icon name="currency-rupee" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>₹65,000</Text>
+                        <Text style={styles.bgText}>Total Spent</Text>
+                    </View>
+                </View>
+            </View>
+            {/* Dashboard views two */}
+            <View style={styles.statusViewsOutline}>
+                <View style={styles.bgImageCard}>
+                    <Icon name="favorite" size={32} color="#2F2F2F" />
+                    <View>
+                        <Text style={styles.bgCountText}>8</Text>
+                        <Text style={styles.bgText}>Favorite Studios</Text>
+                    </View>
+                </View>
+            </View>
+            {/* Menu renders here*/}
+
+            <View style={styles.header}>
+                <Text style={styles.title}>Recent Booking</Text>
+                <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
+                    <Icon name="filter-list" size={24} color="#1B4332" />
+                    <Text style={styles.addButtonText}>Filter</Text>
+                </TouchableOpacity>
+            </View>
+
+            {isLoading ? (
+                <View style={{ marginBottom: 140, marginTop: 10 }} >
+                    {[1, 2, 3].map((_, i) => <BookingsSkeleton key={i} />)}
+                </View>
+            ) : (
+                <FlatList
+                    data={studioBookingList}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    ListEmptyComponent={
+                        <View style={styles.noStudioOutline}>
+                            <Icon name="camera-alt" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                            <Text style={styles.noStudioText}>
+                                No bookings found
+                            </Text>
+                            <Text style={styles.addStudioDesc}>
+                                Start getting bookings — they’ll appear here once received.
+                            </Text>
                         </View>
-                        {/* Dashboard views two */}
-                        <View style={styles.statusViewsOutline}>
-                            <View style={styles.bgImageCard}>
-                                <Icon name="favorite" size={32} color="#2F2F2F" />
-                                <View>
-                                    <Text style={styles.bgCountText}>8</Text>
-                                    <Text style={styles.bgText}>Favorite Studios</Text>
-                                </View>
-                            </View>
-                        </View>
-                        {/* Menu renders here*/}
+                    }
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
+                />
+            )}
+            <DashboardFilterPopup
+                visible={showFilter}
+                options={filterOptions}
+                selectedValue={selectedFilter}
+                onSelect={(val) => setSelectedFilter(val)}
+                onApply={(val) => setSelectedFilter(val)}
+                onClear={() => setSelectedFilter(null)}
+                onClose={() => setShowFilter(false)}
+            />
 
-                        <View style={styles.header}>
-                            <Text style={styles.title}>Recent Booking</Text>
-                            <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
-                                <Icon name="filter-list" size={24} color="#1B4332" />
-                                <Text style={styles.addButtonText}>Filter</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <FlatList
-                            data={studioBookingList}
-                            keyExtractor={(item) => item.id}
-                            renderItem={renderItem}
-                            ListEmptyComponent={
-                                <View style={styles.noStudioOutline}>
-                                    <Icon name="camera-alt" size={60} color="#ccc" style={{ marginBottom: 10 }} />
-                                    <Text style={styles.noStudioText}>
-                                        No bookings found
-                                    </Text>
-                                    <Text style={styles.addStudioDesc}>
-                                        Start getting bookings — they’ll appear here once received.
-                                    </Text>
-                                </View>
-                            }
-                            showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{ marginTop: 25, marginBottom: 150 }}
-                        />
-                        <DashboardFilterPopup
-                            visible={showFilter}
-                            options={filterOptions}
-                            selectedValue={selectedFilter}
-                            onSelect={(val) => setSelectedFilter(val)}
-                            onApply={(val) => setSelectedFilter(val)}
-                            onClear={() => setSelectedFilter(null)}
-                            onClose={() => setShowFilter(false)}
-                        />
-
-                        <CancelPhotographerBookingModal
-                            visible={showCancelModal.status}
-                            booking={showCancelModal.selectedBooking}
-                            onClose={onCloseCancelModal}
-                        />
-                        <AcceptPhotographerBookingModal
-                            visible={showAcceptModal.status}
-                            booking={showAcceptModal.selectedBooking}
-                            onClose={onCloseAcceptModal}
-                        />
-                    </ScrollView>}
-        </>
+            <CancelPhotographerBookingModal
+                visible={showCancelModal.status}
+                booking={showCancelModal.selectedBooking}
+                onClose={onCloseCancelModal}
+            />
+            <AcceptPhotographerBookingModal
+                visible={showAcceptModal.status}
+                booking={showAcceptModal.selectedBooking}
+                onClose={onCloseAcceptModal}
+            />
+        </ScrollView>
     )
 };
 

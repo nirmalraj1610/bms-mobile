@@ -1,21 +1,31 @@
 import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
-import { FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../../constants";
+import { useDispatch } from "react-redux";
+import { getUserData } from "../../lib/http";
+import { createPhotographerPortfolio, getPhotographerPortfolio } from "../../features/photographers/photographersSlice";
+import imagePaths from "../../constants/imagePaths";
+import PortfolioSkeleton from "../skeletonLoaders/Photographer/PortfolioSkeleton";
 
 
 // --- Main Component ---
 export const PortfolioComponent = () => {
-    const [selectedFile, setSelectedFile] = useState('');
+    const dispatch = useDispatch();
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [photographerPortfolio, setPhotographerPortfolio] = useState([]);
+    const [editPortfolio, setEditPortfolio] = useState(false);
+    const [editPortfolioId, setEditPortfolioId] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [addPortfolio, setAddPortfolio] = useState({
         portfolioTitle: "",
         portfoliocategory: "",
         portfolioDesc: "",
         featured: false,
     });
-    const [activeTab, setActiveTab] = useState("portfolio"); // 'portfolio' or 'Add Portfolio'
+    const [activeTab, setActiveTab] = useState("Portfolio"); // 'Portfolio' or 'Add Portfolio'
 
     // --- Data for the Studio Cards ---
     const serviceData = [
@@ -53,15 +63,71 @@ export const PortfolioComponent = () => {
         },
     ];
 
+    useEffect(() => {
+        if (activeTab === "Portfolio") {
+            fetchPhotographerPortfolio();
+            clearStateValues();
+        }
+    }, [activeTab]);
+
+    const fetchPhotographerPortfolio = async () => {
+        setIsLoading(true);
+        const userData = await getUserData();
+        const photographerId = userData?.customer?.customer_profiles?.customer_id
+
+        //             {
+        // photographer_id
+
+        try {
+            const portfolioData = await dispatch(getPhotographerPortfolio(photographerId)).unwrap(); // ✅ unwrap to get actual data
+            console.log('📦 portfolioData from API:', portfolioData?.photographer?.portfolio);
+
+            // response looks like { portfolioData: [ ... ], total: 16 }
+            setPhotographerPortfolio(portfolioData?.photographer?.portfolio || []);
+        } catch (error) {
+            console.log('❌ Failed to load photographer portfolios:', error);
+        }
+        finally {
+            setIsLoading(false);
+        }
+    };
+
+    const onAddPortfolioPress = () => {
+        setActiveTab('Add Portfolio')
+    };
+
+    const clearStateValues = () => {
+
+        // set initial state value
+        setAddPortfolio({
+            portfolioTitle: "",
+            portfoliocategory: "",
+            portfolioDesc: "",
+            featured: false,
+        })
+        setSelectedFile(null);
+        setEditPortfolioId('');
+        setEditPortfolio(false);
+        setActiveTab("Portfolio");
+    }
+
+    const onDeletePortfolioPress = (item: any) => {
+        Alert.alert('Delete portfolio', 'Portfolio delete feature not implemented')
+    }
+
     const onEditPortfolioPress = (item: any) => {
         setActiveTab("Add Portfolio");
-        setSelectedFile(item?.image ? { uri: item?.image } : '')
+        setEditPortfolio(true);
+        setEditPortfolioId(item?.id ? item?.id : '')
         setAddPortfolio({
             portfolioTitle: item?.title ? item?.title : '',
             portfoliocategory: item?.category ? item?.category : '',
-            portfolioDesc: item?.desc ? item?.desc : '',
+            portfolioDesc: item?.description ? item?.description : '',
             featured: item?.featured ? item?.featured : '',
         })
+
+        const formattedImages = item?.image_url ? { uri: item?.image_url } : null
+        setSelectedFile(formattedImages);
     }
 
     const handleDocumentPick = async () => {
@@ -71,21 +137,47 @@ export const PortfolioComponent = () => {
         }
     };
 
-    const createEquipment = () => {
-        setSelectedFile('')
-        // set initial state value
-        setAddPortfolio({
-            portfolioTitle: "",
-            portfoliocategory: "",
-            portfolioDesc: "",
-            featured: false,
-        })
+    const createPortfolio = async () => {
+        try {
+            const formData = new FormData();
 
-        // move to list add portfolio tab
+            // Append basic text fields
+            formData.append('title', addPortfolio.portfolioTitle);
+            formData.append('description', addPortfolio.portfolioDesc);
+            formData.append('category', addPortfolio.portfoliocategory);
+            formData.append('featured', String(addPortfolio.featured)); // booleans → strings in FormData
 
-        setActiveTab("portfolio");
+            // Append image if selected
+            if (selectedFile?.uri) {
+                formData.append('file', {
+                    uri: selectedFile.uri,
+                    name: selectedFile.fileName || 'portfolio.jpg',
+                    type: selectedFile.type || 'image/jpeg',
+                });
+            } else if (typeof selectedFile === 'string') {
+                // If you’re using a remote URL or base64 instead of file
+                formData.append('file', selectedFile);
+            }
 
-    }
+            let response;
+
+            // ✅ Update flow
+            if (editPortfolio && editPortfolioId) {
+                Alert.alert('Update portfolio', 'Portfolio update feature not implemented')
+                clearStateValues();
+            }
+            // ✅ Create flow
+            else {
+                response = await dispatch(createPhotographerPortfolio(formData)).unwrap();
+                console.log("✅ Portfolio created Successfully:", response);
+                clearStateValues();
+            }
+
+        } catch (error) {
+            console.log("❌ Error creating portfolio:", error);
+        }
+    };
+
 
     // --- Render Item Function for FlatList ---
     const renderStudioCard = ({ item }: any) => {
@@ -97,7 +189,7 @@ export const PortfolioComponent = () => {
                     <View>
                         <Image
                             // Using a placeholder that simulates the image's structure
-                            source={{ uri: item.image }}
+                            source={item.image_url ? { uri: item.image_url } : imagePaths.StudioPlaceHolderImage}
                             resizeMode="cover"
                             style={styles.cardImage}
                         />
@@ -109,8 +201,9 @@ export const PortfolioComponent = () => {
 
                     {/* Text Info */}
                     <View style={styles.cardTextContainer}>
+                        <Text style={styles.avaliable}>Photographer Id : <Text style={{ ...styles.avaliable, fontWeight: '600' }}> {item.photographer_id}</Text></Text>
                         <Text style={styles.studioName}>{item.title}</Text>
-                        <Text style={styles.studioDesc}>{item.desc}</Text>
+                        <Text style={styles.studioDesc}>{item.description}</Text>
                         <Text style={styles.avaliable}>Category : <Text style={{ ...styles.avaliable, fontWeight: '600' }}> {item.category}</Text></Text>
 
                         {/* Edit Button (Bordered)  */}
@@ -118,7 +211,7 @@ export const PortfolioComponent = () => {
                             <TouchableOpacity onPress={() => onEditPortfolioPress(item)} style={styles.viewButton}>
                                 <Text style={styles.viewButtonText}>Edit</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{ ...styles.viewButton, backgroundColor: '#DC3545' }}>
+                            <TouchableOpacity onPress={() => onDeletePortfolioPress(item)} style={{ ...styles.viewButton, backgroundColor: '#DC3545' }}>
                                 <Text style={styles.viewButtonText}>Delete</Text>
                             </TouchableOpacity>
                         </View>
@@ -130,61 +223,81 @@ export const PortfolioComponent = () => {
     }
 
     return (
-        <View style={{ marginBottom: 400 }}>
+        <View style={{ marginBottom: 360 }}>
 
             {/* Tabs */}
             <View style={styles.toggleContainer}>
-                            <TouchableOpacity
-                                style={[
-                                    styles.toggleButton,
-                                    activeTab === "portfolio" && styles.toggleButtonActive
-                                ]}
-                                onPress={() => setActiveTab("portfolio")}
-                            >
-                                <Icon
-                                    name="emoji-events"
-                                    size={16}
-                                    color={activeTab === "portfolio" ? COLORS.background : COLORS.text.secondary}
-                                />
-                                <Text style={[
-                                    styles.toggleButtonText,
-                                    activeTab === "portfolio" && styles.toggleButtonTextActive
-                                ]}>
-                                    Portfolio
-                                </Text>
-                            </TouchableOpacity>
-            
-                            <TouchableOpacity
-                                style={[
-                                    styles.toggleButton,
-                                    activeTab === "Add Portfolio" && styles.toggleButtonActive
-                                ]}
-                                onPress={() => setActiveTab("Add Portfolio")}
-                            >
-                                <Icon
-                                    name="add-circle-outline"
-                                    size={16}
-                                    color={activeTab === "Add Portfolio" ? COLORS.background : COLORS.text.secondary}
-                                />
-                                <Text style={[
-                                    styles.toggleButtonText,
-                                    activeTab === "Add Portfolio" && styles.toggleButtonTextActive
-                                ]}>
-                                    Add Portfolio
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {activeTab === "portfolio" ? <>
-
-                    {/* Studio Cards Grid */}
-                    <FlatList
-                        data={serviceData}
-                        keyExtractor={(item) => item.id}
-                        renderItem={renderStudioCard}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.listContent}
+                <TouchableOpacity
+                    style={[
+                        styles.toggleButton,
+                        activeTab === "Portfolio" && styles.toggleButtonActive
+                    ]}
+                    onPress={() => setActiveTab("Portfolio")}
+                >
+                    <Icon
+                        name="emoji-events"
+                        size={16}
+                        color={activeTab === "Portfolio" ? COLORS.background : COLORS.text.secondary}
                     />
+                    <Text style={[
+                        styles.toggleButtonText,
+                        activeTab === "Portfolio" && styles.toggleButtonTextActive
+                    ]}>
+                        Portfolio
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[
+                        styles.toggleButton,
+                        activeTab === "Add Portfolio" && styles.toggleButtonActive
+                    ]}
+                    onPress={() => setActiveTab("Add Portfolio")}
+                >
+                    <Icon
+                        name={editPortfolio ? "edit" : "add-circle-outline"}
+                        size={16}
+                        color={activeTab === "Add Portfolio" ? COLORS.background : COLORS.text.secondary}
+                    />
+                    <Text style={[
+                        styles.toggleButtonText,
+                        activeTab === "Add Portfolio" && styles.toggleButtonTextActive
+                    ]}>
+                        {editPortfolio ? "Edit portfolio" : "Add Portfolio"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {activeTab === "Portfolio" ? <>
+                    {/* Studio Cards Grid */}
+                    {isLoading ? (
+                        <View style={{ marginBottom: 60 }} >
+                            {[1, 2, 3].map((_, i) => <PortfolioSkeleton key={i} />)}
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={photographerPortfolio}
+                            keyExtractor={(item) => item.id}
+                            renderItem={renderStudioCard}
+                            ListEmptyComponent={
+                                <View style={styles.noStudioOutline}>
+                                    <Icon name="emoji-events" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                                    <Text style={styles.noStudioText}>
+                                        Portfolio not found
+                                    </Text>
+                                    <Text style={styles.addStudioDesc}>
+                                        Add new portfolio to show
+                                    </Text>
+                                    <TouchableOpacity onPress={onAddPortfolioPress} style={styles.addStudioBtn}>
+                                        <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
+                                        <Text style={styles.addStudioText}>Add portfolio</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            }
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={styles.listContent}
+                        />
+                    )}
                 </> :
                     <>
                         <Text style={styles.labelText} >Portfolio Title<Text style={styles.required}> *</Text></Text>
@@ -262,8 +375,8 @@ export const PortfolioComponent = () => {
                         </TouchableOpacity>
 
                         {/* Save button section  */}
-                        <TouchableOpacity onPress={createEquipment} style={styles.createButton}>
-                            <Text style={styles.createButtonText}>Save Portfolio</Text>
+                        <TouchableOpacity onPress={createPortfolio} style={styles.createButton}>
+                            <Text style={styles.createButtonText}>{editPortfolio ? 'Update portfolio' : 'Add portfolio'}</Text>
                         </TouchableOpacity>
 
                     </>
@@ -277,7 +390,7 @@ export const PortfolioComponent = () => {
 const styles = StyleSheet.create({
     listContent: {
         paddingVertical: 10,
-        paddingBottom: 20,
+        paddingBottom: 60,
     },
     row: {
         justifyContent: 'space-between',
@@ -303,7 +416,6 @@ const styles = StyleSheet.create({
         width: 120,
         height: 140,
         borderRadius: 10,
-        resizeMode: 'contain',
         borderWidth: 1,
         borderColor: '#00000026',
     },
@@ -332,7 +444,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     avaliable: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#101010',
         marginTop: 2,
     },
@@ -384,6 +496,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginVertical: 25,
         alignItems: "center",
+        marginBottom: 60
     },
     createButtonText: {
         color: "#FFFFFF",
@@ -440,40 +553,80 @@ const styles = StyleSheet.create({
         fontWeight: "500",
     },
     toggleContainer: {
-            flexDirection: 'row',
-            backgroundColor: COLORS.surface,
-            borderRadius: 25,
-            borderColor: COLORS.bg,
-            borderWidth: 1,
-            padding: 8,
-            marginTop: 16,
-            marginBottom: 16,
-            elevation: 2,
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.08,
-            shadowRadius: 6,
-        },
-        toggleButton: {
-            flex: 1,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            borderRadius: 18,
-            backgroundColor: 'transparent',
-        },
-        toggleButtonActive: {
-            backgroundColor: COLORS.bg,
-        },
-        toggleButtonText: {
-            fontSize: 14,
-            fontWeight: '600',
-            color: COLORS.text.secondary,
-            marginLeft: 6,
-        },
-        toggleButtonTextActive: {
-            color: COLORS.background,
-        },
+        flexDirection: 'row',
+        backgroundColor: COLORS.surface,
+        borderRadius: 25,
+        borderColor: COLORS.bg,
+        borderWidth: 1,
+        padding: 8,
+        marginTop: 16,
+        marginBottom: 16,
+        elevation: 2,
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+    },
+    toggleButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 18,
+        backgroundColor: 'transparent',
+    },
+    toggleButtonActive: {
+        backgroundColor: COLORS.bg,
+    },
+    toggleButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.text.secondary,
+        marginLeft: 6,
+    },
+    toggleButtonTextActive: {
+        color: COLORS.background,
+    },
+    noStudioOutline: {
+        alignItems: 'center',
+        marginVertical: 30
+    },
+    loading: {
+        marginTop: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 20,
+        color: "#101010",
+        fontWeight: "bold",
+        fontSize: 16,
+    },
+    noStudioText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500'
+    },
+    addStudioDesc: {
+        fontSize: 14,
+        color: '#999',
+        marginTop: 4
+    },
+    addStudioBtn: {
+        marginTop: 10,
+        backgroundColor: '#034833',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 5,
+        borderRadius: 6,
+    },
+    addStudioText: {
+        marginLeft: 10,
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
 });
