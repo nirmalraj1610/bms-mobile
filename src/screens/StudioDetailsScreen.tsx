@@ -31,6 +31,9 @@ const StudioDetailsScreen: React.FC = () => {
   const [equipmentLoading, setEquipmentLoading] = useState(false);
   const [equipmentError, setEquipmentError] = useState<string | null>(null);
   const [equipmentItems, setEquipmentItems] = useState<ApiEquipment[]>([]);
+  const [equipmentQuantities, setEquipmentQuantities] = useState<Record<string, number>>({});
+  // Persist selected equipment per studio
+  const storageKey = studioId ? `selected_equipment_${studioId}` : undefined;
 
   // Get studio data from Redux
   const { data: studioData, loading, error } = useAppSelector(state => state.studios.detail);
@@ -207,6 +210,82 @@ const StudioDetailsScreen: React.FC = () => {
     }
   };
 
+  // Quantity helpers for equipment controls
+  const getEquipmentQty = (id: any) => equipmentQuantities[String(id)] || 0;
+  const increaseEquipmentQty = (id: any, max?: number) => {
+    setEquipmentQuantities(prev => {
+      const key = String(id);
+      const curr = prev[key] || 0;
+      const next = typeof max === 'number' ? Math.min(curr + 1, max) : curr + 1;
+      return { ...prev, [key]: next };
+    });
+  };
+  const decreaseEquipmentQty = (id: any) => {
+    setEquipmentQuantities(prev => {
+      const key = String(id);
+      const curr = prev[key] || 0;
+      const next = Math.max(curr - 1, 0);
+      return { ...prev, [key]: next };
+    });
+  };
+
+  // Initialize equipment quantities from storage when equipment list loads
+  useEffect(() => {
+    const loadStoredSelection = async () => {
+      if (!storageKey) return;
+      try {
+        const raw = await AsyncStorage.getItem(storageKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw || '{}');
+        const items = parsed?.equipment_items || parsed?.items || [];
+        if (Array.isArray(items) && items.length > 0) {
+          const map: Record<string, number> = {};
+          items.forEach((it: any) => {
+            const eid = String(it?.equipment_id ?? it?.id);
+            const qty = Number(it?.quantity ?? 0);
+            if (eid && qty > 0) map[eid] = qty;
+          });
+          setEquipmentQuantities(prev => ({ ...prev, ...map }));
+        }
+      } catch {}
+    };
+    // Load only after items fetched to ensure IDs are present
+    if (equipmentItems && equipmentItems.length > 0) {
+      loadStoredSelection();
+    }
+  }, [equipmentItems, storageKey]);
+
+  // Persist selection to storage whenever quantities change
+  useEffect(() => {
+    const persistSelection = async () => {
+      if (!storageKey) return;
+      try {
+        const selected = Object.entries(equipmentQuantities)
+          .filter(([_, qty]) => (qty as number) > 0)
+          .map(([equipment_id, quantity]) => {
+            const full = equipmentItems.find((e: any) => String(e.id) === String(equipment_id));
+            const hourly = Number(full?.rental_price_hourly ?? full?.hourly_rate ?? 0);
+            return { equipment_id, quantity, hourly_rate: hourly };
+          });
+        const data = { studio_id: String(studioId), equipment_items: selected };
+        await AsyncStorage.setItem(storageKey, JSON.stringify(data));
+      } catch {}
+    };
+    persistSelection();
+  }, [equipmentQuantities, storageKey, studioId]);
+
+  // Clear stored selection when navigating away from this screen
+  useEffect(() => {
+    if (!storageKey) return;
+    const unsubscribe = navigation.addListener('blur', () => {
+      AsyncStorage.removeItem(storageKey).catch(() => {});
+    });
+    return () => {
+      unsubscribe();
+      AsyncStorage.removeItem(storageKey).catch(() => {});
+    };
+  }, [navigation, storageKey]);
+
   const closeLoginModal = () => setShowLoginModal(false);
   const goToLogin = () => {
     setShowLoginModal(false);
@@ -376,6 +455,45 @@ const StudioDetailsScreen: React.FC = () => {
                               <Text style={styles.equipMetaText}>{`${qty} available`}</Text>
                             </View>
                           )}
+                        </View>
+                        {/* Quantity selector */}
+                        <View style={styles.equipQtyRow}>
+                          <Text style={styles.qtyLabel}>Quantity</Text>
+                          <View style={styles.qtyControl}>
+                            <TouchableOpacity
+                              style={[
+                                styles.qtyBtn,
+                                getEquipmentQty(eq.id) === 0 && styles.qtyBtnDisabled,
+                              ]}
+                              onPress={() => decreaseEquipmentQty(eq.id)}
+                              disabled={getEquipmentQty(eq.id) === 0}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Decrease ${eq.item_name} quantity`}
+                            >
+                              <Icon
+                                name="remove"
+                                size={20}
+                                color={getEquipmentQty(eq.id) === 0 ? '#9CA3AF' : COLORS.bg}
+                              />
+                            </TouchableOpacity>
+                            <Text style={styles.qtyCount}>{getEquipmentQty(eq.id)}</Text>
+                            <TouchableOpacity
+                              style={[
+                                styles.qtyBtn,
+                                typeof qty === 'number' && getEquipmentQty(eq.id) >= qty && styles.qtyBtnDisabled,
+                              ]}
+                              onPress={() => increaseEquipmentQty(eq.id, qty)}
+                              disabled={typeof qty === 'number' && getEquipmentQty(eq.id) >= qty}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Increase ${eq.item_name} quantity`}
+                            >
+                              <Icon
+                                name="add"
+                                size={20}
+                                color={typeof qty === 'number' && getEquipmentQty(eq.id) >= qty ? '#9CA3AF' : COLORS.bg}
+                              />
+                            </TouchableOpacity>
+                          </View>
                         </View>
                         {/* {imgCount > 0 && (
                           <View style={styles.equipImagesPill}>
@@ -805,6 +923,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.background,
     ...typography.medium,
+  },
+  equipQtyRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  qtyLabel: {
+    fontSize: 12,
+    color: COLORS.title,
+    ...typography.medium,
+  },
+  qtyControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  qtyBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF1F4',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qtyBtnDisabled: {
+    opacity: 0.6,
+  },
+  qtyCount: {
+    minWidth: 28,
+    textAlign: 'center',
+    fontSize: 14,
+    color: COLORS.title,
+    ...typography.semibold,
   },
   bookBtn: {
     marginTop: 16,

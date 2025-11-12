@@ -1,7 +1,7 @@
 import { black } from "react-native-paper/lib/typescript/styles/themes/v2/colors";
 
 export const COLORS = {
-  primary: '#4A90E2',
+  primary: '#034833',
   secondary: '#F5A623',
   accent: '#7ED321',
   background: '#FFFFFF',

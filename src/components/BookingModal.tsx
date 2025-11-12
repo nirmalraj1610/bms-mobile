@@ -17,6 +17,8 @@ import { studioAvailabilityThunk } from '../features/studios/studiosSlice';
 import { doCreateBooking } from '../features/bookings/bookingsSlice';
 import { COLORS } from '../constants';
 import { ENV } from '../config/env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { bookingAddEquipment } from '../lib/api';
 
 interface BookingModalProps {
   visible: boolean;
@@ -60,37 +62,65 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   const [selectedDurationHours, setSelectedDurationHours] = useState(2);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [dayBookings, setDayBookings] = useState<any[]>([]);
   const [isBooking, setIsBooking] = useState(false);
+  const [equipmentHourlySubtotal, setEquipmentHourlySubtotal] = useState(0);
+  const [selectedEquipments, setSelectedEquipments] = useState<{ equipment_id: string; quantity: number; hourly_rate?: number }[]>([]);
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
 
-  // Generate available time slots based on bookings
-  const generateAvailableTimeSlots = (bookings: any[]) => {
+  // Convert HH:MM:SS to minutes since midnight
+  const timeToMinutes = (t: string) => {
+    const [h, m] = t.split(':').map((x) => parseInt(x, 10));
+    return h * 60 + m;
+  };
+
+  // Convert minutes since midnight to HH:MM:SS
+  const minutesToTime = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+  };
+
+  // Check if two time ranges [aStart, aEnd] and [bStart, bEnd] overlap
+  const rangesOverlap = (aStart: number, aEnd: number, bStart: number, bEnd: number) => {
+    return aStart < bEnd && aEnd > bStart;
+  };
+
+  // Generate available time slots based on bookings and selected duration
+  const generateAvailableTimeSlots = (bookings: any[], durationHours: number) => {
     const slots: TimeSlot[] = [];
-    const bookedSlots = new Set();
-    
-    // Mark booked time slots
-    bookings.forEach(booking => {
-      const key = `${booking.start_time}-${booking.end_time}`;
-      bookedSlots.add(key);
-    });
-    
-    // Generate all possible time slots (9 AM to 6 PM, 2-hour slots)
-    for (let hour = 9; hour <= 18; hour += 2) {
-      const startTime = `${String(hour).padStart(2, '0')}:00:00`;
-      const endTime = `${String(hour + 2).padStart(2, '0')}:00:00`;
-      const slotKey = `${startTime}-${endTime}`;
-      
+
+    // Studio working window: 9:00 to 18:00
+    const WORK_START = 9 * 60; // minutes
+    const WORK_END = 18 * 60; // minutes
+
+    const durationMins = durationHours * 60;
+    const latestStart = WORK_END - durationMins; // last valid start time
+
+    // Normalize bookings to minute ranges
+    const normalizedBookings = (bookings || []).map((b) => ({
+      start: timeToMinutes(String(b.start_time)),
+      end: timeToMinutes(String(b.end_time)),
+    }));
+
+    // Generate candidate start times in 60-minute increments
+    for (let start = WORK_START; start <= latestStart; start += 60) {
+      const end = start + durationMins;
+
+      // Determine if this proposed window overlaps any booking
+      const overlap = normalizedBookings.some((bk) => rangesOverlap(start, end, bk.start, bk.end));
+
       slots.push({
-        start_time: startTime,
-        end_time: endTime,
-        is_booked: bookedSlots.has(slotKey),
+        start_time: minutesToTime(start),
+        end_time: minutesToTime(end),
+        is_booked: overlap,
       });
     }
-    
+
     return slots;
   };
 
@@ -227,14 +257,18 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
       const result = await dispatch(studioAvailabilityThunk({ studio_id: studioIdString, date }));
       if (studioAvailabilityThunk.fulfilled.match(result)) {
         console.log('BookingModal - Successfully fetched availability:', result.payload);
-        const availableSlots = generateAvailableTimeSlots(result.payload.bookings || []);
+        const bookingsForDay = result.payload.bookings || [];
+        setDayBookings(bookingsForDay);
+        const availableSlots = generateAvailableTimeSlots(bookingsForDay, selectedDurationHours);
         setTimeSlots(availableSlots);
       } else {
         console.error('BookingModal - Failed to fetch availability:', result.payload);
+        setDayBookings([]);
         setTimeSlots([]);
       }
     } catch (error) {
       console.error('BookingModal - Error fetching time slots:', error);
+      setDayBookings([]);
       setTimeSlots([]);
     }
   };
@@ -246,10 +280,67 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   };
 
   // Calculate total amount
+  const studioHourlyRate = useMemo(() => {
+    return studio?.pricing?.hourly_rate || studio?.pricing?.hourlyRate || 100;
+  }, [studio]);
+
   const totalAmount = useMemo(() => {
-    const hourlyRate = studio?.pricing?.hourly_rate || studio?.pricing?.hourlyRate || 100;
-    return selectedDurationHours * hourlyRate;
-  }, [selectedDurationHours, studio]);
+    return selectedDurationHours * (studioHourlyRate + equipmentHourlySubtotal);
+  }, [selectedDurationHours, studioHourlyRate, equipmentHourlySubtotal]);
+
+  const equipmentTotal = useMemo(() => {
+    return equipmentHourlySubtotal * selectedDurationHours;
+  }, [equipmentHourlySubtotal, selectedDurationHours]);
+
+  const studioTotal = useMemo(() => {
+    return studioHourlyRate * selectedDurationHours;
+  }, [studioHourlyRate, selectedDurationHours]);
+
+  // Load selected equipments from storage to compute hourly subtotal
+  useEffect(() => {
+    const loadEquipments = async () => {
+      try {
+        const key = `selected_equipment_${studio?.id}`;
+        if (!studio?.id) return;
+        const raw = await AsyncStorage.getItem(key);
+        if (!raw) {
+          setEquipmentHourlySubtotal(0);
+          setSelectedEquipments([]);
+          return;
+        }
+        const parsed = JSON.parse(raw || '{}');
+        const items = parsed?.equipment_items || [];
+        if (Array.isArray(items)) {
+          const normalized = items.map((it: any) => ({
+            equipment_id: String(it?.equipment_id ?? it?.id),
+            quantity: Number(it?.quantity ?? 0),
+            hourly_rate: Number(it?.hourly_rate ?? 0),
+          })).filter((x) => x.quantity > 0);
+          setSelectedEquipments(normalized);
+          const subtotal = normalized.reduce((sum, item) => sum + (item.hourly_rate || 0) * item.quantity, 0);
+          setEquipmentHourlySubtotal(subtotal);
+        } else {
+          setEquipmentHourlySubtotal(0);
+          setSelectedEquipments([]);
+        }
+      } catch {
+        setEquipmentHourlySubtotal(0);
+        setSelectedEquipments([]);
+      }
+    };
+    if (visible) loadEquipments();
+  }, [visible, studio?.id]);
+
+  // Recalculate time slots when duration changes (after date is selected)
+  useEffect(() => {
+    if (selectedDate && showTimeSlots) {
+      const newSlots = generateAvailableTimeSlots(dayBookings, selectedDurationHours);
+      setTimeSlots(newSlots);
+      // Reset selected slot if it no longer fits new duration
+      setSelectedSlot(null);
+      setSelectedTime('');
+    }
+  }, [selectedDurationHours]);
 
   // Handle Razorpay payment and booking creation
   const handleBookNow = async () => {
@@ -321,6 +412,42 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
             console.log('Booking creation result:', result);
             
             if (doCreateBooking.fulfilled.match(result)) {
+              // After booking is successfully created, optionally add equipment
+              try {
+                const booking = result.payload as any;
+                const key = `selected_equipment_${studio.id}`;
+                const stored = await AsyncStorage.getItem(key);
+                if (stored) {
+                  const parsed = JSON.parse(stored || '{}');
+                  const items = parsed?.equipment_items || parsed?.items || [];
+                  if (Array.isArray(items) && items.length > 0) {
+                    // Normalize payload shape
+                    const equipment_items = items.map((it: any) => ({
+                      equipment_id: String(it?.equipment_id ?? it?.id),
+                      quantity: Number(it?.quantity ?? 0)
+                    })).filter((x: any) => x.quantity > 0);
+                    if (equipment_items.length > 0) {
+                      const payload = { booking_id: String(booking.id), equipment_items };
+                      console.log('Calling bookingAddEquipment with:', payload);
+                      try {
+                        const equipResponse = await bookingAddEquipment(payload);
+                        console.log('bookingAddEquipment success');
+                        console.log('bookingAddEquipment response:', equipResponse);
+                        // Clear local storage immediately after successful API call
+                        await AsyncStorage.removeItem(key);
+                        console.log('Cleared equipment selection from storage:', key);
+                      } catch (equipErr) {
+                        console.log('bookingAddEquipment error:', equipErr);
+                      }
+                    }
+                  }
+                }
+              } catch (postErr) {
+                console.log('Post-booking equipment attach error:', postErr);
+              } finally {
+                // Clear stored equipment for this studio regardless
+                try { await AsyncStorage.removeItem(`selected_equipment_${studio.id}`); } catch {}
+              }
               Alert.alert(
                 'Booking Successful!',
                 `Your studio booking has been confirmed for ${selectedDate} from ${selectedSlot.start_time} to ${selectedSlot.end_time}.\n\nPayment ID: ${data.razorpay_payment_id}\nTotal Amount: ₹${totalAmount.toLocaleString()}`,
@@ -493,13 +620,44 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
             </View>
           </View>
 
-          {/* Time Slots Section */}
+          {/* Duration selection - placed BEFORE time slots */}
+          {showTimeSlots && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                <Icon name="schedule" size={20} color={COLORS.primary} /> Select Duration
+              </Text>
+
+              <View style={styles.durationContainer}>
+                {[2, 4, 6, 8].map((hours) => (
+                  <TouchableOpacity
+                    key={hours}
+                    style={[
+                      styles.durationOption,
+                      selectedDurationHours === hours && styles.selectedDuration,
+                    ]}
+                    onPress={() => setSelectedDurationHours(hours)}
+                  >
+                    <Text style={[
+                      styles.durationText,
+                      selectedDurationHours === hours && styles.selectedDurationText,
+                    ]}>
+                      {hours}h
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Pricing summary moved below time slots */}
+            </View>
+          )}
+
+          {/* Time Slots Section - filtered by selected duration */}
           {showTimeSlots && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
                 <Icon name="access-time" size={20} color={COLORS.primary} /> Available Time Slots
               </Text>
-              
+
               <Text style={styles.selectedDateText}>
                 {formatDateForDisplay(selectedDate)}
               </Text>
@@ -546,46 +704,20 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                   ))}
                 </View>
               )}
-            </View>
-          )}
 
-          {/* Duration & Pricing */}
-          {selectedSlot && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                <Icon name="schedule" size={20} color={COLORS.primary} /> Duration & Pricing
-              </Text>
-              
-              <View style={styles.durationContainer}>
-                {[2, 4, 6, 8].map((hours) => (
-                  <TouchableOpacity
-                    key={hours}
-                    style={[
-                      styles.durationOption,
-                      selectedDurationHours === hours && styles.selectedDuration,
-                    ]}
-                    onPress={() => setSelectedDurationHours(hours)}
-                  >
-                    <Text style={[
-                      styles.durationText,
-                      selectedDurationHours === hours && styles.selectedDurationText,
-                    ]}>
-                      {hours}h
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
+              {/* Pricing summary card below available slots */}
               <View style={styles.pricingCard}>
                 <View style={styles.pricingRow}>
                   <Text style={styles.pricingLabel}>Duration:</Text>
                   <Text style={styles.pricingValue}>{selectedDurationHours} hours</Text>
                 </View>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Rate:</Text>
-                  <Text style={styles.pricingValue}>
-                    ₹{(studio?.pricing?.hourly_rate || studio?.pricing?.hourlyRate || 100).toLocaleString()}/hour
-                  </Text>
+                  <Text style={styles.pricingLabel}>Equipments:</Text>
+                  <Text style={styles.pricingValue}>₹{equipmentTotal.toLocaleString()}</Text>
+                </View>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>Studio:</Text>
+                  <Text style={styles.pricingValue}>₹{studioTotal.toLocaleString()}</Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.pricingRow}>
@@ -595,22 +727,24 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
               </View>
 
               {/* Book Button */}
-              <TouchableOpacity
-                style={[styles.bookButton, isBooking && styles.bookButtonDisabled]}
-                onPress={handleBookNow}
-                disabled={isBooking || bookingsState.creating}
-              >
-                {isBooking || bookingsState.creating ? (
-                  <View style={styles.bookButtonContent}>
-                    <ActivityIndicator size="small" color={COLORS.background} />
-                    <Text style={styles.bookButtonText}>Processing...</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.bookButtonText}>
-                    Pay & Book - ₹{totalAmount.toLocaleString()}
-                  </Text>
-                )}
-              </TouchableOpacity>
+              {selectedSlot && (
+                <TouchableOpacity
+                  style={[styles.bookButton, isBooking && styles.bookButtonDisabled]}
+                  onPress={handleBookNow}
+                  disabled={isBooking || bookingsState.creating}
+                >
+                  {isBooking || bookingsState.creating ? (
+                    <View style={styles.bookButtonContent}>
+                      <ActivityIndicator size="small" color={COLORS.background} />
+                      <Text style={styles.bookButtonText}>Processing...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.bookButtonText}>
+                      Pay & Book - ₹{totalAmount.toLocaleString()}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </ScrollView>
@@ -662,7 +796,7 @@ const styles = StyleSheet.create({
   studioPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: COLORS.text.secondary,
   },
   section: {
     paddingVertical: 20,
@@ -841,6 +975,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
+    marginTop: 16,
   },
   pricingRow: {
     flexDirection: 'row',
