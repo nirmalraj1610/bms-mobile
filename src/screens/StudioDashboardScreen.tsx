@@ -22,6 +22,7 @@ import { typography } from '../constants/typography';
 import { BlurView } from '@react-native-community/blur';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import imagePaths from '../constants/imagePaths';
 
 const StudioDashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -29,7 +30,7 @@ const StudioDashboardScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
   const [editStudio, setEditStudio] = useState(false);
   const [editStudioValues, setEditStudioValues] = useState({});
-  const [currentUser, setCurrentUser] = useState<string | null>('User');
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -109,20 +110,20 @@ const StudioDashboardScreen: React.FC = () => {
               resizeMode="contain"
             />
             <Text style={styles.welcomeText}>
-              Hello <Text style={styles.userName}>{currentUser?.full_name} !</Text>
+              Hello<Text style={styles.userName}> {currentUser?.full_name?.split(' ')[0] || 'User'} !</Text>
             </Text>
           </View>
 
           {/* Right: Notifications + Location */}
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.notificationIconOutline}>
-              <Icon name="notifications" size={20} color="#034833" />
+              <Image source={imagePaths.NotificationNew} resizeMode='contain' style={styles.notificationIcon} />
             </TouchableOpacity>
 
             <View style={styles.locationContainer}>
               <Text style={styles.locationLabel}>Current Location</Text>
               <View style={styles.locationRow}>
-                <Icon name="location-on" size={16} color="#034833" />
+                <Image source={imagePaths.LocationNew} resizeMode='contain' style={{ height: 14, width: 14 }} />
                 <Text style={styles.locationText}>{currentUser?.customer_profiles?.address?.city}</Text>
               </View>
             </View>
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     ...typography.semibold,
-    fontSize: 16,
+    fontSize: 18,
     marginTop: 10,
     color: COLORS.text.primary,
   },
@@ -272,10 +273,16 @@ const styles = StyleSheet.create({
   },
   notificationIconOutline: {
     padding: 8,
-    borderRadius: 20,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: '#034833',
-    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10
+  },
+  notificationIcon: {
+    height: 22,
+    width: 22,
   },
   locationContainer: {
     alignItems: 'flex-end',
@@ -304,7 +311,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 25,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#034833',
     paddingLeft: 12,
@@ -330,8 +337,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#034833',
-    borderTopRightRadius: 22,
-    borderBottomRightRadius: 22,
+    borderTopRightRadius: 7,
+    borderBottomRightRadius: 7,
     paddingVertical: 12,
     paddingHorizontal: 16,
     elevation: 3,

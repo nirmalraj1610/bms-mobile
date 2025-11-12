@@ -212,20 +212,18 @@ const FavoritesScreen: React.FC = () => {
         <Text style={styles.screenTitle}>My Favorite Studios</Text>
         <Text style={styles.screenSubtitle}>Studios you've saved for future bookings</Text>
       </View>
-
       <View style={styles.searchContainer}>
         <View style={styles.searchInput}>
-          <Icon name="search" size={18} color={COLORS.text.secondary} />
           <TextInput
             style={styles.searchPlaceholder}
             placeholder="Search..."
-            placeholderTextColor={COLORS.text.secondary}
+            placeholderTextColor={'#B7B7B7'}
             value={query}
             onChangeText={setQuery}
           />
-          <TouchableOpacity style={styles.searchIconButton}>
-            <Icon name="search" size={20} color={COLORS.background} />
-          </TouchableOpacity>
+          <View style={styles.searchIconButton} >
+            <Image source={imagePaths.Search} style={styles.searchIcon} />
+          </View>
         </View>
       </View>
 
@@ -284,17 +282,16 @@ const FavoritesScreen: React.FC = () => {
           </View>
           <View style={styles.searchContainer}>
             <View style={styles.searchInput}>
-              <Icon name="search" size={18} color={COLORS.text.secondary} />
               <TextInput
                 style={styles.searchPlaceholder}
                 placeholder="Search..."
-                placeholderTextColor={COLORS.text.secondary}
+                placeholderTextColor={'#B7B7B7'}
                 value={query}
                 onChangeText={setQuery}
               />
-              <TouchableOpacity style={styles.searchIconButton}>
-                <Icon name="search" size={20} color={COLORS.background} />
-              </TouchableOpacity>
+              <View style={styles.searchIconButton} >
+                <Image source={imagePaths.Search} style={styles.searchIcon} />
+              </View>
             </View>
           </View>
           {loading ? (
@@ -372,32 +369,37 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginTop: 20,
     marginHorizontal: 4,
+    position: 'relative',
   },
   searchInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    // backgroundColor: '#F5F5F5',
-    borderRadius: 30,
-    paddingLeft: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderRadius: 5,
   },
   searchPlaceholder: {
     flex: 1,
-    marginLeft: 8,
+    paddingLeft: 16,
     fontSize: 14,
-    color: COLORS.text.secondary,
+    height: 48,
+    borderTopLeftRadius: 5,
+    borderBottomLeftRadius: 5,
+    color: '#101010',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#034833',
   },
   searchIconButton: {
-    width: 60,
-    height: 44,
-    padding: 10,
-    borderTopRightRadius: 30,
-    borderBottomRightRadius: 30,
-    backgroundColor: COLORS.bg,
+    width: 80,
+    height: 48,
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
+    backgroundColor: '#034833',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8,
+  },
+  searchIcon: {
+    height: 24,
+    width: 24,
   },
   listContainer: {
     paddingTop: 8,

@@ -113,8 +113,6 @@ const styles = StyleSheet.create({
     height: 60,
     paddingBottom: 5,
     paddingTop: 5,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
   },
   tabBarLabel: {
     fontSize: 12,
