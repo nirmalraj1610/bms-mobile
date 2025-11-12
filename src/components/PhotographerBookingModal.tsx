@@ -72,6 +72,18 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
     return selectedService.base_price;
   }, [selectedService]);
 
+  // Format date for display (mirrors studio modal)
+  const formatDateForDisplay = (dateString: string) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   const generateAvailableTimeSlots = (timeSlots: any[]) => {
     if (timeSlots && timeSlots.length > 0) {
       return timeSlots.map((slot: any) => ({
@@ -225,103 +237,160 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
           <View style={styles.placeholder} />
         </View>
 
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            <View style={styles.photographerInfo}>
-              <Text style={styles.photographerName}>{photographer?.full_name}</Text>
-              <Text style={styles.photographerBio}>{photographer?.bio}</Text>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Photographer & Service Info (styled like studio info) */}
+          <View style={styles.serviceInfo}>
+            <Text style={styles.serviceTitle}>{selectedService?.title || 'Service'}</Text>
+            <Text style={styles.servicePrice}>₹{(selectedService?.base_price || 0).toLocaleString()}</Text>
+          </View>
+
+          {/* Calendar Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              <Icon name="calendar-today" size={20} color={COLORS.primary} /> Select Date
+            </Text>
+
+            {/* Month Header */}
+            <View style={styles.monthHeader}>
+              <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.navButton}>
+                <Icon name="chevron-left" size={24} color={COLORS.text.primary} />
+              </TouchableOpacity>
+              <Text style={styles.monthTitle}>
+                {monthNames[currentMonth]} {currentYear}
+              </Text>
+              <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.navButton}>
+                <Icon name="chevron-right" size={24} color={COLORS.text.primary} />
+              </TouchableOpacity>
             </View>
 
-            {/* Selected Service Info */}
-            {selectedService && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Selected Service</Text>
-                <View style={styles.selectedServiceInfo}>
-                  <Text style={styles.selectedServiceTitle}>{selectedService.title}</Text>
-                  <Text style={styles.selectedServicePrice}>₹{selectedService.base_price}</Text>
-                </View>
-              </View>
-            )}
+            {/* Weekday Headers */}
+            <View style={styles.weekdayHeader}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <Text key={day} style={styles.weekdayText}>{day}</Text>
+              ))}
+            </View>
 
-            {/* Calendar */}
-            {selectedService && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Select Date</Text>
-                <View style={styles.calendarHeader}>
-                  <TouchableOpacity onPress={() => navigateMonth('prev')}>
-                    <Icon name="chevron-left" size={24} color={COLORS.primary} />
-                  </TouchableOpacity>
-                  <Text style={styles.monthYear}>
-                    {monthNames[currentMonth]} {currentYear}
-                  </Text>
-                  <TouchableOpacity onPress={() => navigateMonth('next')}>
-                    <Icon name="chevron-right" size={24} color={COLORS.primary} />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.calendar}>
-                  {calendarDays.map((day, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      disabled={!day || day.isPast}
-                      onPress={() => day && handleDateSelect(day)}
+            {/* Calendar Grid */}
+            <View style={styles.calendarGrid}>
+              {calendarDays.map((dayObj, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.calendarDay,
+                    dayObj?.isPast && styles.pastDay,
+                    selectedDate === dayObj?.date && styles.selectedDay,
+                    dayObj?.isToday && styles.todayDay,
+                  ]}
+                  disabled={!dayObj || dayObj.isPast}
+                  onPress={() => dayObj && handleDateSelect(dayObj)}
+                >
+                  {dayObj && (
+                    <Text
                       style={[
-                        styles.calendarDay,
-                        day?.isToday && styles.today,
-                        selectedDate === day?.date && styles.selectedDay,
+                        styles.calendarDayText,
+                        dayObj.isPast && styles.pastDayText,
+                        selectedDate === dayObj.date && styles.selectedDayText,
+                        dayObj.isToday && styles.todayDayText,
                       ]}
                     >
-                      <Text style={styles.calendarDayText}>{day?.day || ''}</Text>
+                      {dayObj.day}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Time Slots Section */}
+          {showTimeSlots && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                <Icon name="access-time" size={20} color={COLORS.primary} /> Available Time Slots
+              </Text>
+
+              <Text style={styles.selectedDateText}>
+                {formatDateForDisplay(selectedDate)}
+              </Text>
+
+              {availabilityState.loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color={COLORS.primary} />
+                  <Text style={styles.loadingText}>Loading time slots...</Text>
+                </View>
+              ) : (
+                <View style={styles.timeSlotsContainer}>
+                  {timeSlots.map((slot, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.timeSlot,
+                        slot.is_booked && styles.bookedSlot,
+                        selectedSlot === slot && styles.selectedSlot,
+                      ]}
+                      disabled={slot.is_booked}
+                      onPress={() => handleTimeSlotSelect(slot)}
+                    >
+                      <View style={styles.timeSlotContent}>
+                        <Text style={[
+                          styles.timeSlotText,
+                          slot.is_booked && styles.bookedSlotText,
+                          selectedSlot === slot && styles.selectedSlotText,
+                        ]}>
+                          {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                        </Text>
+                        <View style={[
+                          styles.statusBadge,
+                          slot.is_booked ? styles.bookedBadge : styles.availableBadge,
+                        ]}>
+                          <Text style={[
+                            styles.statusBadgeText,
+                            slot.is_booked ? styles.bookedBadgeText : styles.availableBadgeText,
+                          ]}>
+                            {slot.is_booked ? 'Booked' : 'Available'}
+                          </Text>
+                        </View>
+                      </View>
                     </TouchableOpacity>
                   ))}
                 </View>
-              </View>
-            )}
+              )}
 
-            {/* Time Slots */}
-            {showTimeSlots && selectedDate && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Select Time</Text>
-                {availabilityState.loading ? (
-                  <ActivityIndicator size="small" color={COLORS.primary} />
-                ) : (
-                  <View style={styles.timeSlots}>
-                    {timeSlots.map((slot, i) => (
-                      <TouchableOpacity
-                        key={i}
-                        disabled={slot.is_booked}
-                        style={[
-                          styles.timeSlot,
-                          slot.is_booked && styles.bookedSlot,
-                          selectedSlot === slot && styles.selectedSlot,
-                        ]}
-                        onPress={() => handleTimeSlotSelect(slot)}
-                      >
-                        <Text style={styles.timeSlotText}>
-                          {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+              {/* Pricing summary card */}
+              <View style={styles.pricingCard}>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>Service:</Text>
+                  <Text style={styles.pricingValue}>₹{(selectedService?.base_price || 0).toLocaleString()}</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.pricingRow}>
+                  <Text style={styles.totalLabel}>Total:</Text>
+                  <Text style={styles.totalValue}>₹{totalAmount.toLocaleString()}</Text>
+                </View>
               </View>
-            )}
-          </ScrollView>
 
-          {selectedService && selectedDate && selectedSlot && (
-            <View style={styles.footer}>
-              <TouchableOpacity
-                style={[styles.bookButton, (isBooking || bookingState.loading) && styles.disabledButton]}
-                onPress={handleBookNow}
-                disabled={isBooking || bookingState.loading}
-              >
-                {isBooking ? (
-                  <ActivityIndicator size="small" color={COLORS.surface} />
-                ) : (
-                  <Text style={styles.bookButtonText}>Book Now - ₹{totalAmount}</Text>
-                )}
-              </TouchableOpacity>
+              {/* Book Button */}
+              {selectedSlot && (
+                <TouchableOpacity
+                  style={[styles.bookButton, isBooking && styles.bookButtonDisabled]}
+                  onPress={handleBookNow}
+                  disabled={isBooking || bookingState.loading}
+                >
+                  {isBooking || bookingState.loading ? (
+                    <View style={styles.bookButtonContent}>
+                      <ActivityIndicator size="small" color={COLORS.background} />
+                      <Text style={styles.bookButtonText}>Processing...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.bookButtonText}>
+                      Pay & Book - ₹{totalAmount.toLocaleString()}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
           )}
-        </View>
+        </ScrollView>
+      </View>
     </Modal>
   );
 };
@@ -355,37 +424,217 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  photographerInfo: { marginBottom: 20 },
-  photographerName: { fontSize: 18, fontWeight: 'bold', color: COLORS.text.primary },
-  photographerBio: { fontSize: 14, color: COLORS.text.secondary },
-  section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: COLORS.text.primary, marginBottom: 10 },
-  selectedServiceInfo: { 
-    backgroundColor: COLORS.primary, 
-    borderRadius: 10, 
-    padding: 15,
+  serviceInfo: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  serviceTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text.primary,
+    marginBottom: 4,
+  },
+  servicePrice: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.secondary,
+  },
+  section: {
+    paddingVertical: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  monthHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  navButton: {
+    padding: 8,
+  },
+  monthTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  weekdayHeader: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  weekdayText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text.secondary,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  calendarDay: {
+    width: width / 7 - 4,
+    height: 40,
+    margin: 2,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+  },
+  pastDay: {
+    backgroundColor: '#F3F4F6',
+  },
+  todayDay: {
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  calendarDayText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.text.primary,
+  },
+  pastDayText: {
+    color: COLORS.text.secondary,
+  },
+  selectedDayText: {
+    color: COLORS.background,
+    fontWeight: '700',
+  },
+  selectedDateText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    marginBottom: 16,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  timeSlotsContainer: {
+    gap: 12,
+  },
+  timeSlot: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  bookedSlot: {
+    backgroundColor: '#F3F4F6',
+    opacity: 0.6,
+  },
+  selectedSlot: {
+    borderColor: COLORS.primary,
+    backgroundColor: '#EFF6FF',
+  },
+  timeSlotContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  selectedServiceTitle: { fontSize: 16, fontWeight: '600', color: COLORS.surface },
-  selectedServicePrice: { fontSize: 16, fontWeight: 'bold', color: COLORS.surface },
-  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  monthYear: { fontSize: 16, fontWeight: '600', color: COLORS.text.primary },
-  calendar: { flexDirection: 'row', flexWrap: 'wrap' },
-  calendarDay: { width: (width - 80) / 7, height: 40, justifyContent: 'center', alignItems: 'center' },
-  calendarDayText: { color: COLORS.text.primary },
-  today: { backgroundColor: COLORS.warning, borderRadius: 20 },
-  selectedDay: { backgroundColor: COLORS.primary, borderRadius: 20 },
-  timeSlots: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  timeSlot: { backgroundColor: COLORS.surface, padding: 10, borderRadius: 8 },
-  selectedSlot: { backgroundColor: COLORS.primary },
-  bookedSlot: { opacity: 0.5 },
-  timeSlotText: { color: COLORS.text.primary },
-  footer: { padding: 20, borderTopWidth: 1, borderTopColor: COLORS.surface },
-  bookButton: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
-  disabledButton: { opacity: 0.6 },
-  bookButtonText: { color: COLORS.surface, fontSize: 16, fontWeight: 'bold' },
+  timeSlotText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text.primary,
+  },
+  bookedSlotText: {
+    color: COLORS.text.secondary,
+  },
+  selectedSlotText: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  availableBadge: {
+    backgroundColor: '#D1FAE5',
+  },
+  bookedBadge: {
+    backgroundColor: '#FEE2E2',
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  availableBadgeText: {
+    color: '#065F46',
+  },
+  bookedBadgeText: {
+    color: '#991B1B',
+  },
+  pricingCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    marginTop: 16,
+  },
+  pricingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  pricingLabel: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  pricingValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.text.primary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 8,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  bookButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  bookButtonDisabled: {
+    opacity: 0.6,
+  },
+  bookButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bookButtonText: {
+    color: COLORS.background,
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
 });
 
 export default PhotographerBookingModal;

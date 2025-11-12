@@ -258,6 +258,14 @@ const PhotographerDetailsScreen: React.FC = () => {
                 )}
               </View>
             </View>
+
+            {/* Book Now button (Overview only) */}
+            <TouchableOpacity
+              style={styles.bookNowButton}
+              onPress={() => setActiveTab('services')}
+            >
+              <Text style={styles.bookNowButtonText}>Book Now</Text>
+            </TouchableOpacity>
           </View>
         );
 
@@ -313,7 +321,7 @@ const PhotographerDetailsScreen: React.FC = () => {
           </View>
         );
 
-      case 'reviews':
+      // case 'reviews':
         return (
           <View>
             <Text style={styles.sectionTitle}>Reviews ({photographer?.total_reviews || 0})</Text>
@@ -444,6 +452,9 @@ const PhotographerDetailsScreen: React.FC = () => {
               ? Math.min(...services.map(s => s.base_price)).toString()
               : '0'}
           </Text>
+
+          {/* Book Now button to jump to Services tab */}
+        
         </View>
 
         {/* Studio Booking Selection */}
@@ -478,7 +489,7 @@ const PhotographerDetailsScreen: React.FC = () => {
 
         {/* Tabs */}
         <View style={styles.tabsContainer}>
-          {['overview', 'services', 'reviews', 'policies'].map((tab) => (
+          {['overview', 'services',  'policies'].map((tab) => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.activeTab]}
@@ -496,6 +507,7 @@ const PhotographerDetailsScreen: React.FC = () => {
           {renderTabContent()}
         </View>
       </ScrollView>
+      
 
       {renderCalendarModal()}
 
@@ -835,8 +847,20 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
     marginBottom: 4,
   },
+  bookNowButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  bookNowButtonText: {
+    color: COLORS.background,
+    fontSize: 16,
+    ...typography.semibold,
+  },
   bookButton: {
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.bg,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
