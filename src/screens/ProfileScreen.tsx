@@ -26,6 +26,7 @@ import imagePaths from "../constants/imagePaths";
 import LinearGradient from "react-native-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import ConfirmationModal from "../components/ConfirmationModal";
+import ProfileSkeleton from "../components/skeletonLoaders/ProfileSkeleton";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -258,10 +259,7 @@ const ProfileScreen: React.FC = () => {
     <>
       {/* Loading */}
       {loading ?
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color="#034833" />
-          <Text style={styles.loadingText}>Loading....</Text>
-        </View> :
+        <ProfileSkeleton /> :
 
         <>
           {loggedInUser ?

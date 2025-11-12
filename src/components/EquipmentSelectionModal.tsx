@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
 import { Equipment } from '../types/api';
 import { bookingAddEquipment } from '../lib/api';
+import SelectEquipSkeleton from './skeletonLoaders/SelectEquipSkeleton';
 
 interface EquipmentSelectionModalProps {
   visible: boolean;
@@ -140,10 +141,7 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
         {/* Content */}
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.primary} />
-              <Text style={styles.loadingText}>Loading equipment...</Text>
-            </View>
+            <SelectEquipSkeleton />
           ) : (
             <>
               {/* Available Equipment */}
@@ -170,7 +168,7 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
                           Available: {item.quantity_available} units
                         </Text>
                       </View>
-                      
+
                       <View style={styles.quantityContainer}>
                         <View style={styles.quantityInput}>
                           <TouchableOpacity
@@ -193,7 +191,7 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
                             <Icon name="add" size={20} color={COLORS.text.primary} />
                           </TouchableOpacity>
                         </View>
-                        
+
                         <TouchableOpacity
                           onPress={() => handleAddEquipment(item)}
                           style={styles.addButton}
@@ -234,10 +232,10 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
                 </View>
               ))}
             </ScrollView>
-            
+
             <View style={styles.totalSection}>
               <Text style={styles.totalText}>
-                Total Cost: ₹{selectedEquipment.reduce((total, item) => 
+                Total Cost: ₹{selectedEquipment.reduce((total, item) =>
                   total + (item.rental_price_hourly * (item.selectedQuantity || 0)), 0
                 )}/hour
               </Text>
@@ -470,7 +468,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor:'white',
+    backgroundColor: 'white',
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,

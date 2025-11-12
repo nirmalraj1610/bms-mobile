@@ -20,7 +20,7 @@ import { COLORS } from '../constants';
 import { ENV } from '../config/env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { bookingAddEquipment } from '../lib/api';
-
+import TimeSlotSkeleton from './skeletonLoaders/TimeSlotSkeleton';
 interface BookingModalProps {
   visible: boolean;
   onClose: () => void;
@@ -46,7 +46,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   // console.log('BookingModal - Received studio prop:', studio);
   // console.log('BookingModal - Studio ID:', studio?.id);
   // console.log('BookingModal - Studio type:', typeof studio?.id);
-  
+
   const dispatch = useAppDispatch();
   const availabilityState = useAppSelector(state => state.studios.availability);
   const bookingsState = useAppSelector(state => state.bookings);
@@ -56,7 +56,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState('');
-  
+
   // Booking state
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -141,7 +141,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     const startingDayOfWeek = firstDay.getDay();
 
     const days: (CalendarDay | null)[] = [];
-    
+
     // Add empty cells for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
@@ -193,7 +193,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
       date: '2024-01-15'
     };
     console.log('Testing with payload:', testPayload);
-    
+
     try {
       const result = await dispatch(studioAvailabilityThunk(testPayload));
       console.log('Test API result:', result);
@@ -211,16 +211,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     // console.log('Studio object type:', typeof studio);
     // console.log('Studio object keys:', studio ? Object.keys(studio) : 'null');
     // console.log('Full studio object JSON:', JSON.stringify(studio, null, 2));
-    
+
     setSelectedDate(date);
     setShowTimeSlots(true);
     setSelectedTime('');
     setSelectedSlot(null);
-    
+
     // Extract studio ID with comprehensive validation
     let studioId = studio?.id;
     console.log('Initial studioId:', studioId, 'Type:', typeof studioId);
-    
+
     // Check if studio has other ID fields
     if (studio) {
       console.log('Checking for alternative ID fields:');
@@ -228,39 +228,39 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
       console.log('studio.studio_id:', (studio as any).studio_id);
       console.log('studio.studioId:', (studio as any).studioId);
     }
-    
+
     // More robust validation
     if (!studio) {
       console.error('BookingModal - Studio object is null or undefined');
       setTimeSlots([]);
       return;
     }
-    
+
     // Comprehensive validation for studio ID
-    if (!studioId || 
-        studioId === null || 
-        studioId === undefined || 
-        studioId === '' || 
-        studioId === 'undefined' || 
-        studioId === 'null') {
+    if (!studioId ||
+      studioId === null ||
+      studioId === undefined ||
+      studioId === '' ||
+      studioId === 'undefined' ||
+      studioId === 'null') {
       console.error('❌ Invalid studio ID detected:', studioId);
       console.error('Studio object:', JSON.stringify(studio, null, 2));
       Alert.alert('Error', 'Studio information is not available. Please try again.');
       setTimeSlots([]);
       return;
     }
-    
+
     console.log('✅ Valid studioId confirmed:', studioId);
-    
+
     const studioIdString = String(studioId).trim();
     if (studioIdString === '' || studioIdString === 'undefined' || studioIdString === 'null') {
       console.error('BookingModal - Studio ID is invalid:', studioIdString);
       setTimeSlots([]);
       return;
     }
-    
+
     // console.log('BookingModal - Dispatching studioAvailabilityThunk with studio_id:', studioIdString, 'date:', date);
-    
+
     try {
       const result = await dispatch(studioAvailabilityThunk({ studio_id: studioIdString, date }));
       if (studioAvailabilityThunk.fulfilled.match(result)) {
@@ -373,7 +373,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     }
 
     setIsBooking(true);
-    
+
     try {
       // Validate RazorpayCheckout is available
       if (!RazorpayCheckout || typeof RazorpayCheckout.open !== 'function') {
@@ -406,7 +406,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
         .then(async (data: any) => {
           // Payment successful, now create booking
           console.log('Payment successful:', data);
-          
+
           try {
             const bookingPayload = {
               studio_id: String(studio.id),
@@ -418,7 +418,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
 
             const result = await dispatch(doCreateBooking(bookingPayload));
             console.log('Booking creation result:', result);
-            
+
             if (doCreateBooking.fulfilled.match(result)) {
               // After booking is successfully created, optionally add equipment
               try {
@@ -454,7 +454,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                 console.log('Post-booking equipment attach error:', postErr);
               } finally {
                 // Clear stored equipment for this studio regardless
-                try { await AsyncStorage.removeItem(`selected_equipment_${studio.id}`); } catch {}
+                try { await AsyncStorage.removeItem(`selected_equipment_${studio.id}`); } catch { }
               }
               // Show cool UI success modal instead of native alert
               setSuccessInfo({
@@ -466,14 +466,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
               setShowSuccessModal(true);
             } else {
               Alert.alert(
-                'Booking Failed', 
+                'Booking Failed',
                 'Payment was successful but booking creation failed. Please contact support with Razorpay payment ID: ' + data.razorpay_payment_id
               );
             }
           } catch (bookingError) {
             console.error('Booking creation error:', bookingError);
             Alert.alert(
-              'Booking Failed', 
+              'Booking Failed',
               'Payment was successful but booking creation failed. Please contact support with payment ID: ' + data.razorpay_payment_id
             );
           }
@@ -481,7 +481,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
         .catch((error: any) => {
           // Payment failed or cancelled
           console.log('Payment failed or cancelled:', error);
-          
+
           if (error.code === 'payment_cancelled') {
             Alert.alert('Payment Cancelled', 'You cancelled the payment process.');
           } else if (error.code === 'payment_failed') {
@@ -566,7 +566,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
             <Text style={styles.sectionTitle}>
               <Icon name="calendar-today" size={20} color={COLORS.primary} /> Select Date
             </Text>
-            
+
             {/* Month Header */}
             <View style={styles.monthHeader}>
               <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
@@ -661,10 +661,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
               </Text>
 
               {availabilityState.loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={COLORS.primary} />
-                  <Text style={styles.loadingText}>Loading time slots...</Text>
-                </View>
+                <TimeSlotSkeleton />
               ) : (
                 <View style={styles.timeSlotsContainer}>
                   {timeSlots.map((slot, index) => (
