@@ -350,10 +350,10 @@ const BookingScreen: React.FC = () => {
     const originalBooking = bookings.find(b => b.id === booking.id);
     const studioId = originalBooking?.studios?.id;
     if (studioId) {
-            (navigation as any).navigate('Main', {
-              screen: 'Home',
-              params: { screen: 'StudioDetails', params: { studioId } },
-            });
+      (navigation as any).navigate('Main', {
+        screen: 'Home',
+        params: { screen: 'StudioDetails', params: { studioId } },
+      });
     } else {
       Alert.alert('Studio not found', 'Unable to open studio details.');
     }
@@ -513,13 +513,12 @@ const BookingScreen: React.FC = () => {
                   </TouchableOpacity>
                 ) : (
                   <>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                       style={styles.selectEquipmentButton}
                       onPress={() => handleSelectEquipment(item)}
                     >
-                      {/* <Icon name="build" size={14} color="#00BCD4" /> */}
                       <Text style={styles.selectEquipmentButtonText}>Select{'\n'}Equipment</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
                     <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                       <Text style={styles.viewStudioButtonText}>View Studio</Text>
