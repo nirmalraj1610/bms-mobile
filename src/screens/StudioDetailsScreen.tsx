@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal, TouchableWithoutFeedback, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -16,7 +16,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
 import { studioEquipmentList } from '../lib/api';
 import type { Equipment as ApiEquipment } from '../types/api';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import StudioDetailsSkeleton from '../components/skeletonLoaders/StudioDetailsSkeleton';
+import StudioDetailsEquipmentSkeleton from '../components/skeletonLoaders/StudioDetailsEquipmentSkeleton';
+import imagePaths from '../constants/imagePaths';
+
+const { width, height } = Dimensions.get('window');
 
 const StudioDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
@@ -32,6 +37,8 @@ const StudioDetailsScreen: React.FC = () => {
   const [equipmentError, setEquipmentError] = useState<string | null>(null);
   const [equipmentItems, setEquipmentItems] = useState<ApiEquipment[]>([]);
   const [equipmentQuantities, setEquipmentQuantities] = useState<Record<string, number>>({});
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [currentEquipmentImages, setCurrentEquipmentImages] = useState([]);
   // Persist selected equipment per studio
   const storageKey = studioId ? `selected_equipment_${studioId}` : undefined;
 
@@ -101,6 +108,25 @@ const StudioDetailsScreen: React.FC = () => {
     console.log('Using found mock studio, ID:', mockStudio?.id);
     return mockStudio;
   }, [studioData, studioId, searchResults]);
+
+  const openImage = (eq: any) => {
+    setCurrentEquipmentImages(eq?.equipment_images)
+    setSelectedIndex(0);
+  };
+
+  const closeImage = () => setSelectedIndex(null);
+
+  const showPrevImage = () => {
+    if (selectedIndex !== null && selectedIndex > 0) {
+      setSelectedIndex(selectedIndex - 1);
+    }
+  };
+
+  const showNextImage = () => {
+    if (selectedIndex !== null && selectedIndex < currentEquipmentImages?.length - 1) {
+      setSelectedIndex(selectedIndex + 1);
+    }
+  };
 
   // Helper functions to safely access studio data
   const getStudioImages = () => {
@@ -247,7 +273,7 @@ const StudioDetailsScreen: React.FC = () => {
           });
           setEquipmentQuantities(prev => ({ ...prev, ...map }));
         }
-      } catch {}
+      } catch { }
     };
     // Load only after items fetched to ensure IDs are present
     if (equipmentItems && equipmentItems.length > 0) {
@@ -269,7 +295,7 @@ const StudioDetailsScreen: React.FC = () => {
           });
         const data = { studio_id: String(studioId), equipment_items: selected };
         await AsyncStorage.setItem(storageKey, JSON.stringify(data));
-      } catch {}
+      } catch { }
     };
     persistSelection();
   }, [equipmentQuantities, storageKey, studioId]);
@@ -278,11 +304,11 @@ const StudioDetailsScreen: React.FC = () => {
   useEffect(() => {
     if (!storageKey) return;
     const unsubscribe = navigation.addListener('blur', () => {
-      AsyncStorage.removeItem(storageKey).catch(() => {});
+      AsyncStorage.removeItem(storageKey).catch(() => { });
     });
     return () => {
       unsubscribe();
-      AsyncStorage.removeItem(storageKey).catch(() => {});
+      AsyncStorage.removeItem(storageKey).catch(() => { });
     };
   }, [navigation, storageKey]);
 
@@ -408,7 +434,10 @@ const StudioDetailsScreen: React.FC = () => {
         {equipmentOpen && (
           <View style={styles.expandCard}>
             {equipmentLoading ? (
-              <Text style={styles.expandEmpty}>Loading equipment…</Text>
+              <>
+                {[...Array(3)].map((_, idx) => (
+                  <StudioDetailsEquipmentSkeleton key={idx} />
+                ))}</>
             ) : equipmentError ? (
               <Text style={styles.expandEmpty}>{equipmentError}</Text>
             ) : equipmentItems.length === 0 ? (
@@ -424,9 +453,10 @@ const StudioDetailsScreen: React.FC = () => {
                   return (
                     <View key={eq.id} style={styles.equipCard}>
                       {thumb ? (
-                        <Image source={{ uri: thumb }} style={styles.equipThumb} />
+                        <Image source={{ uri: thumb }} resizeMode='cover' style={styles.equipThumb} />
                       ) : (
-                        <View style={[styles.equipThumb, styles.equipThumbPlaceholder]} />
+                        // <View style={[styles.equipThumb, styles.equipThumbPlaceholder]} />
+                        <Image source={imagePaths.StudioPlaceHolderImage} resizeMode='cover' style={styles.equipThumb} />
                       )}
                       <View style={styles.equipContent}>
                         <View style={styles.equipTitleRow}>
@@ -455,10 +485,13 @@ const StudioDetailsScreen: React.FC = () => {
                               <Text style={styles.equipMetaText}>{`${qty} available`}</Text>
                             </View>
                           )}
+                          {imgCount > 0 && <TouchableOpacity onPress={() => openImage(eq)} style={styles.acceptBtn}>
+                            <Text style={styles.acceptText}>View Image</Text>
+                          </TouchableOpacity>}
                         </View>
                         {/* Quantity selector */}
                         <View style={styles.equipQtyRow}>
-                          <Text style={styles.qtyLabel}>Quantity</Text>
+                          <Text style={styles.qtyLabel}>Quantity </Text>
                           <View style={styles.qtyControl}>
                             <TouchableOpacity
                               style={[
@@ -588,6 +621,42 @@ const StudioDetailsScreen: React.FC = () => {
             </View>
           </View>
         </View>
+      </Modal>
+      <Modal visible={selectedIndex !== null} transparent={true} animationType="fade">
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.modalOverlay}
+          onPress={closeImage} // tap outside closes
+        >
+          <View style={styles.modalContent} pointerEvents="box-none">
+            <TouchableWithoutFeedback>
+              <Image
+                source={{ uri: selectedIndex !== null ? currentEquipmentImages[selectedIndex]?.image_url : undefined }}
+                style={styles.fullImage}
+                resizeMode="contain"
+              />
+            </TouchableWithoutFeedback>
+
+            {/* Close Button */}
+            <TouchableOpacity style={styles.closeButton} onPress={closeImage}>
+              <Ionicons name="close" size={28} color="#fff" />
+            </TouchableOpacity>
+
+            {/* Prev Button */}
+            {selectedIndex !== null && selectedIndex > 0 && (
+              <TouchableOpacity style={styles.leftArrow} onPress={showPrevImage}>
+                <Ionicons name="chevron-back" size={32} color="#fff" />
+              </TouchableOpacity>
+            )}
+
+            {/* Next Button */}
+            {selectedIndex !== null && selectedIndex < currentEquipmentImages?.length - 1 && (
+              <TouchableOpacity style={styles.rightArrow} onPress={showNextImage}>
+                <Ionicons name="chevron-forward" size={32} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
@@ -851,8 +920,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   equipThumb: {
-    width: 72,
-    height: 72,
+    width: 100,
+    height: 140,
     borderRadius: 8,
     backgroundColor: '#F2F4F7',
     marginRight: 12,
@@ -909,6 +978,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.title,
   },
+  acceptBtn: {
+    backgroundColor: '#034833',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  acceptText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   equipImagesPill: {
     marginTop: 8,
     flexDirection: 'row',
@@ -932,13 +1013,14 @@ const styles = StyleSheet.create({
   },
   qtyLabel: {
     fontSize: 12,
+    marginRight: 5,
     color: COLORS.title,
     ...typography.medium,
   },
   qtyControl: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
   },
   qtyBtn: {
     width: 32,
@@ -983,6 +1065,48 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: COLORS.text.secondary,
+  },
+
+  // image modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: width,
+    height: height * 0.7,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 30,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 8,
+  },
+  leftArrow: {
+    position: 'absolute',
+    left: 20,
+    top: '50%',
+    padding: 12,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 30,
+  },
+  rightArrow: {
+    position: 'absolute',
+    right: 20,
+    top: '50%',
+    padding: 12,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 30,
   },
 });
 
