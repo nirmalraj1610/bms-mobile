@@ -313,7 +313,11 @@ const PhotographerDetailsScreen: React.FC = () => {
 
             {/* Book Photographer Button */}
             <TouchableOpacity
-              style={styles.bookButton}
+              style={[
+                styles.bookButton,
+                !selectedService ? { opacity: 0.5 } : null,
+              ]}
+              disabled={!selectedService}
               onPress={() => setShowBookingModal(true)}
             >
               <Text style={styles.bookButtonText}>Book Photographer</Text>
