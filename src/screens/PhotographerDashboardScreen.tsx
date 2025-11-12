@@ -17,7 +17,7 @@ import { BookingsComponent } from '../components/photographer/Bookings';
 import { ServicesComponent } from '../components/photographer/Services';
 import { PortfolioComponent } from '../components/photographer/portfolio';
 import { typography } from '../constants/typography';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from '@react-native-community/blur';
 import { getUserData } from '../lib/http';
@@ -25,6 +25,7 @@ import imagePaths from '../constants/imagePaths';
 
 const PhotographerDashboardScreen: React.FC = () => {
   const isFocused = useIsFocused();
+  const navigation = useNavigation();
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);

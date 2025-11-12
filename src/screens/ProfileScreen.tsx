@@ -25,6 +25,7 @@ import { clearToken, clearUserData } from "../lib/http";
 import imagePaths from "../constants/imagePaths";
 import LinearGradient from "react-native-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -66,7 +67,8 @@ const ProfileScreen: React.FC = () => {
 
   // PERSONAL INFO STATES
   const [loggedInUser, setLoggedInUser] = useState(false)
-  const [fullProfileData, setFullProfileData] = useState()
+  const [fullProfileData, setFullProfileData] = useState();
+  const [logoutVisible, setLogoutVisible] = useState(false);
   const [profile, setProfile] = useState({
     firstName: "",
     lastName: "",
@@ -130,15 +132,34 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  const onLogoutPress = async () => {
+  // const onLogoutPress = async () => {
+  //   try {
+  //     await clearToken();
+  //     await clearUserData();
+  //     fetchProfile();
+  //   } catch {
+  //     return null;
+  //   }
+  // }
+
+  const onOpenLogoutModal = () => {
+    setLogoutVisible(true);
+  };
+
+  const onCloseLogoutModal = () => {
+    setLogoutVisible(false);
+  };
+
+  const confirmLogout = async () => {
     try {
+      setLogoutVisible(false);
       await clearToken();
       await clearUserData();
       fetchProfile();
-    } catch {
-      return null;
+    } catch (error) {
+      console.log(error);
     }
-  }
+  };
 
   const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -270,7 +291,7 @@ const ProfileScreen: React.FC = () => {
                   <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text>
                   {/* <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text> */}
                 </View>
-                <TouchableOpacity onPress={onLogoutPress} style={styles.logoutBtn}>
+                <TouchableOpacity onPress={onOpenLogoutModal} style={styles.logoutBtn}>
                   <Text style={styles.logoutBtnText}>Logout</Text>
                 </TouchableOpacity>
                 {/* <View style={styles.userDetailOutline}>
@@ -590,6 +611,10 @@ const ProfileScreen: React.FC = () => {
 
           }
         </>}
+      <ConfirmationModal
+        Visible={logoutVisible}
+        onClose={onCloseLogoutModal}
+        onSubmit={confirmLogout} />
     </>
   );
 };

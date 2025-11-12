@@ -742,6 +742,12 @@ const styles = StyleSheet.create({
         fontWeight: "500",
         marginBottom: 6,
     },
+    pickerWrapper: {
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 10,
+        marginBottom: 12,
+    },
     required: {
         color: '#DC3545'
     },

@@ -12,6 +12,7 @@ import { RootState, AppDispatch } from '../store/store';
 import { studiosSearchThunk, toggleFavoriteThunk } from '../features/studios/studiosSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
+import StudioListSkeleton from '../components/skeletonLoaders/StudioListSkeleton';
 
 const AllStudiosScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -34,7 +35,7 @@ const AllStudiosScreen: React.FC = () => {
 
   const toggleFavorite = async (studioId: string) => {
     let token: string | null = null;
-    try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+    try { token = await AsyncStorage.getItem('auth_token'); } catch { }
     if (!token) {
       navigation.navigate('Auth' as never, { screen: 'Login' } as never);
       return;
@@ -46,7 +47,7 @@ const AllStudiosScreen: React.FC = () => {
         navigation.navigate('Auth' as never, { screen: 'Login' } as never);
         return;
       }
-    } catch {}
+    } catch { }
 
     const action = isStudioFavorited(studioId) ? 'remove' : 'add';
     try {
@@ -58,7 +59,7 @@ const AllStudiosScreen: React.FC = () => {
         navigation.navigate('Auth' as never, { screen: 'Login' } as never);
         return;
       }
-      try { console.log('toggleFavorite error:', err); } catch {}
+      try { console.log('toggleFavorite error:', err); } catch { }
     }
   };
 
@@ -140,23 +141,22 @@ const AllStudiosScreen: React.FC = () => {
 
         <View style={styles.searchContainer}>
           <View style={styles.searchInput}>
-            <Icon name="search" size={18} color={COLORS.text.secondary} />
             <TextInput
-              style={styles.searchField}
+              style={styles.searchPlaceholder}
               placeholder="Search studios..."
-              placeholderTextColor={COLORS.text.secondary}
+              placeholderTextColor={'#B7B7B7'}
               value={searchText}
               onChangeText={setSearchText}
               returnKeyType="search"
             />
+            <View style={styles.searchIconButton} >
+              <Image source={imagePaths.Search} style={styles.searchIcon} />
+            </View>
           </View>
         </View>
 
         {studiosState.search.loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.primary} />
-            <Text style={styles.loadingText}>Loading studios…</Text>
-          </View>
+          <StudioListSkeleton />
         ) : (
           <FlatList
             data={filteredResults}
@@ -212,26 +212,41 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginTop: 20,
     marginHorizontal: 4,
+    position: 'relative',
   },
   searchInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 30,
-    paddingLeft: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: COLORS.bg2,
+    borderRadius: 5,
   },
-  searchField: {
+  searchPlaceholder: {
     flex: 1,
-    marginLeft: 8,
+    paddingLeft: 16,
     fontSize: 14,
-    color: COLORS.text.primary,
-    height: 44,
+    height: 48,
+    borderTopLeftRadius: 5,
+    borderBottomLeftRadius: 5,
+    color: '#101010',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#034833',
+  },
+  searchIconButton: {
+    width: 80,
+    height: 48,
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
+    backgroundColor: '#034833',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchIcon: {
+    height: 24,
+    width: 24,
   },
   listContainer: {
     paddingTop: 8,
-    paddingBottom: 24,
+    paddingBottom: 200,
   },
   emptyScreen: {
     flexGrow: 1,

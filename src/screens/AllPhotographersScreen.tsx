@@ -10,6 +10,7 @@ import imagePaths from '../constants/imagePaths';
 import { typography } from '../constants/typography';
 import { RootState, AppDispatch } from '../store/store';
 import { getphotographersSearch } from '../features/photographers/photographersSlice';
+import PhotographerListSkeleton from '../components/skeletonLoaders/PhotographerListSkeleton';
 
 const AllPhotographersScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -60,7 +61,7 @@ const AllPhotographersScreen: React.FC = () => {
         <View style={styles.info}>
           <Text style={styles.name}>{name}</Text>
           <View style={styles.ratingRow}>
-            {[1,2,3,4,5].map(i => (
+            {[1, 2, 3, 4, 5].map(i => (
               <Icon key={i} name="star" size={12} color={i <= Math.round(Number(rating)) ? '#FFA500' : '#FFD0BF'} />
             ))}
             <Text style={styles.ratingText}>{Number(rating).toFixed(1)}</Text>
@@ -90,38 +91,38 @@ const AllPhotographersScreen: React.FC = () => {
           <Text style={styles.title}>All Photographers</Text>
           <Text style={styles.subtitle}>Browse and search photographers near you</Text>
         </View>
+
         <View style={styles.searchContainer}>
-          <View style={styles.searchInputRow}>
-            <Icon name="search" size={18} color={COLORS.text.secondary} />
+          <View style={styles.searchInput}>
             <TextInput
-              style={styles.searchField}
+              style={styles.searchPlaceholder}
               placeholder="Search photographers..."
-              placeholderTextColor={COLORS.text.secondary}
+              placeholderTextColor={'#B7B7B7'}
               value={searchText}
               onChangeText={setSearchText}
               returnKeyType="search"
             />
+            <View style={styles.searchIconButton} >
+              <Image source={imagePaths.Search} style={styles.searchIcon} />
+            </View>
           </View>
         </View>
 
-      {photographersState?.search?.loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Loading photographers…</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredResults}
-          keyExtractor={(item: any, index: number) => String(item?.id ?? item?._id ?? index)}
-          renderItem={renderItem}
-          contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
-          ListEmptyComponent={() => (
-            searchText.trim().length > 0 ? (
-              <Text style={styles.emptyTitle}>No results found</Text>
-            ) : null
-          )}
-        />
-      )}
+        {photographersState?.search?.loading ? (
+          <PhotographerListSkeleton />
+        ) : (
+          <FlatList
+            data={filteredResults}
+            keyExtractor={(item: any, index: number) => String(item?.id ?? item?._id ?? index)}
+            renderItem={renderItem}
+            contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
+            ListEmptyComponent={() => (
+              searchText.trim().length > 0 ? (
+                <Text style={styles.emptyTitle}>No results found</Text>
+              ) : null
+            )}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -164,22 +165,37 @@ const styles = StyleSheet.create({
   searchContainer: {
     marginTop: 20,
     marginHorizontal: 4,
+    position: 'relative',
   },
-  searchInputRow: {
+  searchInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 30,
-    paddingLeft: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: COLORS.bg2,
+    borderRadius: 5,
   },
-  searchField: {
+  searchPlaceholder: {
     flex: 1,
-    marginLeft: 8,
+    paddingLeft: 16,
     fontSize: 14,
-    color: COLORS.text.primary,
-    height: 44,
+    height: 48,
+    borderTopLeftRadius: 5,
+    borderBottomLeftRadius: 5,
+    color: '#101010',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#034833',
+  },
+  searchIconButton: {
+    width: 80,
+    height: 48,
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
+    backgroundColor: '#034833',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchIcon: {
+    height: 24,
+    width: 24,
   },
   loadingContainer: {
     marginTop: 40,
@@ -192,7 +208,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingTop: 8,
-    paddingBottom: 24,
+    paddingBottom: 200,
   },
   emptyScreen: {
     flexGrow: 1,
@@ -233,7 +249,7 @@ const styles = StyleSheet.create({
   },
   ratingText: { marginLeft: 4, fontSize: 13, color: COLORS.text.primary },
   reviewText: { marginLeft: 6, fontSize: 12, color: COLORS.text.secondary },
-  locationText: {marginLeft:6, fontSize: 12, color: COLORS.text.secondary },
+  locationText: { marginLeft: 6, fontSize: 12, color: COLORS.text.secondary },
   metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
   metaIcon: { width: 12, height: 12 },
   priceRow: { marginTop: 6 },
