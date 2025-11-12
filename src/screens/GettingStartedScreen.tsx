@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,24 @@ import LinearGradient from 'react-native-linear-gradient';
 import { COLORS } from '../constants';
 import { philosopherTypography, typography } from '../constants/typography';
 import imagePaths from '../constants/imagePaths';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 const GettingStartedScreen: React.FC = () => {
   const navigation = useNavigation<any>();
 
-  const handleGetStarted = () => {
+  // Ensure the flag is set once the screen is shown (extra safety)
+  useEffect(() => {
+    (async () => {
+      try { await AsyncStorage.setItem('has_seen_getting_started', 'true'); } catch {}
+    })();
+  }, []);
+
+  const handleGetStarted = async () => {
+    try {
+      await AsyncStorage.setItem('has_seen_getting_started', 'true');
+    } catch {}
     navigation.replace('Main');
   };
 

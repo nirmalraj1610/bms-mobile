@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { COLORS } from '../constants';
 import imagePaths from '../constants/imagePaths';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -19,11 +20,26 @@ const SplashScreen: React.FC = () => {
   const navigation = useNavigation<any>();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('GettingStarted');
-    }, 2000);
-
-    return () => clearTimeout(timer);
+    let timer: NodeJS.Timeout | null = null;
+    const decideRoute = async () => {
+      try {
+        const flag = await AsyncStorage.getItem('has_seen_getting_started');
+        const hasSeen = flag === 'true';
+        if (!hasSeen) {
+          // Mark as seen BEFORE navigating, so it won't show again next launch
+          try { await AsyncStorage.setItem('has_seen_getting_started', 'true'); } catch {}
+        }
+        timer = setTimeout(() => {
+          navigation.replace(hasSeen ? 'Main' : 'GettingStarted');
+        }, 1200);
+      } catch {
+        timer = setTimeout(() => {
+          navigation.replace('GettingStarted');
+        }, 1200);
+      }
+    };
+    decideRoute();
+    return () => { if (timer) clearTimeout(timer); };
   }, [navigation]);
 
   return (
