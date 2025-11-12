@@ -28,23 +28,24 @@ import {
 } from '../features/photographers/photographersSlice';
 import { getBookings } from '../features/bookings/bookingsSlice';
 import PhotographerBookingModal from '../components/PhotographerBookingModal';
+import PhotographerDetailsSkeleton from '../components/skeletonLoaders/PhotographerDetailsSkeleton';
 
 const PhotographerDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
-  
+
   const photographerId: string = route?.params?.photographerId;
 
   // Redux state (use safe defaults)
   const photographersState = useSelector((state: RootState) => state.photographers);
   const bookingsState = useSelector((state: RootState) => state.bookings);
-  
+
   const photographer = photographersState?.detail?.photographer;
   const services = photographersState?.services?.items || [];
   const timeSlots = photographersState?.availability?.timeSlots || [];
   const userBookings = bookingsState?.items || [];
-  
+
   const isLoadingDetail = !!photographersState?.detail?.loading;
   const isLoadingServices = !!photographersState?.services?.loading;
   const isLoadingAvailability = !!photographersState?.availability?.loading;
@@ -82,7 +83,7 @@ const PhotographerDetailsScreen: React.FC = () => {
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    
+
     const dates: { date: string; day: number; isToday: boolean }[] = [];
     for (let i = 1; i <= daysInMonth; i++) {
       const date = new Date(currentYear, currentMonth, i);
@@ -100,7 +101,7 @@ const PhotographerDetailsScreen: React.FC = () => {
   // Generate mock time slots for selected date
   const availableTimeSlots = useMemo(() => {
     if (!selectedDate) return [];
-    
+
     const slots: { time: string; available: boolean }[] = [];
     for (let hour = 9; hour <= 18; hour++) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
@@ -138,7 +139,7 @@ const PhotographerDetailsScreen: React.FC = () => {
         rating: reviewRating,
         comment: reviewComment,
       })).unwrap();
-      
+
       setReviewComment('');
       Alert.alert('Success', 'Review submitted successfully');
     } catch (error) {
@@ -292,7 +293,7 @@ const PhotographerDetailsScreen: React.FC = () => {
             ) : (
               <Text style={styles.noDataText}>No services available</Text>
             )}
-            
+
             {/* Selected Service Summary */}
             {selectedService && (
               <View style={styles.selectionSummary}>
@@ -316,11 +317,11 @@ const PhotographerDetailsScreen: React.FC = () => {
         return (
           <View>
             <Text style={styles.sectionTitle}>Reviews ({photographer?.total_reviews || 0})</Text>
-            
+
             {/* Add Review Form */}
             <View style={styles.reviewForm}>
               <Text style={styles.formLabel}>Add Your Review</Text>
-              
+
               <View style={styles.ratingContainer}>
                 <Text style={styles.formLabel}>Rating</Text>
                 <View style={styles.ratingStars}>
@@ -367,7 +368,7 @@ const PhotographerDetailsScreen: React.FC = () => {
         return (
           <View>
             <Text style={styles.sectionTitle}>Booking Policies</Text>
-            
+
             <View style={styles.policySection}>
               <Text style={styles.policyTitle}>Cancellation Policy</Text>
               <Text style={styles.policyText}>Refer to photographer policy.</Text>
@@ -393,10 +394,17 @@ const PhotographerDetailsScreen: React.FC = () => {
   if (isLoadingDetail) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Loading photographer details...</Text>
+        <View style={{ paddingHorizontal: 16 }}>
+          <HeaderBar
+            onBack={() => navigation.goBack()}
+            right={
+              <TouchableOpacity style={styles.shareBtn}>
+                <Icon name="share" size={22} color={COLORS.text.primary} />
+              </TouchableOpacity>
+            }
+          />
         </View>
+        <PhotographerDetailsSkeleton />
       </SafeAreaView>
     );
   }
@@ -415,11 +423,11 @@ const PhotographerDetailsScreen: React.FC = () => {
         />
 
         {/* Hero Image */}
-        <Image 
+        <Image
           source={heroImageError || !photographer?.profile_image_url
             ? require('../assets/images/photographer_placeholder.jpg')
-            : { uri: photographer.profile_image_url }} 
-          style={styles.heroImage} 
+            : { uri: photographer.profile_image_url }}
+          style={styles.heroImage}
           onError={() => setHeroImageError(true)}
         />
 
@@ -432,7 +440,7 @@ const PhotographerDetailsScreen: React.FC = () => {
             <Text style={styles.reviewText}>({photographer?.total_reviews || 0} Reviews)</Text>
           </View>
           <Text style={styles.priceText}>
-            Starting at ₹{services && services.length > 0 
+            Starting at ₹{services && services.length > 0
               ? Math.min(...services.map(s => s.base_price)).toString()
               : '0'}
           </Text>
@@ -490,7 +498,7 @@ const PhotographerDetailsScreen: React.FC = () => {
       </ScrollView>
 
       {renderCalendarModal()}
-      
+
       {/* Booking Modal */}
       <PhotographerBookingModal
         visible={showBookingModal}

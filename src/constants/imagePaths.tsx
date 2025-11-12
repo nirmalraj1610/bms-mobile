@@ -19,7 +19,9 @@ const imagePaths = {
     Heart: require('../assets/images/heart.png'),
     HeartSelected: require('../assets/images/HeartSelected.png'),
     rightArrow: require('../assets/images/rightArrow.png'),
-    PhotographerPlaceHolderImage: require('../assets/images/photographer_placeholder.jpg')
+    PhotographerPlaceHolderImage: require('../assets/images/photographer_placeholder.jpg'),
+    LocationNew: require('../assets/images/LocationNew.png'),
+    NotificationNew: require('../assets/images/NotificationNew.png')
 };
 
 export default imagePaths;

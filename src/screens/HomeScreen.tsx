@@ -793,23 +793,19 @@ const HomeScreen: React.FC = () => {
                 resizeMode="contain"
               />
               <Text style={styles.welcomeText}>
-                Hello<Text style={styles.userName}> {currentUser?.full_name || 'User'} !</Text>
+                Hello<Text style={styles.userName}> {currentUser?.full_name?.split(' ')[0] || 'User'} !</Text>
               </Text>
             </View>
 
             <View style={styles.headerRight}>
               <View style={styles.rightColumn}>
                 <TouchableOpacity style={styles.notificationIconOutline}>
-                  <Image
-                    source={require('../assets/images/notification.png')}
-                    style={styles.notificationIcon}
-                    resizeMode='cover'
-                  />
+                  <Image source={imagePaths.NotificationNew} resizeMode='contain' style={styles.notificationIcon} />
                 </TouchableOpacity>
                 <View style={styles.locationContainer}>
                   <Text style={styles.locationLabel}>Current Location</Text>
                   <TouchableOpacity style={styles.locationRow} onPress={openLocationModal}>
-                    <Icon name="location-on" size={16} color="#FF6B35" />
+                    <Image source={imagePaths.LocationNew} resizeMode='contain' style={{ height: 14, width: 14 }} />
                     <Text style={styles.locationText}>{selectedLocationName}</Text>
                   </TouchableOpacity>
                 </View>
@@ -1603,7 +1599,7 @@ const styles = StyleSheet.create({
   },
   locationContainer: {
     alignItems: 'flex-end',
-    marginBottom: 8,
+    marginVertical: 10,
   },
   locationLabel: {
     fontSize: 12,
@@ -1621,18 +1617,16 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   notificationIcon: {
-    height: 20,
-    width: 20,
-    tintColor: '#363636',
+    height: 22,
+    width: 22,
   },
   notificationIconOutline: {
     padding: 8,
-    borderRadius: 20,
+    borderRadius: 100,
     borderWidth: 1,
     borderColor: '#034833',
-    alignItems: 'flex-end',
-    justifyContent: 'flex-end',
-    // backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchContainer: {
     marginTop: 20,
@@ -1642,30 +1636,28 @@ const styles = StyleSheet.create({
   searchInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 30,
+    borderRadius: 5,
   },
   searchPlaceholder: {
     flex: 1,
     paddingLeft: 16,
     fontSize: 14,
     height: 48,
-    borderTopLeftRadius: 30,
-    borderBottomLeftRadius: 30,
+    borderTopLeftRadius: 5,
+    borderBottomLeftRadius: 5,
     color: '#101010',
     backgroundColor: '#FFFFFF',
-    borderWidth: 0.5,
+    borderWidth: 1,
     borderColor: '#034833',
   },
   searchIconButton: {
     width: 80,
     height: 48,
-    borderTopRightRadius: 30,
-    borderBottomRightRadius: 30,
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
     backgroundColor: '#034833',
     justifyContent: 'center',
     alignItems: 'center',
-
-
   },
   searchIcon: {
     height: 24,
