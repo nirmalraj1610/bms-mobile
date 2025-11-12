@@ -44,21 +44,6 @@ const PhotographerDashboardScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const userData = await getUserData();
-      const user = userData?.customer;
-      console.log('userData:', user);
-      setCurrentUser(user);
-    } catch (err) {
-      console.log('Failed to load user data:', err);
-    }
-  };
-
-  useEffect(() => {
     const checkAuth = async () => {
       let token: string | null = null;
       try { token = await AsyncStorage.getItem('auth_token'); } catch { }
@@ -75,13 +60,17 @@ const PhotographerDashboardScreen: React.FC = () => {
             setShowLoginModal(true);
             return;
           }
+          else {
+            const user = userData?.customer;
+            console.log('userData:', user);
+            setCurrentUser(user);
+          }
         }
       } catch { }
     };
 
-    if(isFocused)
-    {
-    checkAuth();
+    if (isFocused) {
+      checkAuth();
     }
   }, [isFocused]);
 
@@ -107,7 +96,7 @@ const PhotographerDashboardScreen: React.FC = () => {
               resizeMode="contain"
             />
             <Text style={styles.welcomeText}>
-              Hello <Text style={styles.userName}>{currentUser?.full_name}!</Text>
+              Hello <Text style={styles.userName}>{currentUser?.full_name} !</Text>
             </Text>
           </View>
 
@@ -156,7 +145,7 @@ const PhotographerDashboardScreen: React.FC = () => {
                 color="#fff"
               />
             </TouchableOpacity>
-          
+
             {/* Floating dropdown list */}
             {dropdownVisible && (
               <View style={styles.dropdownOverlay}>
@@ -200,29 +189,29 @@ const PhotographerDashboardScreen: React.FC = () => {
         {selectedMenu === "portfolio" && <PortfolioComponent />}
       </View>
       {/* Login Required Modal */}
-            <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
-              <View style={styles.loginBackdrop}>
-                {/* True blur backdrop with light, white-tinted feel */}
-                <BlurView
-                  style={StyleSheet.absoluteFill}
-                  blurType="light"
-                  blurAmount={20}
-                  reducedTransparencyFallbackColor="white"
-                />
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Login Required</Text>
-                  </View>
-                  <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
-                  <View style={styles.modalActions}>
-                    <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
-                      <Text style={styles.confirmButtonText}>Login</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </Modal>
-      {dropdownVisible ? <TouchableOpacity onPress={() => setDropdownVisible(false)} style={{ backgroundColor: 'rgba(0,0,0,0.1)', height: '100%', width: '100%', position: 'absolute' }} ></TouchableOpacity> : null}      
+      <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
+        <View style={styles.loginBackdrop}>
+          {/* True blur backdrop with light, white-tinted feel */}
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="light"
+            blurAmount={20}
+            reducedTransparencyFallbackColor="white"
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {dropdownVisible ? <TouchableOpacity onPress={() => setDropdownVisible(false)} style={{ backgroundColor: 'rgba(0,0,0,0.1)', height: '100%', width: '100%', position: 'absolute' }} ></TouchableOpacity> : null}
     </SafeAreaView>
   );
 };
@@ -315,73 +304,73 @@ const styles = StyleSheet.create({
     color: '#2F2F2F',
     marginLeft: 6,
   },
- dropdownWrapper: {
-  position: 'relative',
-  zIndex: 10,
-  flex: 1,
-},
-dropdownHeader: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  backgroundColor: '#034833',
-  borderTopRightRadius: 22,
-  borderBottomRightRadius: 22,
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  elevation: 3,
-},
+  dropdownWrapper: {
+    position: 'relative',
+    zIndex: 10,
+    flex: 1,
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#034833',
+    borderTopRightRadius: 22,
+    borderBottomRightRadius: 22,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    elevation: 3,
+  },
 
-dropdownHeaderText: {
-  flex: 1,
-  fontSize: 16,
-  color: '#fff',
-  fontWeight: '600',
-},
+  dropdownHeaderText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '600',
+  },
 
-dropdownOverlay: {
-  position: 'absolute',
-  top: 50, // below header
-  left: 0,
-  right: 0,
-  borderRadius: 15,
-  paddingVertical: 5,
-  backgroundColor: 'rgba(0,0,0,0.1)',
-  zIndex: 999,
-},
+  dropdownOverlay: {
+    position: 'absolute',
+    top: 50, // below header
+    left: 0,
+    right: 0,
+    borderRadius: 15,
+    paddingVertical: 5,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    zIndex: 999,
+  },
 
-dropdownList: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 15,
-  marginHorizontal: 5,
-  paddingVertical: 6,
-  elevation: 8,
-},
+  dropdownList: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    marginHorizontal: 5,
+    paddingVertical: 6,
+    elevation: 8,
+  },
 
-dropdownItem: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingVertical: 10,
-  paddingHorizontal: 16,
-  borderRadius: 10,
-},
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
 
-dropdownItemActive: {
-  backgroundColor: '#034833',
-  marginHorizontal: 5
-},
+  dropdownItemActive: {
+    backgroundColor: '#034833',
+    marginHorizontal: 5
+  },
 
-dropdownItemText: {
-  fontSize: 14,
-  color: '#034833',
-  fontWeight: '500',
-},
+  dropdownItemText: {
+    fontSize: 14,
+    color: '#034833',
+    fontWeight: '500',
+  },
 
-dropdownItemTextActive: {
-  color: '#FFFFFF',
-  fontWeight: '600',
-},
-loginBackdrop: {
+  dropdownItemTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  loginBackdrop: {
     flex: 1,
     backgroundColor: 'transparent',
     justifyContent: 'center',

@@ -48,23 +48,28 @@ export const studioDetailsThunk = createAsyncThunk('studios/details', async (id:
     console.log('=== studioDetailsThunk Debug ===');
     console.log('Fetching studio details for ID:', id);
     console.log('ID type:', typeof id);
-    
+
     const res = await getStudioDetails(id);
     console.log('API response:', res);
     console.log('API response type:', typeof res);
     console.log('API response keys:', res ? Object.keys(res) : 'null');
     console.log('res.studio:', res.studio);
-    
+
     const studioData = res.studio || null;
     console.log('Returning studio data:', studioData);
-    
+
     return studioData;
   } catch (err: any) {
     console.error('studioDetailsThunk error:', err);
-    console.error('Error type:', typeof err);
     console.error('Error keys:', err ? Object.keys(err) : 'null');
-    return rejectWithValue(err?.error || 'Failed to load studio details');
-  }
+
+    const errorPayload = {
+      message: err?.error || 'Failed to load studio details',
+      status: err?.status || 500,
+    }
+  };
+
+  return rejectWithValue(errorPayload);
 });
 
 export const studioAvailabilityThunk = createAsyncThunk('studios/availability', async (payload: AvailabilityPayload, { rejectWithValue }) => {
@@ -89,7 +94,7 @@ export const toggleFavoriteThunk = createAsyncThunk('studios/toggleFavorite', as
         return { message: 'Already favorited', studio_id: payload.studio_id, action: payload.action };
       }
     }
-    
+
     return rejectWithValue(err?.error || 'Failed to toggle favorite');
   }
 });
@@ -106,14 +111,14 @@ export const loadFavoritesThunk = createAsyncThunk('studios/loadFavorites', asyn
     return favorites;
   } catch (err: any) {
     console.log('loadFavoritesThunk Error:', err);
-    
+
     // Handle authentication errors gracefully
     if (err?.status === 401 || err?.error?.includes('unauthorized') || err?.error?.includes('authentication')) {
       console.log('Authentication error detected, user not logged in');
       // Return empty array instead of rejecting for auth errors
       return [];
     }
-    
+
     return rejectWithValue(err?.error || 'Failed to load favorites');
   }
 });
@@ -194,13 +199,13 @@ export const loadMyStudioThunk = createAsyncThunk(
 export const loadStudioBookingsThunk = createAsyncThunk(
   "studio-bookings",
   async (params: {
-  studio_id: string;
-  status?: string;
-  from_date?: string;
-  to_date?: string;
-  limit?: number;
-  offset?: number;
-}, { rejectWithValue }) => {
+    studio_id: string;
+    status?: string;
+    from_date?: string;
+    to_date?: string;
+    limit?: number;
+    offset?: number;
+  }, { rejectWithValue }) => {
     try {
       const res = await getStudiosBookings(params);
       console.log("API Response:", res);
@@ -225,18 +230,18 @@ export const loadStudioBookingsThunk = createAsyncThunk(
 );
 
 export const getStudioEquipmentThunk = createAsyncThunk(
-  'studios/getEquipment', 
+  'studios/getEquipment',
   async (payload: { studio_id: string; available_only?: boolean }, { rejectWithValue }) => {
     try {
       console.log('🔧 getStudioEquipmentThunk called with payload:', payload);
-      
+
       const res = await getStudioEquipment(payload.studio_id, payload.available_only);
       console.log('📡 API response received:', res);
-      
+
       // The API returns { equipment: [...] } according to the provided format
       const equipmentData = res.equipment || [];
       console.log('✅ Equipment data extracted:', equipmentData);
-      
+
       return equipmentData;
     } catch (err: any) {
       console.error('❌ getStudioEquipmentThunk error:', err);
@@ -312,7 +317,7 @@ const studiosSlice = createSlice({
       .addCase(toggleFavoriteThunk.fulfilled, (state, action) => {
         state.favorites.loading = false;
         const { studio_id, action: actionType } = action.payload;
-        
+
         if (actionType === 'add') {
           // Only add if not already in favorites
           const isAlreadyFavorite = state.favorites.items.some(fav => (fav as any).studio_id === studio_id);

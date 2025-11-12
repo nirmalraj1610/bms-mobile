@@ -41,21 +41,6 @@ const StudioDashboardScreen: React.FC = () => {
   }, [selectedMenu])
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      const userData = await getUserData();
-      const user = userData?.customer;
-      console.log('userData:', user);
-      setCurrentUser(user);
-    } catch (err) {
-      console.log('Failed to load user data:', err);
-    }
-  };
-
-  useEffect(() => {
     const checkAuth = async () => {
       let token: string | null = null;
       try { token = await AsyncStorage.getItem('auth_token'); } catch { }
@@ -72,13 +57,17 @@ const StudioDashboardScreen: React.FC = () => {
             setShowLoginModal(true);
             return;
           }
+          else {
+            const user = userData?.customer;
+            console.log('userData:', user);
+            setCurrentUser(user);
+          }
         }
       } catch { }
     };
 
-    if(isFocused)
-    {
-    checkAuth();
+    if (isFocused) {
+      checkAuth();
     }
   }, [isFocused]);
 
@@ -120,7 +109,7 @@ const StudioDashboardScreen: React.FC = () => {
               resizeMode="contain"
             />
             <Text style={styles.welcomeText}>
-              Hello <Text style={styles.userName}>{currentUser?.full_name}!</Text>
+              Hello <Text style={styles.userName}>{currentUser?.full_name} !</Text>
             </Text>
           </View>
 
@@ -215,28 +204,28 @@ const StudioDashboardScreen: React.FC = () => {
         {selectedMenu === "Add Studio" && <AddStudioComponent onPressSelectmenu={(i) => setSelectedMenu(i)} editStudio={editStudio} editStudioValues={editStudioValues} />}
       </View>
       {/* Login Required Modal */}
-            <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
-              <View style={styles.loginBackdrop}>
-                {/* True blur backdrop with light, white-tinted feel */}
-                <BlurView
-                  style={StyleSheet.absoluteFill}
-                  blurType="light"
-                  blurAmount={20}
-                  reducedTransparencyFallbackColor="white"
-                />
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Login Required</Text>
-                  </View>
-                  <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
-                  <View style={styles.modalActions}>
-                    <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
-                      <Text style={styles.confirmButtonText}>Login</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </Modal>
+      <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
+        <View style={styles.loginBackdrop}>
+          {/* True blur backdrop with light, white-tinted feel */}
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="light"
+            blurAmount={20}
+            reducedTransparencyFallbackColor="white"
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       {dropdownVisible ? <TouchableOpacity onPress={() => setDropdownVisible(false)} style={{ backgroundColor: 'rgba(0,0,0,0.1)', height: '100%', width: '100%', position: 'absolute' }} ></TouchableOpacity> : null}
     </SafeAreaView>
   );

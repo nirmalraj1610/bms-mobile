@@ -7,14 +7,18 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import HeaderBar from '../components/HeaderBar';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import imagePaths from '../constants/imagePaths';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 const itemWidth = (width - 60) / 2; // 2 columns with padding
 
 interface GalleryItem {
@@ -78,48 +82,43 @@ const mockGalleryData: GalleryItem[] = [
 const GalleryScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const toggleFavorite = (itemId: string) => {
-    setFavorites(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  };
-
-  const renderGalleryItem = (item: GalleryItem) => (
-    <TouchableOpacity key={item.id} style={styles.galleryItem}>
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.galleryImage} />
-        {/* <TouchableOpacity 
-          style={styles.favoriteButton}
-          onPress={() => toggleFavorite(item.id)}
-        >
-          <Icon 
-            name={favorites.includes(item.id) ? 'favorite' : 'favorite-border'} 
-            size={20} 
-            color={favorites.includes(item.id) ? COLORS.favColor : '#fff'} 
-          />
-        </TouchableOpacity> */}
-      </View>
-    </TouchableOpacity>
-  );
-
-  // Build data: prefer images from route params, fallback to mock
   const routeImages: string[] | undefined = route?.params?.images;
   const galleryData: GalleryItem[] = (routeImages && routeImages.length > 0)
     ? routeImages.map((url, idx) => ({ id: String(idx), title: '', image: url, isFavorite: false }))
     : mockGalleryData;
 
-  // Create rows of 2 items each
+  const openImage = (index: number) => setSelectedIndex(index);
+  const closeImage = () => setSelectedIndex(null);
+
+  const showPrevImage = () => {
+    if (selectedIndex !== null && selectedIndex > 0) {
+      setSelectedIndex(selectedIndex - 1);
+    }
+  };
+
+  const showNextImage = () => {
+    if (selectedIndex !== null && selectedIndex < galleryData.length - 1) {
+      setSelectedIndex(selectedIndex + 1);
+    }
+  };
+
+  const renderGalleryItem = (item: GalleryItem, index: number) => (
+    <TouchableOpacity key={item.id} style={styles.galleryItem} onPress={() => openImage(index)}>
+      <View style={styles.imageContainer}>
+        <Image source={{ uri: item.image }} style={styles.galleryImage} />
+      </View>
+    </TouchableOpacity>
+  );
+
   const createRows = () => {
     const rows = [];
     for (let i = 0; i < galleryData.length; i += 2) {
       const rowItems = galleryData.slice(i, i + 2);
       rows.push(
         <View key={i} style={styles.galleryRow}>
-          {rowItems.map(item => renderGalleryItem(item))}
+          {rowItems.map((item, idx) => renderGalleryItem(item, i + idx))}
         </View>
       );
     }
@@ -132,14 +131,52 @@ const GalleryScreen: React.FC = () => {
         <HeaderBar title={route?.params?.title || 'Our Gallery'} onBack={() => navigation.goBack()} />
       </View>
 
-      {/* Gallery Grid */}
-      <ScrollView 
+      <ScrollView
         style={styles.galleryContainer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.galleryGrid}
       >
         {createRows()}
       </ScrollView>
+
+      {/* Modal Image Viewer */}
+      <Modal visible={selectedIndex !== null} transparent={true} animationType="fade">
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.modalOverlay}
+          onPress={closeImage} // tap outside closes
+        >
+          <View style={styles.modalContent} pointerEvents="box-none">
+            <TouchableWithoutFeedback>
+              <Image
+                source={{ uri: selectedIndex !== null ? galleryData[selectedIndex].image : undefined }}
+                style={styles.fullImage}
+                resizeMode="contain"
+              />
+            </TouchableWithoutFeedback>
+
+            {/* Close Button */}
+            <TouchableOpacity style={styles.closeButton} onPress={closeImage}>
+              <Ionicons name="close" size={28} color="#fff" />
+            </TouchableOpacity>
+
+            {/* Prev Button */}
+            {selectedIndex !== null && selectedIndex > 0 && (
+              <TouchableOpacity style={styles.leftArrow} onPress={showPrevImage}>
+                <Ionicons name="chevron-back" size={32} color="#fff" />
+              </TouchableOpacity>
+            )}
+
+            {/* Next Button */}
+            {selectedIndex !== null && selectedIndex < galleryData.length - 1 && (
+              <TouchableOpacity style={styles.rightArrow} onPress={showNextImage}>
+                <Ionicons name="chevron-forward" size={32} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -151,27 +188,6 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 12,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerBlock: {
-    marginTop: 12,
-  },
-  screenTitle: {
-    fontSize: 22,
-    ...typography.bold,
-    color: COLORS.text.primary,
   },
   galleryContainer: {
     flex: 1,
@@ -205,16 +221,47 @@ const styles = StyleSheet.create({
     height: 180,
     resizeMode: 'cover',
   },
-  favoriteButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: width,
+    height: height * 0.7,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 30,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 8,
+  },
+  leftArrow: {
+    position: 'absolute',
+    left: 20,
+    top: '50%',
+    padding: 12,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 30,
+  },
+  rightArrow: {
+    position: 'absolute',
+    right: 20,
+    top: '50%',
+    padding: 12,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 30,
   },
 });
 

@@ -16,13 +16,14 @@ import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
+import BookingsListSkeleton from '../components/skeletonLoaders/BookingsListSkeleton';
 
 const BookingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
   const [query, setQuery] = useState('');
   const [selectedBookingType, setSelectedBookingType] = useState<'studio' | 'photographer'>('studio');
-  
+
   // Equipment selection state
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [selectedBookingForEquipment, setSelectedBookingForEquipment] = useState<any>(null);
@@ -54,7 +55,7 @@ const BookingScreen: React.FC = () => {
 
   // Get booking data from Redux store
   const { items: bookings, loading, error } = useAppSelector((state) => state.bookings);
-  
+
   // Get equipment data from Redux store
   const equipmentState = useAppSelector((state) => state.studios.equipment);
 
@@ -67,7 +68,7 @@ const BookingScreen: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       let token: string | null = null;
-      try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+      try { token = await AsyncStorage.getItem('auth_token'); } catch { }
       if (!token) {
         setShowLoginModal(true);
         return;
@@ -82,7 +83,7 @@ const BookingScreen: React.FC = () => {
             return;
           }
         }
-      } catch {}
+      } catch { }
     };
     checkAuth();
   }, []);
@@ -100,19 +101,19 @@ const BookingScreen: React.FC = () => {
     const date = new Date(booking.booking_date);
     const startTime = booking.start_time;
     const endTime = booking.end_time;
-    
+
     const formattedDate = date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric'
     });
-    
+
     return {
       date: formattedDate,
       time: `${startTime} - ${endTime}`,
     };
   };
-console.log('bookings:', bookings);
+  console.log('bookings:', bookings);
 
   // Transform API data to match component expectations
   const transformedBookings = useMemo(() => {
@@ -132,7 +133,7 @@ console.log('bookings:', bookings);
         image: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400', // Default image
         isFavorite: false,
         total_amount: booking.total_amount,
-         // You can 
+        // You can 
         // implement favorites logic later
       };
     });
@@ -142,7 +143,7 @@ console.log('bookings:', bookings);
   const filteredBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) {
-      return transformedBookings.filter(booking => 
+      return transformedBookings.filter(booking =>
         (booking.status === 'Confirmed' || booking.status === 'Pending') &&
         booking.bookingType === selectedBookingType
       );
@@ -157,7 +158,7 @@ console.log('bookings:', bookings);
   const filteredPastBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) {
-      return transformedBookings.filter(booking => 
+      return transformedBookings.filter(booking =>
         (booking.status === 'Completed' || booking.status === 'Cancelled') &&
         booking.bookingType === selectedBookingType
       );
@@ -218,22 +219,22 @@ console.log('bookings:', bookings);
   // Equipment selection handler
   const handleSelectEquipment = (booking: any) => {
     console.log('🔧 Select Equipment clicked for booking:', booking);
-    
+
     // Find the original booking data to get studio_id
     const originalBooking = bookings.find(b => b.id === booking.id);
     console.log('📍 Original booking data:', originalBooking);
-    
+
     if (originalBooking?.studios?.id) {
       console.log('✅ Studio ID found:', originalBooking.studios.id);
       console.log('📡 Dispatching getStudioEquipmentThunk...');
-      
+
       setSelectedBookingForEquipment(booking);
-      
-      dispatch(getStudioEquipmentThunk({ 
-        studio_id: originalBooking.studios.id, 
-        available_only: true 
+
+      dispatch(getStudioEquipmentThunk({
+        studio_id: originalBooking.studios.id,
+        available_only: true
       }));
-      
+
       setShowEquipmentModal(true);
       console.log('✅ Equipment modal should now be visible');
     } else {
@@ -308,8 +309,8 @@ console.log('bookings:', bookings);
       setRescheduleLoading(false);
     }
   };
-  console.log(filteredBookings,'filteredBookingsfilteredBookings');
-  
+  console.log(filteredBookings, 'filteredBookingsfilteredBookings');
+
   // Handle Check-In
   const handleCheckInPress = async (bookingId: string) => {
     try {
@@ -334,7 +335,7 @@ console.log('bookings:', bookings);
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
-  }; 
+  };
 
   // Login modal handlers
   const closeLoginModal = () => setShowLoginModal(false);
@@ -401,140 +402,140 @@ console.log('bookings:', bookings);
         endDateTime.setHours(isNaN(eh) ? 0 : eh, isNaN(em) ? 0 : em, 0, 0);
         hasEnded = Date.now() > endDateTime.getTime();
       }
-    } catch {}
+    } catch { }
 
     return (
-    <TouchableOpacity style={styles.card}>
-      <View style={styles.cardMainContent}>
-        {/* Left Section - Image and Price */}
-        <View style={styles.leftSection}>
-          <Image source={{ uri: item.image }} style={styles.cardImage} />
-          <Text style={styles.priceText}>₹{item.total_amount || '200'}</Text>
-        </View>
-
-        {/* Middle Section - Main Content */}
-        <View style={styles.middleSection}>
-          <Text style={styles.studioName}>{item.studioName}</Text>
-          
-          <View style={styles.locationRow}>
-            <Icon name="location-on" size={16} color={COLORS.text.secondary} />
-            <Text style={styles.locationText}>{item.location || 'chennai'}</Text>
-          </View>
-          
-          <View style={styles.dateRow}>
-            <Icon name="calendar-today" size={16} color={COLORS.text.secondary} />
-            <Text style={styles.dateText}>{item.date}</Text>
-          </View>
-          
-          <View style={styles.timeRow}>
-            <Icon name="access-time" size={16} color={COLORS.text.secondary} />
-            <Text style={styles.timeText}>{item.time}</Text>
+      <TouchableOpacity style={styles.card}>
+        <View style={styles.cardMainContent}>
+          {/* Left Section - Image and Price */}
+          <View style={styles.leftSection}>
+            <Image source={{ uri: item.image }} style={styles.cardImage} />
+            <Text style={styles.priceText}>₹{item.total_amount || '200'}</Text>
           </View>
 
-          {/* <View style={styles.studioTag}>
+          {/* Middle Section - Main Content */}
+          <View style={styles.middleSection}>
+            <Text style={styles.studioName}>{item.studioName}</Text>
+
+            <View style={styles.locationRow}>
+              <Icon name="location-on" size={16} color={COLORS.text.secondary} />
+              <Text style={styles.locationText}>{item.location || 'chennai'}</Text>
+            </View>
+
+            <View style={styles.dateRow}>
+              <Icon name="calendar-today" size={16} color={COLORS.text.secondary} />
+              <Text style={styles.dateText}>{item.date}</Text>
+            </View>
+
+            <View style={styles.timeRow}>
+              <Icon name="access-time" size={16} color={COLORS.text.secondary} />
+              <Text style={styles.timeText}>{item.time}</Text>
+            </View>
+
+            {/* <View style={styles.studioTag}>
             <Text style={styles.studioTagText}>Studio</Text>
           </View> */}
 
-          {/* <Text style={styles.bookingId}>Booking ID: {item.bookingId || '1349c3e1-55a9-4cce-8154-a0ca17f84d03'}</Text>
+            {/* <Text style={styles.bookingId}>Booking ID: {item.bookingId || '1349c3e1-55a9-4cce-8154-a0ca17f84d03'}</Text>
           <Text style={styles.bookedOn}>Booked on: {item.bookedOn || '2025-10-29T12:44:18.429259+00:00'}</Text> */}
-        </View>
+          </View>
 
-        {/* Right Section - Status and Action Buttons */}
-        <View style={styles.rightSection}>
-          <View style={[styles.statusBadge, getStatusStyles(item.status)]}>
-          
-            <Text style={[styles.statusBadgeText, getStatusTextStyles(item.status)]}>
+          {/* Right Section - Status and Action Buttons */}
+          <View style={styles.rightSection}>
+            <View style={[styles.statusBadge, getStatusStyles(item.status)]}>
+
+              <Text style={[styles.statusBadgeText, getStatusTextStyles(item.status)]}>
                 {/* {item.status === 'Cancelled' && (
               <Icon name="close" size={14} color="#FFFFFF" style={styles.iconStyle} />
             )} */}
-              {item.status}
-            </Text>
+                {item.status}
+              </Text>
+            </View>
+
+            {/* Conditional buttons based on status */}
+            {item.status === 'Confirmed' && (
+              <View style={styles.actionButtonsContainer}>
+                {hasEnded ? (
+                  // After end time has passed: show only View Studio
+                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
+                    <Text style={styles.viewStudioButtonText}>View Studio</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity style={styles.rescheduleButton} onPress={() => openRescheduleModal(item)}>
+                      <Icon name="schedule" size={14} color={COLORS.text.primary} />
+                      <Text style={styles.rescheduleButtonText}>Reschedule</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.cancelButton} onPress={() => openCancelModal(item)}>
+                      <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+
+                    {checkedInMap[item.id] ? (
+                      <TouchableOpacity
+                        style={styles.checkOutButton}
+                        onPress={() => handleCheckOutPress(item.id)}
+                        disabled={!!actionLoading[item.id]}
+                      >
+                        <Icon name="logout" size={14} color={COLORS.background} />
+                        <Text style={styles.checkOutButtonText}>Check OUT</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.checkInButton}
+                        onPress={() => handleCheckInPress(item.id)}
+                        disabled={!!actionLoading[item.id]}
+                      >
+                        <Icon name="login" size={14} color={COLORS.background} />
+                        <Text style={styles.checkInButtonText}>Check IN</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
+                      <Text style={styles.viewStudioButtonText}>View Studio</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            )}
+
+            {/* Buttons for pending bookings */}
+            {item.status === 'Pending' && (
+              <View style={styles.actionButtonsContainer}>
+                {hasEnded ? (
+                  // After end time: only View Studio
+                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
+                    <Text style={styles.viewStudioButtonText}>View Studio</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={styles.selectEquipmentButton}
+                      onPress={() => handleSelectEquipment(item)}
+                    >
+                      {/* <Icon name="build" size={14} color="#00BCD4" /> */}
+                      <Text style={styles.selectEquipmentButtonText}>Select{'\n'}Equipment</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
+                      <Text style={styles.viewStudioButtonText}>View Studio</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            )}
+
+            {/* Buttons for cancelled bookings */}
+            {item.status === 'Cancelled' && (
+              <View style={styles.actionButtonsContainer}>
+                <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
+                  <Text style={styles.viewStudioButtonText}>View Studio</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
-
-          {/* Conditional buttons based on status */}
-          {item.status === 'Confirmed' && (
-            <View style={styles.actionButtonsContainer}>
-              {hasEnded ? (
-                // After end time has passed: show only View Studio
-                <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
-                  <Text style={styles.viewStudioButtonText}>View Studio</Text>
-                </TouchableOpacity>
-              ) : (
-                <>
-                  <TouchableOpacity style={styles.rescheduleButton} onPress={() => openRescheduleModal(item)}>
-                    <Icon name="schedule" size={14} color={COLORS.text.primary} />
-                    <Text style={styles.rescheduleButtonText}>Reschedule</Text>
-                  </TouchableOpacity>
-                  
-              <TouchableOpacity style={styles.cancelButton} onPress={() => openCancelModal(item)}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-                  
-                  {checkedInMap[item.id] ? (
-                    <TouchableOpacity
-                      style={styles.checkOutButton}
-                      onPress={() => handleCheckOutPress(item.id)}
-                      disabled={!!actionLoading[item.id]}
-                    >
-                      <Icon name="logout" size={14} color={COLORS.background} />
-                      <Text style={styles.checkOutButtonText}>Check OUT</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.checkInButton}
-                      onPress={() => handleCheckInPress(item.id)}
-                      disabled={!!actionLoading[item.id]}
-                    >
-                      <Icon name="login" size={14} color={COLORS.background} />
-                      <Text style={styles.checkInButtonText}>Check IN</Text>
-                    </TouchableOpacity>
-                  )}
-                  
-                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
-                    <Text style={styles.viewStudioButtonText}>View Studio</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          )}
-
-          {/* Buttons for pending bookings */}
-          {item.status === 'Pending' && (
-            <View style={styles.actionButtonsContainer}>
-              {hasEnded ? (
-                // After end time: only View Studio
-                <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
-                  <Text style={styles.viewStudioButtonText}>View Studio</Text>
-                </TouchableOpacity>
-              ) : (
-                <>
-                  <TouchableOpacity 
-                    style={styles.selectEquipmentButton}
-                    onPress={() => handleSelectEquipment(item)}
-                  >
-                    {/* <Icon name="build" size={14} color="#00BCD4" /> */}
-                    <Text style={styles.selectEquipmentButtonText}>Select{'\n'}Equipment</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
-                    <Text style={styles.viewStudioButtonText}>View Studio</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-          )}
-
-          {/* Buttons for cancelled bookings */}
-          {item.status === 'Cancelled' && (
-            <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
-                <Text style={styles.viewStudioButtonText}>View Studio</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
     );
   };
 
@@ -549,20 +550,20 @@ console.log('bookings:', bookings);
 
         {/* Search */}
         <View style={styles.searchContainer}>
-            <View style={styles.searchInput}>
-              <Icon name="search" size={18} color={COLORS.text.secondary} />
-              <TextInput
-                style={styles.searchPlaceholder}
-                placeholder="Search..."
-                placeholderTextColor={COLORS.text.secondary}
-                value={query}
-                onChangeText={setQuery}
-              />
-              <TouchableOpacity style={styles.searchIconButton}>
-                <Icon name="search" size={20} color={COLORS.background} />
-              </TouchableOpacity>
-            </View>
+          <View style={styles.searchInput}>
+            <Icon name="search" size={18} color={COLORS.text.secondary} />
+            <TextInput
+              style={styles.searchPlaceholder}
+              placeholder="Search..."
+              placeholderTextColor={COLORS.text.secondary}
+              value={query}
+              onChangeText={setQuery}
+            />
+            <TouchableOpacity style={styles.searchIconButton}>
+              <Icon name="search" size={20} color={COLORS.background} />
+            </TouchableOpacity>
           </View>
+        </View>
 
         {/* Booking Type Toggle */}
         <View style={styles.toggleContainer}>
@@ -573,19 +574,19 @@ console.log('bookings:', bookings);
             ]}
             onPress={() => setSelectedBookingType('studio')}
           >
-            <Icon 
-              name="business" 
-              size={16} 
-              color={selectedBookingType === 'studio' ? COLORS.background : COLORS.text.secondary} 
+            <Icon
+              name="business"
+              size={16}
+              color={selectedBookingType === 'studio' ? COLORS.background : COLORS.text.secondary}
             />
             <Text style={[
               styles.toggleButtonText,
               selectedBookingType === 'studio' && styles.toggleButtonTextActive
             ]}>
-              Studio 
+              Studio
             </Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[
               styles.toggleButton,
@@ -593,10 +594,10 @@ console.log('bookings:', bookings);
             ]}
             onPress={() => setSelectedBookingType('photographer')}
           >
-            <Icon 
-              name="camera-alt" 
-              size={16} 
-              color={selectedBookingType === 'photographer' ? COLORS.background : COLORS.text.secondary} 
+            <Icon
+              name="camera-alt"
+              size={16}
+              color={selectedBookingType === 'photographer' ? COLORS.background : COLORS.text.secondary}
             />
             <Text style={[
               styles.toggleButtonText,
@@ -607,19 +608,11 @@ console.log('bookings:', bookings);
           </TouchableOpacity>
         </View>
 
-        {/* Loading State */}
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.bg} />
-            <Text style={styles.loadingText}>Loading bookings...</Text>
-          </View>
-        )}
-
         {/* Error State (hidden when login modal is shown) */}
         {error && !showLoginModal && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>Error loading bookings: {error}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.retryButton}
               onPress={() => dispatch(getBookings({}))}
             >
@@ -629,39 +622,46 @@ console.log('bookings:', bookings);
         )}
 
         {/* Upcoming Bookings */}
-        {!loading && !error && (
-          <FlatList
-            data={filteredBookings}
-            renderItem={renderBookingItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-            ListHeaderComponent={
-              filteredBookings.length > 0 ? null : (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyText}>No upcoming bookings found</Text>
-                </View>
-              )
-            }
-            ListFooterComponent={
-              <View>
-                {/* Past Sessions Section */}
-                <Text style={styles.sectionTitle}>Past Sessions</Text>
-                {filteredPastBookings.length > 0 ? (
-                  filteredPastBookings.map((item) => (
-                    <View key={item.id}>
-                      {renderBookingItem({ item })}
-                    </View>
-                  ))
-                ) : (
+        {loading ?
+          <BookingsListSkeleton /> :
+          error ?
+
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Faild to load bookings...</Text>
+            </View>
+            :
+            <FlatList
+              data={filteredBookings}
+              renderItem={renderBookingItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContainer}
+              showsVerticalScrollIndicator={false}
+              ListHeaderComponent={
+                filteredBookings.length > 0 ? null : (
                   <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>No past sessions found</Text>
+                    <Text style={styles.emptyText}>No upcoming bookings found</Text>
                   </View>
-                )}
-              </View>
-            }
-          />
-        )}
+                )
+              }
+              ListFooterComponent={
+                <View>
+                  {/* Past Sessions Section */}
+                  <Text style={styles.sectionTitle}>Past Sessions</Text>
+                  {filteredPastBookings.length > 0 ? (
+                    filteredPastBookings.map((item) => (
+                      <View key={item.id}>
+                        {renderBookingItem({ item })}
+                      </View>
+                    ))
+                  ) : (
+                    <View style={styles.emptyState}>
+                      <Text style={styles.emptyText}>No past sessions found</Text>
+                    </View>
+                  )}
+                </View>
+              }
+            />
+        }
 
         {/* Reschedule Modal */}
         <Modal
@@ -767,7 +767,7 @@ console.log('bookings:', bookings);
         </Modal>
 
         {/* Login Required Modal */}
-        <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => {}}>
+        <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
           <View style={styles.loginBackdrop}>
             {/* True blur backdrop with light, white-tinted feel */}
             <BlurView
@@ -789,7 +789,7 @@ console.log('bookings:', bookings);
             </View>
           </View>
         </Modal>
-        
+
         {/* Cancel Modal */}
         <Modal
           visible={showCancelModal}
@@ -1058,7 +1058,7 @@ const styles = StyleSheet.create({
     ...typography.semibold,
   },
   iconStyle: {
-   
+
     marginRight: 4,
     marginTop: 10,
   },
@@ -1097,7 +1097,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     minWidth: 100,
     elevation: 1,
-    
+
   },
   cancelButtonText: {
     fontSize: 12,

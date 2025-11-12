@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { PermissionsAndroid } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -44,6 +44,7 @@ const WHY_CHOOSE_CARD_WIDTH = width * 0.9;
 const RECOMMEND_CARD_WIDTH = width * 0.5;
 
 const HomeScreen: React.FC = () => {
+  const isFocused = useIsFocused();
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState('');
@@ -65,6 +66,7 @@ const HomeScreen: React.FC = () => {
   const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [permissionBlocked, setPermissionBlocked] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
 
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
@@ -151,6 +153,37 @@ const HomeScreen: React.FC = () => {
     const hasQuery = query.trim().length > 0;
     setShowOverlay(isSearchFocused && hasQuery);
   }, [isSearchFocused, query]);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      let token: string | null = null;
+      try { token = await AsyncStorage.getItem('auth_token'); } catch { }
+      if (!token) {
+        setCurrentUser(null);
+        return;
+      }
+      try {
+        const userData = await getUserData();
+        const exp = userData?.session?.expires_at; // seconds epoch
+        if (typeof exp === 'number') {
+          const isExpired = exp * 1000 <= Date.now();
+          if (isExpired) {
+            setCurrentUser(null);
+            return;
+          }
+          else {
+            const user = userData?.customer;
+            console.log('userData:', user);
+            setCurrentUser(user);
+          }
+        }
+      } catch { }
+    };
+
+    if (isFocused) {
+      checkAuth();
+    }
+  }, [isFocused]);
 
 
 
@@ -760,7 +793,7 @@ const HomeScreen: React.FC = () => {
                 resizeMode="contain"
               />
               <Text style={styles.welcomeText}>
-                Hello<Text style={styles.userName}> Jana !</Text>
+                Hello<Text style={styles.userName}> {currentUser?.full_name || 'User'} !</Text>
               </Text>
             </View>
 

@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
 import { studioEquipmentList } from '../lib/api';
 import type { Equipment as ApiEquipment } from '../types/api';
+import StudioDetailsSkeleton from '../components/skeletonLoaders/StudioDetailsSkeleton';
 
 const StudioDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
@@ -51,7 +52,7 @@ const StudioDetailsScreen: React.FC = () => {
     // console.log('loading:', loading);
     // console.log('error:', error);
     // console.log('Redux state - studios.detail:', { data: studioData, loading, error });
-    
+
     // First priority: Use API detail data if available
     if (studioData) {
       // console.log('✅ Using API detail data');
@@ -60,7 +61,7 @@ const StudioDetailsScreen: React.FC = () => {
       // console.log('API studio ID type:', typeof studioData.id);
       return studioData;
     }
-    
+
     // Second priority: Use studio from search results if available
     if (searchResults && searchResults.length > 0 && studioId) {
       const studioFromSearch = searchResults.find((s: any) => s.id === studioId);
@@ -71,21 +72,21 @@ const StudioDetailsScreen: React.FC = () => {
         return studioFromSearch;
       }
     }
-    
+
     // Fallback to mock data if no real data is available
     // First try to find in main mockStudios array (used by HomeScreen)
     let mockStudio = mockStudios.find((s) => s.id === studioId);
-    
+
     // If not found, try mockFavoriteStudios array (used by FavoritesScreen)
     if (!mockStudio) {
       mockStudio = mockFavoriteStudios.find((s) => s.id === studioId);
     }
-    
+
     // If still not found, use the first studio from favorites as fallback
     if (!mockStudio) {
       mockStudio = mockFavoriteStudios[0];
       console.log('Using fallback studio, original ID:', mockStudio?.id, 'route studioId:', studioId);
-      
+
       // Only override ID if we're using fallback and have a valid studioId
       if (mockStudio && studioId) {
         const studioWithCorrectId = { ...mockStudio, id: studioId };
@@ -93,7 +94,7 @@ const StudioDetailsScreen: React.FC = () => {
         return studioWithCorrectId;
       }
     }
-    
+
     console.log('Using found mock studio, ID:', mockStudio?.id);
     return mockStudio;
   }, [studioData, studioId, searchResults]);
@@ -215,7 +216,7 @@ const StudioDetailsScreen: React.FC = () => {
   const handlePressBookNow = async () => {
     // 1) Token presence check
     let token: string | null = null;
-    try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+    try { token = await AsyncStorage.getItem('auth_token'); } catch { }
     if (!token) {
       setShowLoginModal(true);
       return;
@@ -231,7 +232,7 @@ const StudioDetailsScreen: React.FC = () => {
           return;
         }
       }
-    } catch {}
+    } catch { }
     // 3) Auth OK -> open booking modal
     setShowBookingModal(true);
   };
@@ -252,10 +253,7 @@ const StudioDetailsScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <HeaderBar onBack={() => navigation.goBack()} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Loading studio details...</Text>
-        </View>
+        <StudioDetailsSkeleton />
       </SafeAreaView>
     );
   }
@@ -305,7 +303,7 @@ const StudioDetailsScreen: React.FC = () => {
         {/* Description */}
         <Text style={styles.description}>{studio?.description || 'No description available.'}</Text>
 
-     
+
         <Text style={styles.sectionTitle}>Booking Policies</Text>
         <Text style={styles.sectionSubTitle}>Cancellation Policy</Text>
         <Text style={styles.subTitle}>Refer to studio policy.</Text>
@@ -315,7 +313,7 @@ const StudioDetailsScreen: React.FC = () => {
         <Text style={styles.subTitle}>-</Text>
         <Text style={styles.sectionSubTitle}>Security Deposit</Text>
         <Text style={styles.subTitle}>-</Text>
-        
+
 
         {/* Links */}
         <TouchableOpacity
@@ -590,7 +588,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    ...typography.semibold  ,
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   ratingRow: {

@@ -12,6 +12,7 @@ import { loadFavoritesThunk, toggleFavoriteThunk } from '../features/studios/stu
 import { BlurView } from '@react-native-community/blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
+import FavoriteStudiosSkeleton from '../components/skeletonLoaders/FavoriteStudiosSkeleton';
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -19,7 +20,7 @@ const FavoritesScreen: React.FC = () => {
   const [query, setQuery] = useState('');
   const [thumbErrorIds, setThumbErrorIds] = useState<Record<string, boolean>>({});
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
+
   // Get favorites data from Redux store
   const { favorites: favoritesState } = useSelector((state: RootState) => state.studios);
   const favorites = favoritesState.items;
@@ -32,7 +33,7 @@ const FavoritesScreen: React.FC = () => {
       // Auth presence/expiry check similar to BookingScreen
       const checkAuth = async () => {
         let token: string | null = null;
-        try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+        try { token = await AsyncStorage.getItem('auth_token'); } catch { }
         if (!token) {
           setShowLoginModal(true);
           return;
@@ -47,7 +48,7 @@ const FavoritesScreen: React.FC = () => {
               return;
             }
           }
-        } catch {}
+        } catch { }
       };
 
       checkAuth();
@@ -67,7 +68,7 @@ const FavoritesScreen: React.FC = () => {
   const handleToggleFavorite = async (studioId: string) => {
     // Quick auth presence check
     let token: string | null = null;
-    try { token = await AsyncStorage.getItem('auth_token'); } catch {}
+    try { token = await AsyncStorage.getItem('auth_token'); } catch { }
     if (!token) {
       setShowLoginModal(true);
       return;
@@ -83,7 +84,7 @@ const FavoritesScreen: React.FC = () => {
           return;
         }
       }
-    } catch {}
+    } catch { }
 
     const isFavorited = isStudioFavorited(studioId);
     const action = isFavorited ? 'remove' : 'add';
@@ -96,16 +97,16 @@ const FavoritesScreen: React.FC = () => {
         setShowLoginModal(true);
         return;
       }
-      try { console.log('toggleFavorite error:', err); } catch {}
+      try { console.log('toggleFavorite error:', err); } catch { }
     }
   };
 
   const isStudioFavorited = (studioId: string) => {
     return favorites.some((favorite: any) => {
       // Handle different data structures for studio_id
-      return favorite.studio_id === studioId || 
-             favorite.id === studioId ||
-             (favorite.studios && favorite.studios.id === studioId);
+      return favorite.studio_id === studioId ||
+        favorite.id === studioId ||
+        (favorite.studios && favorite.studios.id === studioId);
     });
   };
 
@@ -115,7 +116,7 @@ const FavoritesScreen: React.FC = () => {
       favorites.map((favorite: any) => {
         // Handle different possible data structures
         let studio: any;
-        
+
         if (typeof favorite.studios === 'object' && favorite.studios !== null) {
           // Case 1: studios is an object containing studio data
           studio = favorite.studios;
@@ -126,7 +127,7 @@ const FavoritesScreen: React.FC = () => {
           // Case 3: fallback to favorite data directly
           studio = favorite;
         }
-        
+
         // Prefer API field studio_images[0].image_url and fall back to images[0]
         const imageUrl = studio?.studio_images?.[0]?.image_url || studio?.images?.[0] || null;
 
@@ -174,10 +175,10 @@ const FavoritesScreen: React.FC = () => {
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
           <TouchableOpacity onPress={() => handleToggleFavorite(item.id)}>
-            <Icon 
-              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"} 
-              size={22} 
-              color={COLORS.favColor} 
+            <Icon
+              name={isStudioFavorited(item.id) ? "favorite" : "favorite-border"}
+              size={22}
+              color={COLORS.favColor}
             />
           </TouchableOpacity>
         </View>
@@ -191,10 +192,10 @@ const FavoritesScreen: React.FC = () => {
           )}
         </View>
         <View style={styles.recommendMeta}>
-              
-              <Icon name="place" size={12} color={COLORS.text.secondary} />
-              <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
-            </View>
+
+          <Icon name="place" size={12} color={COLORS.text.secondary} />
+          <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -212,21 +213,21 @@ const FavoritesScreen: React.FC = () => {
         <Text style={styles.screenSubtitle}>Studios you've saved for future bookings</Text>
       </View>
 
-        <View style={styles.searchContainer}>
-                  <View style={styles.searchInput}>
-                    <Icon name="search" size={18} color={COLORS.text.secondary} />
-                    <TextInput
-                      style={styles.searchPlaceholder}
-                      placeholder="Search..."
-                      placeholderTextColor={COLORS.text.secondary}
-                      value={query}
-                      onChangeText={setQuery}
-                    />
-                    <TouchableOpacity style={styles.searchIconButton}>
-                      <Icon name="search" size={20} color={COLORS.background} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInput}>
+          <Icon name="search" size={18} color={COLORS.text.secondary} />
+          <TextInput
+            style={styles.searchPlaceholder}
+            placeholder="Search..."
+            placeholderTextColor={COLORS.text.secondary}
+            value={query}
+            onChangeText={setQuery}
+          />
+          <TouchableOpacity style={styles.searchIconButton}>
+            <Icon name="search" size={20} color={COLORS.background} />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <View style={styles.emptyContent}>
         <Icon name="favorite" size={64} color={COLORS.text.primary} />
@@ -242,7 +243,7 @@ const FavoritesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Login Required Modal */}
-      <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => {}}>
+      <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
         <View style={styles.loginBackdrop}>
           {/* True blur backdrop with light, white-tinted feel */}
           <BlurView
@@ -297,16 +298,13 @@ const FavoritesScreen: React.FC = () => {
             </View>
           </View>
           {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.success} />
-              <Text style={styles.loadingText}>Loading your favorites...</Text>
-            </View>
+            <FavoriteStudiosSkeleton />
           ) : error ? (
             <View style={styles.errorContainer}>
               <Icon name="error-outline" size={48} color={COLORS.text.secondary} />
               <Text style={styles.errorTitle}>Unable to load favorites</Text>
               <Text style={styles.errorSubtitle}>Please check your connection and try again</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.retryBtn}
                 onPress={() => dispatch(loadFavoritesThunk())}
               >
@@ -516,7 +514,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     ...typography.semibold,
   },
-   recommendMeta: {
+  recommendMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 2,
