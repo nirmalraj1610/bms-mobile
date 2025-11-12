@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import BookingSuccessModal from './BookingSuccessModal';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { studioAvailabilityThunk } from '../features/studios/studiosSlice';
@@ -66,6 +67,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   const [isBooking, setIsBooking] = useState(false);
   const [equipmentHourlySubtotal, setEquipmentHourlySubtotal] = useState(0);
   const [selectedEquipments, setSelectedEquipments] = useState<{ equipment_id: string; quantity: number; hourly_rate?: number }[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successInfo, setSuccessInfo] = useState({
+    dateText: '',
+    timeRange: '',
+    paymentId: '',
+    totalAmount: 0,
+  });
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -448,24 +456,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                 // Clear stored equipment for this studio regardless
                 try { await AsyncStorage.removeItem(`selected_equipment_${studio.id}`); } catch {}
               }
-              Alert.alert(
-                'Booking Successful!',
-                `Your studio booking has been confirmed for ${selectedDate} from ${selectedSlot.start_time} to ${selectedSlot.end_time}.\n\nPayment ID: ${data.razorpay_payment_id}\nTotal Amount: ₹${totalAmount.toLocaleString()}`,
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      onClose();
-                      // Reset states
-                      setSelectedDate('');
-                      setSelectedTime('');
-                      setSelectedSlot(null);
-                      setShowTimeSlots(false);
-                      setSelectedDurationHours(2);
-                    }
-                  }
-                ]
-              );
+              // Show cool UI success modal instead of native alert
+              setSuccessInfo({
+                dateText: formatDateForDisplay(selectedDate),
+                timeRange: `${formatTime(selectedSlot.start_time)} to ${formatTime(selectedSlot.end_time)}`,
+                paymentId: data.razorpay_payment_id,
+                totalAmount: totalAmount,
+              });
+              setShowSuccessModal(true);
             } else {
               Alert.alert(
                 'Booking Failed', 
@@ -749,6 +747,23 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
           )}
         </ScrollView>
       </View>
+      <BookingSuccessModal
+        visible={showSuccessModal}
+        dateText={successInfo.dateText}
+        timeRange={successInfo.timeRange}
+        paymentId={successInfo.paymentId}
+        totalAmount={successInfo.totalAmount}
+        onClose={() => {
+          setShowSuccessModal(false);
+          onClose();
+          // Reset states
+          setSelectedDate('');
+          setSelectedTime('');
+          setSelectedSlot(null);
+          setShowTimeSlots(false);
+          setSelectedDurationHours(2);
+        }}
+      />
     </Modal>
   );
 };
