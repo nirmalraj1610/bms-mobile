@@ -46,7 +46,18 @@ const AllPhotographersScreen: React.FC = () => {
     const showPlaceholder = !imageUrl || failedImageIds.has(id);
 
     return (
-      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PhotographerDetails', { photographerId: item?.id })}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() =>
+          navigation.navigate('Main' as never, {
+            screen: 'Home',
+            params: {
+              screen: 'PhotographerDetails',
+              params: { photographerId: item?.id },
+            },
+          } as never)
+        }
+      >
         <Image
           source={showPlaceholder ? require('../assets/images/photographer_placeholder.jpg') : { uri: imageUrl }}
           style={styles.thumb}

@@ -163,7 +163,15 @@ const FavoritesScreen: React.FC = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('StudioDetails', { studioId: item.id })}>
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() =>
+                  navigation.navigate('Main' as never, {
+                    screen: 'Home',
+                    params: { screen: 'StudioDetails', params: { studioId: item.id } },
+                  } as never)
+                }
+              >
       <Image
         source={thumbErrorIds[item.id] || !item.thumbnail
           ? require('../assets/images/studio_placeholder.png')

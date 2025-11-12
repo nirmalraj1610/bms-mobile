@@ -82,7 +82,18 @@ const AllStudiosScreen: React.FC = () => {
     const favorited = isStudioFavorited(id);
 
     return (
-      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('StudioDetails', { studioId: String(id) })}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() =>
+          navigation.navigate('Main' as never, {
+            screen: 'Home',
+            params: {
+              screen: 'StudioDetails',
+              params: { studioId: String(id) },
+            },
+          } as never)
+        }
+      >
         {imageUrl ? (
           <Image source={{ uri: imageUrl }} style={styles.thumb} />
         ) : (

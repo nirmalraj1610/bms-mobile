@@ -350,7 +350,10 @@ const BookingScreen: React.FC = () => {
     const originalBooking = bookings.find(b => b.id === booking.id);
     const studioId = originalBooking?.studios?.id;
     if (studioId) {
-      (navigation as any).navigate('StudioDetails', { studioId });
+            (navigation as any).navigate('Main', {
+              screen: 'Home',
+              params: { screen: 'StudioDetails', params: { studioId } },
+            });
     } else {
       Alert.alert('Studio not found', 'Unable to open studio details.');
     }

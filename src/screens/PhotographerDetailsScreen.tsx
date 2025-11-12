@@ -852,7 +852,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 35,
+    // marginHorizontal: 16,
   },
   bookNowButtonText: {
     color: COLORS.background,

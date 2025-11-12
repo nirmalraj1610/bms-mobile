@@ -142,3 +142,10 @@ export type AuthStackParamList = {
   SignUp: undefined;
   ForgotPassword: undefined;
 };
+
+// Nested stack under Home tab
+export type HomeStackParamList = {
+  HomeScreen: undefined;
+  StudioDetails: { studioId: string };
+  PhotographerDetails: { photographerId: string };
+};

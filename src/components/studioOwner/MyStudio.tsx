@@ -43,7 +43,10 @@ export const MyStudioComponent = ({
     const onOpenViewStudio = (studios: any) => {
         const studioId = studios?.id;
         if (studioId) {
-            (navigation as any).navigate('StudioDetails', { studioId });
+            (navigation as any).navigate('Main', {
+                screen: 'Home',
+                params: { screen: 'StudioDetails', params: { studioId } },
+            });
         }
     };
 
