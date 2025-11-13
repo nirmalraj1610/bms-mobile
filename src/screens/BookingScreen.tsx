@@ -175,24 +175,37 @@ const BookingScreen: React.FC = () => {
     switch (status) {
       case 'Pending':
         return {
-          backgroundColor: '#9E9E9E',
+          backgroundColor: '#FFC107',
           borderWidth: 0,
         };
       case 'Cancelled':
         return {
-          backgroundColor: COLORS.error,
+          backgroundColor: '#DC3545',
           borderWidth: 0,
         };
       case 'Confirmed':
         return {
-          backgroundColor: '#FFC107',
+          backgroundColor: '#0D6EFD',
           borderWidth: 0,
         };
       default:
         return {
-          backgroundColor: COLORS.bg,
+          backgroundColor: '#034833',
           borderWidth: 0,
         };
+    }
+  };
+
+  const geticonNames = (status: string) => {
+    switch (status) {
+      case 'Pending':
+        return "hourglass-empty"
+      case 'Cancelled':
+        return "cancel"
+      case 'Confirmed':
+        return "check-circle"
+      default:
+        return "done-all"
     }
   };
 
@@ -208,11 +221,11 @@ const BookingScreen: React.FC = () => {
         };
       case 'Confirmed':
         return {
-          color: '#000000',
+          color: '#FFFFFF',
         };
       default:
         return {
-          color: COLORS.text.secondary,
+          color: '#FFFFFF',
         };
     }
   };
@@ -413,41 +426,31 @@ const BookingScreen: React.FC = () => {
         <View style={styles.cardMainContent}>
           {/* Left Section - Image and Price */}
           <View style={styles.leftSection}>
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <Text style={styles.priceText}>₹{item.total_amount || '200'}</Text>
-          </View>
-
-          {/* Middle Section - Main Content */}
-          <View style={styles.middleSection}>
-            <Text style={styles.studioName}>{item.studioName}</Text>
-
+            <View style={styles.leftSectionInnerView}>
+              <Image source={{ uri: item.image }} style={styles.cardImage} />
+              <View style={styles.leftSectionTextOutline}>
+                <Text style={styles.priceText}>₹{item.total_amount || '200'}</Text>
+                <Text style={styles.studioName} numberOfLines={3}>{item.studioName}</Text>
+              </View>
+            </View>
             <View style={styles.locationRow}>
-              <Icon name="location-on" size={16} color={COLORS.text.secondary} />
+              <Icon name="location-on" size={14} color={COLORS.text.secondary} />
               <Text style={styles.locationText}>{item.location || 'chennai'}</Text>
             </View>
-
             <View style={styles.dateRow}>
-              <Icon name="calendar-today" size={16} color={COLORS.text.secondary} />
+              <Icon name="calendar-today" size={14} color={COLORS.text.secondary} />
               <Text style={styles.dateText}>{item.date}</Text>
             </View>
-
             <View style={styles.timeRow}>
-              <Icon name="access-time" size={16} color={COLORS.text.secondary} />
+              <Icon name="access-time" size={14} color={COLORS.text.secondary} />
               <Text style={styles.timeText}>{item.time}</Text>
             </View>
-
-            {/* <View style={styles.studioTag}>
-            <Text style={styles.studioTagText}>Studio</Text>
-          </View> */}
-
-            {/* <Text style={styles.bookingId}>Booking ID: {item.bookingId || '1349c3e1-55a9-4cce-8154-a0ca17f84d03'}</Text>
-          <Text style={styles.bookedOn}>Booked on: {item.bookedOn || '2025-10-29T12:44:18.429259+00:00'}</Text> */}
           </View>
 
           {/* Right Section - Status and Action Buttons */}
           <View style={styles.rightSection}>
             <View style={[styles.statusBadge, getStatusStyles(item.status)]}>
-
+              <Icon name={geticonNames(item.status)} size={14} color={getStatusTextStyles(item.status).color} />
               <Text style={[styles.statusBadgeText, getStatusTextStyles(item.status)]}>
                 {/* {item.status === 'Cancelled' && (
               <Icon name="close" size={14} color="#FFFFFF" style={styles.iconStyle} />
@@ -946,9 +949,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   card: {
+    flex: 1,
     backgroundColor: COLORS.background,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 14,
+    padding: 14,
     marginBottom: 16,
     elevation: 2,
     shadowColor: '#000000',
@@ -959,21 +963,29 @@ const styles = StyleSheet.create({
     borderColor: '#F0F2F5',
   },
   cardMainContent: {
+    flex: 1,
+    width: '100%',
     flexDirection: 'row',
-    alignItems: 'flex-start',
   },
   leftSection: {
-    alignItems: 'center',
-    marginRight: 16,
+    alignItems: 'flex-start',
+    width: '60%',
+  },
+  leftSectionInnerView: {
+    flexDirection: 'row',
+  },
+  leftSectionTextOutline: {
+    marginLeft: 5,
+    maxWidth: 100,
   },
   cardImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
+    width: 84,
+    height: 84,
+    borderRadius: 6,
     marginBottom: 8,
   },
   priceText: {
-    fontSize: 18,
+    fontSize: 14,
     ...typography.bold,
     color: COLORS.text.primary,
   },
@@ -983,7 +995,7 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     alignItems: 'flex-end',
-    minWidth: 100,
+    width: '40%',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -991,38 +1003,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   studioName: {
-    fontSize: 18,
+    fontSize: 14,
     ...typography.bold,
     color: COLORS.text.primary,
-    marginBottom: 8,
+    flexShrink: 1, // ✅ allows wrapping
+    flexWrap: 'wrap', // ✅ ensures multi-line text
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 5,
   },
   locationText: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.text.secondary,
     marginLeft: 4,
   },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 5,
   },
   dateText: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.text.secondary,
     marginLeft: 4,
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 5,
   },
   timeText: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.text.secondary,
     marginLeft: 4,
   },
@@ -1049,15 +1062,17 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
   },
   statusBadge: {
+    borderRadius: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginBottom: 16,
+    justifyContent: 'center',
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
   },
   statusBadgeText: {
     fontSize: 12,
+    paddingHorizontal: 6,
     ...typography.semibold,
   },
   iconStyle: {
@@ -1066,7 +1081,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   actionButtonsContainer: {
-    gap: 8,
+    // gap: 8,
     alignItems: 'flex-end',
   },
   rescheduleButton: {
@@ -1076,16 +1091,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffffff',
     borderWidth: 1,
     borderColor: '#ffcc00ff',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    gap: 4,
-    minWidth: 100,
-    elevation: 1,
-
+    borderRadius: 3,
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
   },
   rescheduleButtonText: {
     fontSize: 12,
+    paddingHorizontal: 6,
     ...typography.medium,
     color: COLORS.black,
   },
@@ -1093,17 +1106,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'white',
-    borderRadius: 6,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: '#ff0000ff',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    minWidth: 100,
-    elevation: 1,
-
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
   },
   cancelButtonText: {
     fontSize: 12,
+    paddingHorizontal: 6,
     ...typography.semibold,
     color: '#ff0000ff',
   },
@@ -1112,14 +1124,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.bg,
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 4,
-    minWidth: 100,
+    borderRadius: 3,
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
   },
   checkInButtonText: {
     fontSize: 12,
+    paddingHorizontal: 6,
     ...typography.semibold,
     color: COLORS.background,
   },
@@ -1128,14 +1140,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.bg,
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    gap: 4,
-    minWidth: 100,
+    borderRadius: 3,
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
   },
   checkOutButtonText: {
     fontSize: 12,
+    paddingHorizontal: 6,
     ...typography.semibold,
     color: COLORS.background,
   },
@@ -1143,38 +1155,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    borderRadius: 6,
+    borderRadius: 3,
     borderWidth: 1,
-    borderColor: COLORS.text.secondary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    minWidth: 100,
+    borderColor: '#858585',
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
   },
   viewStudioButtonText: {
     fontSize: 12,
+    paddingHorizontal: 6,
     ...typography.semibold,
-    color: COLORS.text.secondary,
+    color: '#8D8D8D',
   },
   selectEquipmentButton: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    borderRadius: 6,
+    borderRadius: 3,
     borderWidth: 1,
     borderColor: '#00BCD4',
-    paddingVertical: 5,
-    paddingHorizontal: 5,
-    gap: 4,
-    minWidth: 100,
-    minHeight: 50,
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
   },
   selectEquipmentButtonText: {
     fontSize: 12,
+    paddingHorizontal: 6,
     ...typography.semibold,
     color: '#00BCD4',
-    textAlign: 'center',
-    lineHeight: 16,
   },
   sectionTitle: {
     fontSize: 18,

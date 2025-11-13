@@ -20,7 +20,7 @@ import { Dropdown } from "react-native-element-dropdown";
 
 const AddStudioComponent = ({
   editStudio = false,
-  onPressSelectmenu = (i:any) => {},
+  onPressSelectmenu = (i: any) => { },
   editStudioValues = {},
 }) => {
   const dispatch = useDispatch();
@@ -30,17 +30,23 @@ const AddStudioComponent = ({
   const [maxImageError, setMaxImageError] = useState('');
   const [showMaxImageError, setShowMaxImageError] = useState(false);
   const [termsSelected, setTermsSelected] = useState(false);
-  const [showPicker, setShowPicker] = useState<{ id: number; type: "open" | "close" } | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerType, setPickerType] = useState<"open" | "close" | null>(null);
+  const [selectedDayId, setSelectedDayId] = useState<number | null>(null);
 
   const [days, setDays] = useState([
-    { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
-    { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
-    { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
-    { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
-    { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
-    { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
-    { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
+    { id: 1, name: "Monday", selected: true, openTime: null, closeTime: null },
+    { id: 2, name: "Tuesday", selected: true, openTime: null, closeTime: null },
+    { id: 3, name: "Wednesday", selected: true, openTime: null, closeTime: null },
+    { id: 4, name: "Thursday", selected: true, openTime: null, closeTime: null },
+    { id: 5, name: "Friday", selected: true, openTime: null, closeTime: null },
+    { id: 6, name: "Saturday", selected: true, openTime: null, closeTime: null },
+    { id: 7, name: "Sunday", selected: true, openTime: null, closeTime: null },
   ]);
+
+  // 9 to 21
+
+
   const [basicInfo, setBasicInfo] = useState({
     studioName: "",
     studioType: "",
@@ -50,6 +56,8 @@ const AddStudioComponent = ({
     city: "",
     pinCode: "",
     landMark: "",
+    latitude: "",
+    longitude: "",
   });
 
   const [details, setDetails] = useState({
@@ -81,29 +89,11 @@ const AddStudioComponent = ({
     { id: 13, name: "Client Lounge", selected: false },
   ]);
 
-  const [equipments, setEquipments] = useState([
-    { id: 1, name: "Canon DSLR Cameras", selected: false },
-    { id: 2, name: "Sony Mirrorless Cameras", selected: false },
-    { id: 3, name: "Nikon Professional Cameras", selected: false },
-    { id: 4, name: "Profoto Flash Systems", selected: false },
-    { id: 5, name: "Godox LED Lights", selected: false },
-    { id: 6, name: "Softbox Light Modifiers", selected: false },
-    { id: 7, name: "Reflectors & Diffusers", selected: false },
-    { id: 8, name: "Tripods & Stands", selected: false },
-    { id: 9, name: "Backdrop Support System", selected: false },
-    { id: 10, name: "Light Meters", selected: false },
-    { id: 11, name: "Wireless Triggers", selected: false },
-    { id: 12, name: "Extension Cords & Power", selected: false },
-    { id: 13, name: "Sandbags & Clamps", selected: false },
-    { id: 14, name: "Memory Cards", selected: false },
-    { id: 15, name: "Lens Cleaning Kit", selected: false },
-  ]);
-
   useEffect(() => {
     if (editStudio && editStudioValues) {
       setStudioValues();
-      console.log(editStudio , editStudioValues);
-      
+      console.log(editStudio, editStudioValues);
+
     }
   }, [editStudio])
 
@@ -112,26 +102,28 @@ const AddStudioComponent = ({
     // clear basic info
     setBasicInfo({
       studioName: editStudioValues?.name || '',
-      studioType: "",
+      studioType: editStudioValues?.studio_type || '',
       studioDesc: editStudioValues?.description || '',
       studioAddress: editStudioValues?.location?.address || '',
       state: editStudioValues?.location?.state || '',
       city: editStudioValues?.location?.city || '',
       pinCode: String(editStudioValues?.location?.pincode) || '',
       landMark: "",
+      latitude: String(editStudioValues?.location?.coordinates?.lat) || '',
+      longitude: String(editStudioValues?.location?.coordinates?.lng) || '',
     });
 
     // set details value
     setDetails({
-      studioSize: "",
-      maximumPeople: "",
+      studioSize: String(editStudioValues?.studio_size) || '',
+      maximumPeople: String(editStudioValues?.max_capacity) || '',
       minBookingHours: String(editStudioValues?.pricing?.minimum_hours) || '',
-      maxBookingHours: "",
+      maxBookingHours: String(editStudioValues?.max_booking_hours) || '',
       basePrice: String(editStudioValues?.pricing?.hourly_rate) || '',
       weekendPrice: String(editStudioValues?.pricing?.weekend_multiplier) || '',
       overtimePrice: String(editStudioValues?.pricing?.extra_hour_rate) || '',
-      securityDeposit: "",
-      contactPhone: "",
+      securityDeposit: String(editStudioValues?.security_deposit) || '',
+      contactPhone: String(editStudioValues?.contact_phone) || '',
       alternatePhone: "",
     });
 
@@ -148,19 +140,19 @@ const AddStudioComponent = ({
 
     setAmenities(updatedAmenities);
 
-if (editStudioValues?.studio_images?.[0]?.image_url) {
-  const formattedImages = editStudioValues.studio_images.map(img => ({
-    ...img,
-    uri: img.image_url,
-  }));
-  setSelectedImages(formattedImages);
-}
+    if (editStudioValues?.studio_images?.[0]?.image_url) {
+      const formattedImages = editStudioValues.studio_images.map(img => ({
+        ...img,
+        uri: img.image_url,
+      }));
+      setSelectedImages(formattedImages);
+    }
 
   }
 
   const clearAllStates = () => {
     // clear edit statevalues
-      editStudio = false,
+    editStudio = false,
       editStudioValues = {},
 
       // clear days value
@@ -184,6 +176,8 @@ if (editStudioValues?.studio_images?.[0]?.image_url) {
       city: "",
       pinCode: "",
       landMark: "",
+      latitude: "",
+      longitude: "",
     });
 
     // clear details value
@@ -217,25 +211,6 @@ if (editStudioValues?.studio_images?.[0]?.image_url) {
       { id: 13, name: "Client Lounge", selected: false },
     ]);
 
-    // clear equipments values
-    setEquipments([
-      { id: 1, name: "Canon DSLR Cameras", selected: false },
-      { id: 2, name: "Sony Mirrorless Cameras", selected: false },
-      { id: 3, name: "Nikon Professional Cameras", selected: false },
-      { id: 4, name: "Profoto Flash Systems", selected: false },
-      { id: 5, name: "Godox LED Lights", selected: false },
-      { id: 6, name: "Softbox Light Modifiers", selected: false },
-      { id: 7, name: "Reflectors & Diffusers", selected: false },
-      { id: 8, name: "Tripods & Stands", selected: false },
-      { id: 9, name: "Backdrop Support System", selected: false },
-      { id: 10, name: "Light Meters", selected: false },
-      { id: 11, name: "Wireless Triggers", selected: false },
-      { id: 12, name: "Extension Cords & Power", selected: false },
-      { id: 13, name: "Sandbags & Clamps", selected: false },
-      { id: 14, name: "Memory Cards", selected: false },
-      { id: 15, name: "Lens Cleaning Kit", selected: false },
-    ]);
-
     // clear selected images values
     setSelectedImages([]);
 
@@ -248,14 +223,14 @@ if (editStudioValues?.studio_images?.[0]?.image_url) {
     additionalRules: "",
   });
 
-const studioTypes = [
-  { label: "Portrait studio", value: "Portrait studio" },
-  { label: "Fashion studio", value: "Fashion studio" },
-  { label: "Product photography studio", value: "Product photography studio" },
-  { label: "Wedding studio", value: "Wedding studio" },
-  { label: "Commercial studio", value: "Commercial studio" },
-  { label: "Multi-purpose studio", value: "Multi-purpose studio" },
-];
+  const studioTypes = [
+    { label: "Portrait studio", value: "Portrait studio" },
+    { label: "Fashion studio", value: "Fashion studio" },
+    { label: "Product photography studio", value: "Product photography studio" },
+    { label: "Wedding studio", value: "Wedding studio" },
+    { label: "Commercial studio", value: "Commercial studio" },
+    { label: "Multi-purpose studio", value: "Multi-purpose studio" },
+  ];
 
   const minBookingHours = [
     { label: "1 Hour", value: "1" },
@@ -271,18 +246,18 @@ const studioTypes = [
     { label: "24 Hours", value: "24" },
   ];
 
-const cancellationPolicy = [
-  { label: "Free cancellation up to 24 hours", value: "Free cancellation up to 24 hours" },
-  { label: "Free cancellation up to 48 hours", value: "Free cancellation up to 48 hours" },
-  { label: "Free cancellation up to 72 hours", value: "Free cancellation up to 72 hours" },
-  { label: "Strict - No cancellation", value: "Strict - No cancellation" },
-];
+  const cancellationPolicy = [
+    { label: "Free cancellation up to 24 hours", value: "Free cancellation up to 24 hours" },
+    { label: "Free cancellation up to 48 hours", value: "Free cancellation up to 48 hours" },
+    { label: "Free cancellation up to 72 hours", value: "Free cancellation up to 72 hours" },
+    { label: "Strict - No cancellation", value: "Strict - No cancellation" },
+  ];
 
-const paymentPolicy = [
-  { label: "50% advance payment required", value: "50% advance payment required" },
-  { label: "100% advance payment required", value: "100% advance payment required" },
-  { label: "Flexible payment terms", value: "Flexible payment terms" },
-];
+  const paymentPolicy = [
+    { label: "50% advance payment required", value: "50% advance payment required" },
+    { label: "100% advance payment required", value: "100% advance payment required" },
+    { label: "Flexible payment terms", value: "Flexible payment terms" },
+  ];
 
   const tabs = [
     { id: 1, name: "Basic Info" },
@@ -293,137 +268,150 @@ const paymentPolicy = [
   ];
 
   const onSubmitPress = async () => {
-  const payload = {
-    name: basicInfo?.studioName?.trim() || "",
-    description: basicInfo?.studioDesc?.trim() || "",
-    location: {
-      address: basicInfo?.studioAddress?.trim() || "",
-      city: basicInfo?.city?.trim() || "",
-      state: basicInfo?.state?.trim() || "",
-      pincode: Number(basicInfo?.pinCode) || 0,
-      coordinates: {
-        lat: 19.076, // TODO: replace with actual coordinates if available
-        lng: 72.8777
-      }
-    },
-    pricing: {
-      hourly_rate: Number(details?.basePrice) || 0,
-      minimum_hours: Number(details?.minBookingHours) || 0,
-      maximum_hours: Number(details?.maxBookingHours) || 0,
-      extra_hour_rate: Number(details?.overtimePrice) || 0,
-      weekend_multiplier: Number(details?.weekendPrice) || 0
-    },
-    amenities: selectedAmenities?.map(item => item?.name) || [],
-    studio_type: basicInfo?.studioType || "",
-    details: {
-      size: Number(details?.studioSize) || 0,
-      capacity: Number(details?.maximumPeople) || 0,
+    const payload = {
+      name: basicInfo?.studioName?.trim() || "",
+      description: basicInfo?.studioDesc?.trim() || "",
+      location: {
+        address: basicInfo?.studioAddress?.trim() || "",
+        city: basicInfo?.city?.trim() || "",
+        state: basicInfo?.state?.trim() || "",
+        pincode: Number(basicInfo?.pinCode) || 0,
+        coordinates: {
+          latitude: Number(basicInfo?.latitude) || 0, // TODO: replace with actual coordinates if available
+          longitude: Number(basicInfo?.longitude) || 0
+        }
+      },
+      pricing: {
+        hourly_rate: Number(details?.basePrice) || 0,
+        minimum_hours: Number(details?.minBookingHours) || 0,
+        extra_hour_rate: Number(details?.overtimePrice) || 0,
+        weekend_multiplier: Number(details?.weekendPrice) || 0
+      },
+      amenities: selectedAmenities?.map(item => item?.name) || [],
+      studio_type: basicInfo?.studioType || "",
+      studio_size: Number(details?.studioSize) || 0,
+      max_capacity: Number(details?.maximumPeople) || 0,
+      max_booking_hours: Number(details?.maxBookingHours) || 0,
+      security_deposit: Number(details?.securityDeposit) || 0,
       contact_phone: details?.contactPhone?.trim() || "",
-      alternate_phone: details?.alternatePhone?.trim() || ""
-    },
-    policies: {
-      cancellation: images?.cancellationPolicy?.trim() || "",
-      payment: images?.paymentPolicy?.trim() || "",
-      rules: images?.additionalRules?.trim() || ""
-    },
-    operating_hours: buildOperatingHoursPayload(days),
-    equipment: selectedEquipments?.map(item => item?.name) || []
+      details: {
+        alternate_phone: details?.alternatePhone?.trim() || ""
+      },
+      policies: {
+        cancellation: images?.cancellationPolicy?.trim() || "",
+        payment: images?.paymentPolicy?.trim() || "",
+        rules: images?.additionalRules?.trim() || ""
+      },
+      availability_slots: buildOperatingHoursPayload(days, details)
+    };
+
+    // 🧠 Create FormData
+    const formData = new FormData();
+
+    // Basic Info
+    formData.append('name', payload.name);
+    formData.append('description', payload.description);
+    formData.append('studio_type', payload.studio_type);
+
+    // Numbers
+    formData.append('studio_size', String(payload.studio_size));
+    formData.append('max_capacity', String(payload.max_capacity));
+    formData.append('max_booking_hours', String(payload.max_booking_hours));
+    formData.append('security_deposit', String(payload.security_deposit));
+    formData.append('contact_phone', payload.contact_phone);
+
+    // Nested objects → convert to JSON strings
+    formData.append('location', JSON.stringify(payload.location));
+    formData.append('pricing', JSON.stringify(payload.pricing));
+    formData.append('details', JSON.stringify(payload.details));
+    formData.append('policies', JSON.stringify(payload.policies));
+    formData.append('operating_hours', JSON.stringify(payload.availability_slots));
+
+    // Arrays
+    formData.append('amenities', JSON.stringify(payload.amenities));
+
+
+    // 🖼️ Append all selected images
+    if (selectedImages?.length > 0) {
+      selectedImages.forEach((image, index) => {
+        formData.append('images', {
+          uri: image.uri,
+          type: image.type || 'image/jpeg',
+          name: image.fileName || `studio_image_${index}.jpg`,
+        });
+      });
+    }
+
+    console.log("📦 Final FormData payload ready to send");
+
+    if (selectedImages?.length > 0) {
+      try {
+        let response;
+        if (editStudio) {
+          console.log('calls from formData update', formData);
+
+          // UPDATE studio
+          formData.append('studio_id', editStudioValues?.id);
+          response = await dispatch(updateStudioThunk(formData)).unwrap();
+          console.log("✅ Studio updated successfully:", response);
+        } else {
+          // CREATE studio
+          console.log('calls from formData create', formData);
+          response = await dispatch(createStudioThunk(formData)).unwrap();
+          console.log("✅ Studio created successfully:", response);
+        }
+        clearAllStates();
+      } catch (error) {
+        console.error("❌ Error submitting studio:", error);
+      }
+    }
+    else {
+      try {
+        let response;
+        if (editStudio) {
+          console.log('calls from json update', payload);
+          // UPDATE studio
+          const convertedPayload = { ...payload, studio_id: editStudioValues?.id }
+          response = await dispatch(updateStudioThunk(convertedPayload)).unwrap();
+          console.log("✅ Studio updated successfully:", response);
+        } else {
+          console.log('calls from json update', payload);
+          // CREATE studio
+          response = await dispatch(createStudioThunk(payload)).unwrap();
+          console.log("✅ Studio created successfully:", response);
+        }
+        clearAllStates();
+      } catch (error) {
+        console.error("❌ Error submitting studio:", error);
+      }
+    }
   };
 
-  // 🧠 Create FormData
-  const formData = new FormData();
-  formData.append('name', payload.name);
-  formData.append('description', payload.description);
-  formData.append('studio_type', payload.studio_type);
-
-  // Convert nested objects to strings
-  formData.append('location', JSON.stringify(payload.location));
-  formData.append('pricing', JSON.stringify(payload.pricing));
-  formData.append('details', JSON.stringify(payload.details));
-  formData.append('policies', JSON.stringify(payload.policies));
-  formData.append('operating_hours', JSON.stringify(payload.operating_hours));
-
-  // Arrays
-  formData.append('amenities', JSON.stringify(payload.amenities));
-  formData.append('equipment', JSON.stringify(payload.equipment));
-
-  // 🖼️ Append all selected images
-  if (selectedImages?.length > 0) {
-    selectedImages.forEach((image, index) => {
-      formData.append('images', {
-        uri: image.uri,
-        type: image.type || 'image/jpeg',
-        name: image.fileName || `studio_image_${index}.jpg`,
-      });
-    });
-  }
-
-  console.log("📦 Final FormData payload ready to send");
-
-  if (selectedImages?.length > 0) {
-    try {
-    let response;
-    if (editStudio) {
-      console.log('calls from formData update', formData);
-      
-      // UPDATE studio
-      formData.append('studio_id', editStudioValues?.id);
-      response = await dispatch(updateStudioThunk(formData)).unwrap();
-      console.log("✅ Studio updated successfully:", response);
-    } else {
-      // CREATE studio
-      console.log('calls from formData create', formData);
-      response = await dispatch(createStudioThunk(formData)).unwrap();
-      console.log("✅ Studio created successfully:", response);
-    }
-    clearAllStates();
-  } catch (error) {
-    console.error("❌ Error submitting studio:", error);
-  }
-}
-else{
-      try {
-    let response;
-    if (editStudio) {
-      console.log('calls from json update', payload);
-      // UPDATE studio
-      const convertedPayload ={...payload, studio_id: editStudioValues?.id}
-      response = await dispatch(updateStudioThunk(convertedPayload)).unwrap();
-      console.log("✅ Studio updated successfully:", response);
-    } else {
-      console.log('calls from json update', payload);
-      // CREATE studio
-      response = await dispatch(createStudioThunk(payload)).unwrap();
-      console.log("✅ Studio created successfully:", response);
-    }
-    clearAllStates();
-  } catch (error) {
-    console.error("❌ Error submitting studio:", error);
-  }  
-}
-};
 
 
+  const buildOperatingHoursPayload = (days: any[], details: any) => {
+    return days.map((day) => {
+      // Convert name → day_of_week number
+      const dayOfWeekMap: Record<string, number> = {
+        Sunday: 0,
+        Monday: 1,
+        Tuesday: 2,
+        Wednesday: 3,
+        Thursday: 4,
+        Friday: 5,
+        Saturday: 6,
+      };
 
-  const buildOperatingHoursPayload = (days: any[]) => {
-    const result: any = {};
-
-    days.forEach((day) => {
-      const key = day.name.toLowerCase(); // "Monday" → "monday"
-
-      result[key] = {
-        open: day.openTime
-          ? new Date(day.openTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
-          : null,
-        close: day.closeTime
-          ? new Date(day.closeTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
-          : null,
-        closed: !day.selected, // if unchecked → closed = true
+      return {
+        day_of_week: dayOfWeekMap[day.name],
+        start_time: day.openTime || "09:00",
+        end_time: day.closeTime || "21:00",
+        is_available: day.selected,
+        hourly_rate: details?.basePrice || 0,
       };
     });
-
-    return result;
   };
+
 
 
   const toggleDay = (id: number) => {
@@ -434,27 +422,53 @@ else{
     );
   };
 
-  // ✅ Handle time selection
   const onTimeChange = (event: any, selectedTime: Date | undefined) => {
-    if (!selectedTime || !showPicker) {
-      setShowPicker(null);
+    if (event.type === "dismissed") {
+      setShowPicker(false);
       return;
     }
 
-    const { id, type } = showPicker;
-    setDays((prev) =>
-      prev.map((day) => {
-        if (day.id === id) {
-          return {
-            ...day,
-            [type === "open" ? "openTime" : "closeTime"]: selectedTime,
-          };
-        }
-        return day;
-      })
-    );
-    setShowPicker(null);
+    if (selectedTime && selectedDayId !== null && pickerType) {
+      // Round to full hour
+      const rounded = new Date(selectedTime);
+      rounded.setMinutes(0, 0, 0);
+
+      // Clamp between 09:00 and 21:00
+      const hour = rounded.getHours();
+      if (hour < 9) rounded.setHours(9);
+      if (hour > 21) rounded.setHours(21);
+
+      // Update the correct day & time
+      setDays((prevDays) =>
+        prevDays.map((day) => {
+          if (day.id === selectedDayId) {
+            return {
+              ...day,
+              [pickerType === "open" ? "openTime" : "closeTime"]: rounded,
+            };
+          }
+          return day;
+        })
+      );
+
+      setShowPicker(false);
+    }
   };
+
+  // 🕘 open picker
+  const handleOpenTimePress = (dayId: number) => {
+    setSelectedDayId(dayId);
+    setPickerType("open");
+    setShowPicker(true);
+  };
+
+  // 🕕 close picker
+  const handleCloseTimePress = (dayId: number) => {
+    setSelectedDayId(dayId);
+    setPickerType("close");
+    setShowPicker(true);
+  };
+
 
   const onPressTab = (item: any) => {
     setSelectedTab(item.id);
@@ -530,31 +544,21 @@ else{
             <View style={styles.timeRow}>
               <TouchableOpacity
                 style={styles.timeButton}
-                onPress={() => setShowPicker({ id: item.id, type: "open" })}
+                onPress={() => handleOpenTimePress(item.id)}
               >
                 <Text style={styles.timeLabel}>Open Time</Text>
                 <Text style={styles.timeValue}>
-                  {item.openTime
-                    ? item.openTime.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                    : "Select"}
+                  {item.openTime ? item.openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '09:00'}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.timeButton}
-                onPress={() => setShowPicker({ id: item.id, type: "close" })}
+                onPress={() => handleCloseTimePress(item.id)}
               >
                 <Text style={styles.timeLabel}>Close Time</Text>
                 <Text style={styles.timeValue}>
-                  {item.closeTime
-                    ? item.closeTime.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                    : "Select"}
+                  {item.closeTime ? item.closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '21:00'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -630,32 +634,6 @@ else{
     </TouchableOpacity>
   );
 
-  const toggleEquip = (id: number) => {
-    setEquipments(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, selected: !item.selected } : item
-      )
-    );
-  };
-
-  const selectedEquipments = equipments.filter(a => a.selected);
-
-  const renderItem = ({ item }: any) => (
-    <TouchableOpacity
-      style={styles.amenityItem}
-      activeOpacity={0.8}
-      onPress={() => toggleEquip(item.id)}
-    >
-      <Icon
-        name={item.selected ? "check-box" : "check-box-outline-blank"}
-        size={22}
-        color={item.selected ? "#1B4332" : "#333"}
-        style={styles.checkboxIcon}
-      />
-      <Text style={styles.amenityText}>{item.name}</Text>
-    </TouchableOpacity>
-  );
-
   return (
     <View>
       {/* Render tabs */}
@@ -692,19 +670,19 @@ else{
           />
           <Text style={styles.labelText} >Studio Type<Text style={styles.required}> *</Text></Text>
           <Dropdown
-                            style={styles.dropdown}
-                            placeholderStyle={styles.placeholderStyle}
-                            selectedTextStyle={styles.selectedTextStyle}
-                            inputSearchStyle={styles.inputSearchStyle}
-                            containerStyle={styles.dropdownContainerStyle} 
-                            data={studioTypes}
-                            maxHeight={300}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Select studio type"
-                            value={basicInfo.studioType}
-                            onChange={(item) => setBasicInfo({ ...basicInfo, studioType: item.value })}
-                        />
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            containerStyle={styles.dropdownContainerStyle}
+            data={studioTypes}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select studio type"
+            value={basicInfo.studioType}
+            onChange={(item) => setBasicInfo({ ...basicInfo, studioType: item.value })}
+          />
           <Text style={styles.labelText} >Description<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={{ ...styles.input, ...styles.textArea }}
@@ -768,6 +746,28 @@ else{
               setBasicInfo({ ...basicInfo, landMark: text })
             }
           />
+          <Text style={styles.labelText} >Latitude<Text style={styles.required}> *</Text></Text>
+          <TextInput
+            style={styles.input}
+            placeholderTextColor={'#898787'}
+            placeholder="e.g., 19.1136"
+            keyboardType="number-pad"
+            value={basicInfo.latitude}
+            onChangeText={(text) =>
+              setBasicInfo({ ...basicInfo, latitude: text })
+            }
+          />
+          <Text style={styles.labelText} >Longitude<Text style={styles.required}> *</Text></Text>
+          <TextInput
+            style={styles.input}
+            placeholderTextColor={'#898787'}
+            placeholder="e.g., 72.8697"
+            keyboardType="number-pad"
+            value={basicInfo.longitude}
+            onChangeText={(text) =>
+              setBasicInfo({ ...basicInfo, longitude: text })
+            }
+          />
         </View> : selectedTab == 2 ? <View>
           <Text style={styles.title}>Studio Details & Pricing</Text>
           <Text style={styles.labelText} >Studio size (sq ft)<Text style={styles.required}> *</Text></Text>
@@ -794,34 +794,34 @@ else{
           />
           <Text style={styles.labelText} >Min Booking Hours<Text style={styles.required}> *</Text></Text>
           <Dropdown
-                            style={styles.dropdown}
-                            placeholderStyle={styles.placeholderStyle}
-                            selectedTextStyle={styles.selectedTextStyle}
-                            inputSearchStyle={styles.inputSearchStyle}
-                            containerStyle={styles.dropdownContainerStyle} 
-                            data={minBookingHours}
-                            maxHeight={300}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Select min hours"
-                            value={details.minBookingHours}
-                            onChange={(item) => setDetails({ ...details, minBookingHours: item.value })}
-                        />
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            containerStyle={styles.dropdownContainerStyle}
+            data={minBookingHours}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select min hours"
+            value={details.minBookingHours}
+            onChange={(item) => setDetails({ ...details, minBookingHours: item.value })}
+          />
           <Text style={styles.labelText} >Max Booking Hours<Text style={styles.required}> *</Text></Text>
           <Dropdown
-                            style={styles.dropdown}
-                            placeholderStyle={styles.placeholderStyle}
-                            selectedTextStyle={styles.selectedTextStyle}
-                            inputSearchStyle={styles.inputSearchStyle}
-                            containerStyle={styles.dropdownContainerStyle} 
-                            data={maxBookingHours}
-                            maxHeight={300}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Select max hours"
-                            value={details.maxBookingHours}
-                            onChange={(item) => setDetails({ ...details, maxBookingHours: item.value })}
-                        />
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            containerStyle={styles.dropdownContainerStyle}
+            data={maxBookingHours}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select max hours"
+            value={details.maxBookingHours}
+            onChange={(item) => setDetails({ ...details, maxBookingHours: item.value })}
+          />
           <Text style={styles.labelText} >Base Price (per Hour)<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={styles.input}
@@ -900,17 +900,7 @@ else{
             contentContainerStyle={styles.listContainer}
           />
 
-          {/* <Text style={styles.title}>Available Equipment</Text>
-
-          <FlatList
-            data={equipments}
-            renderItem={renderItem}
-            numColumns={2}
-            keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-          /> */}
-
-          <Text style={styles.title}>Operating Hours</Text>
+          <Text style={styles.title}>Operating Hours Only (9:00 to 21:00)</Text>
 
           <FlatList
             data={days}
@@ -946,35 +936,35 @@ else{
           )}
           <Text style={styles.labelText} >Cancellation Policy<Text style={styles.required}> *</Text></Text>
           <Dropdown
-                            style={styles.dropdown}
-                            placeholderStyle={styles.placeholderStyle}
-                            selectedTextStyle={styles.selectedTextStyle}
-                            inputSearchStyle={styles.inputSearchStyle}
-                            containerStyle={styles.dropdownContainerStyle} 
-                            data={cancellationPolicy}
-                            maxHeight={300}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Select Cancellation Policy"
-                            value={images.cancellationPolicy}
-                            onChange={(item) => setImages({ ...images, cancellationPolicy: item.value })}
-                        />
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            containerStyle={styles.dropdownContainerStyle}
+            data={cancellationPolicy}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Cancellation Policy"
+            value={images.cancellationPolicy}
+            onChange={(item) => setImages({ ...images, cancellationPolicy: item.value })}
+          />
           <Text style={styles.labelText} >Payment Policy<Text style={styles.required}> *</Text></Text>
 
           <Dropdown
-                            style={styles.dropdown}
-                            placeholderStyle={styles.placeholderStyle}
-                            selectedTextStyle={styles.selectedTextStyle}
-                            inputSearchStyle={styles.inputSearchStyle}
-                            containerStyle={styles.dropdownContainerStyle} 
-                            data={paymentPolicy}
-                            maxHeight={300}
-                            labelField="label"
-                            valueField="value"
-                            placeholder="Select Payment Policy"
-                            value={images.paymentPolicy}
-                            onChange={(item) => setImages({ ...images, paymentPolicy: item.value })}
-                        />
+            style={styles.dropdown}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            inputSearchStyle={styles.inputSearchStyle}
+            containerStyle={styles.dropdownContainerStyle}
+            data={paymentPolicy}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Payment Policy"
+            value={images.paymentPolicy}
+            onChange={(item) => setImages({ ...images, paymentPolicy: item.value })}
+          />
           <Text style={styles.labelText} >Additional Rules & Policies<Text style={styles.required}> *</Text></Text>
           <TextInput
             style={{ ...styles.input, ...styles.textArea }}
@@ -1115,21 +1105,6 @@ else{
             ) : (
               <Text style={{ ...styles.listInformation, fontSize: 12 }}>No amenities selected</Text>
             )}
-            {/* <Text style={styles.title}>
-              Selected Equipments ({selectedEquipments.length})
-            </Text>
-
-            {selectedEquipments.length > 0 ? (
-              <View>
-                {selectedEquipments.map(item => (
-                  <Text key={item.id} style={styles.listInformation}>
-                    • {item.name}
-                  </Text>
-                ))}
-              </View>
-            ) : (
-              <Text style={{ ...styles.listInformation, fontSize: 12 }}>No equipments selected</Text>
-            )} */}
 
             <View style={styles.noteTextOutline}>
               <Icon
@@ -1184,11 +1159,13 @@ else{
       {showPicker && (
         <DateTimePicker
           mode="time"
-          value={new Date()}
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+          value={new Date("1970-01-01T09:00:00")}
+          is24Hour={true}
+          display="default"
           onChange={onTimeChange}
         />
       )}
+
     </View>
   );
 };
@@ -1426,39 +1403,39 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   dropdown: {
-        height: 50,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        backgroundColor: '#fff',
-        marginBottom: 12,
-    },
-    placeholderStyle: {
-        fontSize: 14,
-        color: '#999',
-    },
-    selectedTextStyle: {
-        fontSize: 14,
-        color: '#101010',
-        fontWeight: '600',
-    },
-    inputSearchStyle: {
-        height: 40,
-        fontSize: 14,
-        color: '#101010',
-        borderRadius: 10
-    },
-    dropdownContainerStyle: {
-  borderRadius: 10,
-  borderWidth: 1,
-  borderColor: '#ccc',
-  backgroundColor: '#fff',
-  paddingVertical: 6,
-  elevation: 5, // for Android shadow
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.15,
-  shadowRadius: 4,
-},
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+    marginBottom: 12,
+  },
+  placeholderStyle: {
+    fontSize: 14,
+    color: '#999',
+  },
+  selectedTextStyle: {
+    fontSize: 14,
+    color: '#101010',
+    fontWeight: '600',
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 14,
+    color: '#101010',
+    borderRadius: 10
+  },
+  dropdownContainerStyle: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#fff',
+    paddingVertical: 6,
+    elevation: 5, // for Android shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
 });

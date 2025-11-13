@@ -7,6 +7,7 @@ import { loadMyStudioThunk } from "../../features/studios/studiosSlice";
 import { useNavigation } from "@react-navigation/native";
 import imagePaths from "../../constants/imagePaths";
 import MyStudiosSkeleton from "../skeletonLoaders/StudioOwner/MyStudiosSkeleton";
+import { typography } from "../../constants/typography";
 
 
 // --- Main Component ---
@@ -79,10 +80,15 @@ export const MyStudioComponent = ({
     // --- Render Item Function for FlatList ---
     const renderStudioCard = ({ item }: any) => {
         // Determine status badge colors based on the image design
-        let statusBgColor = '#FE9A55'; // default Pending orange
-        if (item.status === 'pending_approval') statusBgColor = '#FE9A55'; // yellow
-        if (item.status === 'active') statusBgColor = '#034833'; // blue
-        if (item.status === 'inactive') statusBgColor = '#DC3545'; // red
+        let statusColor = '#FE9A55'; // default Pending orange
+        if (item.status === 'pending_approval') statusColor = '#FFC107'; // yellow
+        if (item.status === 'active') statusColor = '#034833'; // blue 
+        if (item.status === 'inactive') statusColor = '#DC3545'; // red
+
+        let statusTextColor = '#FFFFFF'; // default pending_approval orange
+        if (item.status === 'pending_approval') statusTextColor = '#FFFFFF'; // yellow
+        if (item.status === 'active') statusTextColor = '#FFFFFF'; // blue
+        if (item.status === 'inactive') statusTextColor = '#FFFFFF'; // white
 
         let statusText = 'pending';
         if (item.status === 'pending_approval') statusText = 'pending'; // yellow
@@ -95,48 +101,58 @@ export const MyStudioComponent = ({
 
         return (
             <View style={styles.cardContainer}>
+                <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+                    <Text style={[styles.statusText, { color: statusTextColor }]}>{statusText}</Text>
+                </View>
                 <View style={styles.card}>
                     {/* Studio Image */}
-                    <Image
-                        // Using a placeholder that simulates the image's structure
-                        source={imageSource}
-                        style={styles.cardImage}
-                    />
+                    <View>
+                        <Image
+                            // Using a placeholder that simulates the image's structure
+                            source={imageSource}
+                            style={styles.cardImage}
+                        />
 
-                    {/* Rating Badge */}
-                    <View style={styles.ratingBadge}>
-                        <Icon name="star" size={18} color="#FF7441" />
-                        <Text style={styles.ratingText}>{item?.stats?.average_rating}</Text>
-                    </View>
-
-                    {/* Status Badge */}
-                    <View style={[styles.statusBadge, { backgroundColor: statusBgColor }]}>
-                        <Text style={styles.statusText}>{statusText}</Text>
+                        {/* Rating Badge */}
+                        <View style={styles.ratingBadge}>
+                            <Image source={imagePaths.Favorites} tintColor={'#FF7441'} style={{ height: 12, width: 12 }} />
+                            <Text style={styles.ratingText}>{item?.stats?.average_rating}</Text>
+                        </View>
                     </View>
 
                     {/* Text Info */}
                     <View style={styles.infoContainer}>
-                        <Text style={[styles.studioName, { color: '#034833' }]}>{item.name}</Text>
-                        <Text style={styles.studioLocation}>{item.description}</Text>
-                        <Text style={styles.studioLocation}>City : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.location?.city}</Text></Text>
-                        <Text style={styles.studioLocation}>State : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.location?.state}</Text></Text>
-                        <Text style={styles.studioLocation}>Total bookings : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.stats?.total_bookings}</Text></Text>
-                        <Text style={styles.studioLocation}>Pending bookings : <Text style={{ ...styles.studioLocation, fontWeight: '600' }}>{item?.stats?.pending_bookings}</Text></Text>
-                        <Text style={styles.studioLocation}>hourly rate : <Text style={{ ...styles.studioLocation, fontWeight: '600', color: '#FF7441' }}>₹{item?.pricing?.hourly_rate}</Text></Text>
-                        <Text style={styles.studioLocation}>Total revenue : <Text style={{ ...styles.studioLocation, fontWeight: '600', color: '#FF7441' }}>₹{item?.stats?.total_revenue}</Text></Text>
-                    </View>
+                        <Text style={styles.studioName}>{item.name}</Text>
+                        <Text numberOfLines={3} style={[styles.studioLocation, { ...typography.medium }]}>{item.description}</Text>
+                        <View style={styles.infoContainerRow}>
+                            <View style={{ alignItems: 'flex-start', width: '50%' }}>
+                                <Text style={styles.studioLocation}>City : <Text style={{ ...styles.studioLocation, ...typography.bold }}>{item?.location?.city}</Text></Text>
+                                <Text style={styles.studioLocation}>State : <Text style={{ ...styles.studioLocation, ...typography.bold }}>{item?.location?.state}</Text></Text>
+                            </View>
+                            <View style={{ alignItems: 'flex-start', width: '50%' }}>
+                                <Text style={[styles.studioLocation, { textAlign: 'left' }]}>hourly rate : <Text style={{ ...styles.studioLocation, ...typography.bold, color: '#FF7441' }}>₹{item?.pricing?.hourly_rate}</Text></Text>
+                                <Text style={styles.studioLocation}>Total revenue : <Text style={{ ...styles.studioLocation, ...typography.bold, color: '#FF7441' }}>₹{item?.stats?.total_revenue}</Text></Text>
+                            </View>
+                        </View>
+                        <View style={styles.infoContainerRow}>
+                            <View style={{ alignItems: 'flex-start', width: '50%' }}>
+                                <Text style={styles.studioLocation}>Total bookings : <Text style={{ ...styles.studioLocation, ...typography.bold }}>{item?.stats?.total_bookings}</Text></Text>
+                                <Text style={styles.studioLocation}>Pending bookings : <Text style={{ ...styles.studioLocation, ...typography.bold }}>{item?.stats?.pending_bookings}</Text></Text>
+                            </View>
 
-                    {/* Action Buttons */}
-                    <View style={styles.actionsContainer}>
-                        {/* Edit Button (Bordered)  */}
-                        {item.status === 'active' ? <TouchableOpacity onPress={() => onEditStudio(item)} style={[styles.actionButton, styles.editButton]}>
-                            <Text style={styles.editButtonText}>Edit</Text>
-                        </TouchableOpacity> : null}
+                            {/* Action Buttons */}
+                            <View style={styles.actionsContainer}>
+                                {/* Edit Button (Bordered)  */}
+                                {item.status === 'active' ? <TouchableOpacity onPress={() => onEditStudio(item)} style={[styles.actionButton, styles.editButton]}>
+                                    <Text style={styles.editButtonText}>Edit</Text>
+                                </TouchableOpacity> : null}
 
-                        {/* View Button (Bordered) */}
-                        <TouchableOpacity onPress={() => onOpenViewStudio(item)} style={[styles.actionButton, styles.viewButton]}>
-                            <Text style={styles.viewButtonText}>{item.status === 'active' ? 'View' : 'View studio'}</Text>
-                        </TouchableOpacity>
+                                {/* View Button (Bordered) */}
+                                <TouchableOpacity onPress={() => onOpenViewStudio(item)} style={[styles.actionButton, styles.viewButton]}>
+                                    <Text style={styles.viewButtonText}>{item.status === 'active' ? 'View' : 'View studio'}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -181,10 +197,8 @@ export const MyStudioComponent = ({
             {isLoading ? (
                 <FlatList
                     data={[1, 2, 3, 4]}
-                    numColumns={2}
                     keyExtractor={(item) => item.toString()}
                     renderItem={() => <MyStudiosSkeleton />}
-                    columnWrapperStyle={{ justifyContent: "space-between" }}
                     contentContainerStyle={{ paddingBottom: 80 }}
                 />
             ) : (
@@ -207,8 +221,6 @@ export const MyStudioComponent = ({
                             </TouchableOpacity>
                         </View>
                     }
-                    numColumns={2} // Two columns for the grid layout
-                    columnWrapperStyle={styles.row} // Style for the row wrapper
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContent}
                 />
@@ -283,23 +295,21 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         marginBottom: 150
     },
-    row: {
-        justifyContent: 'space-between',
-        marginBottom: 16, // Space between rows
-    },
     cardContainer: {
-        width: '48%', // Allows two columns with space in between
+        marginVertical: 20
     },
     card: {
         backgroundColor: '#fff',
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: 'hidden',
+        padding: 10,
         borderWidth: 1,
-        borderColor: '#00000026',
+        borderColor: '#00000040',
     },
     cardImage: {
         width: '100%',
-        height: 120, // Height of the image section
+        borderRadius: 12,
+        height: 140, // Height of the image section
         resizeMode: 'cover',
     },
     ratingBadge: {
@@ -308,47 +318,55 @@ const styles = StyleSheet.create({
         left: 10,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-        borderRadius: 15,
+        backgroundColor: '#FFFFFF99', // Semi-transparent background
+        borderRadius: 12,
         paddingHorizontal: 8,
         paddingVertical: 4,
     },
     ratingText: {
-        color: '#fff',
-        fontSize: 13,
-        fontWeight: '600',
-        marginLeft: 3,
+        color: '#262626',
+        fontSize: 12,
+        marginLeft: 4,
+        ...typography.semibold,
     },
     statusBadge: {
         position: 'absolute',
-        top: 10,
-        right: 10,
-        borderRadius: 6,
+        top: -24,
+        right: 20,
+        zIndex: -10,
+        borderTopRightRadius: 4,
+        borderTopLeftRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
     },
     statusText: {
         color: '#fff',
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '600',
     },
     infoContainer: {
-        padding: 10,
+        paddingVertical: 10,
+    },
+    infoContainerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 5
     },
     studioName: {
         fontSize: 14,
+        color: '#101010',
         fontWeight: '700',
+        ...typography.bold
     },
     studioLocation: {
         fontSize: 12,
-        color: '#666',
+        color: '#616161',
         marginTop: 2,
     },
     actionsContainer: {
+        width: '50%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 10,
-        paddingBottom: 10,
     },
     actionButton: {
         flex: 1,
@@ -359,7 +377,7 @@ const styles = StyleSheet.create({
     },
     viewButton: {
         marginLeft: 5,
-        backgroundColor: '#0D6EFD',
+        backgroundColor: '#034833',
     },
     viewButtonText: {
         fontWeight: '600',
@@ -368,7 +386,7 @@ const styles = StyleSheet.create({
     },
     editButton: {
         marginLeft: 5,
-        backgroundColor: '#034833',
+        backgroundColor: '#FFA244',
     },
     editButtonText: {
         fontWeight: '600',
