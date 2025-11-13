@@ -103,7 +103,7 @@ const PhotographerDetailsScreen: React.FC = () => {
     if (!selectedDate) return [];
 
     const slots: { time: string; available: boolean }[] = [];
-    for (let hour = 9; hour <= 18; hour++) {
+    for (let hour = 9; hour <= 21; hour++) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
       slots.push({
         time: timeString,

@@ -15,6 +15,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getPhotographerAvailability, createPhotographerBooking } from '../features/photographers/photographersSlice';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { ENV } from '../config/env';
 
 interface PhotographerBookingModalProps {
@@ -72,6 +73,18 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
     return selectedService.base_price;
   }, [selectedService]);
 
+  // Helpers to convert time strings <HH:MM[:SS]> to minutes and back
+  const timeToMinutes = (t: string) => {
+    const [h, m] = t.split(':').map((x) => parseInt(x, 10));
+    return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+  };
+
+  const minutesToTime = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+  };
+
   // Format date for display (mirrors studio modal)
   const formatDateForDisplay = (dateString: string) => {
     const [year, month, day] = dateString.split('-').map(Number);
@@ -84,19 +97,60 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
     });
   };
 
-  const generateAvailableTimeSlots = (timeSlots: any[]) => {
-    if (timeSlots && timeSlots.length > 0) {
-      return timeSlots.map((slot: any) => ({
-        start_time: slot.start_time,
-        end_time: slot.end_time,
-        is_booked: slot.is_booked || false,
-      }));
+  const generateAvailableTimeSlots = (rawSlots: any[]) => {
+    const durationHours = Number(selectedService?.duration_hours || 2);
+    const durationMins = durationHours * 60;
+
+    const addHours = (time: string, hoursToAdd: number) => {
+      // Accepts 'HH:MM' or 'HH:MM:SS' and returns 'HH:MM:SS'
+      const [h, m] = time.split(':');
+      const hour = parseInt(h, 10);
+      const endHour = hour + hoursToAdd;
+      return `${String(endHour).padStart(2, '0')}:${m}${m.length === 2 ? ':00' : ''}`;
+    };
+
+    const normalize = (time: string) => {
+      // Normalize to 'HH:MM:SS'
+      if (/^\d{2}:\d{2}$/.test(time)) return `${time}:00`;
+      return time;
+    };
+
+    // If API returns explicit slots
+    if (rawSlots && rawSlots.length > 0) {
+      const expanded: TimeSlot[] = [];
+      rawSlots.forEach((slot: any) => {
+        // Support both {start_time,end_time} and {time,available}
+        const start = normalize(slot.start_time || slot.time || '09:00');
+        const end = normalize(slot.end_time || addHours(start, durationHours));
+        const isAvailable = typeof slot.available === 'boolean' ? slot.available : !Boolean(slot.is_booked);
+
+        // Split window into service-sized chunks
+        const startMin = timeToMinutes(start);
+        const endMin = timeToMinutes(end);
+
+        for (let s = startMin; s + durationMins <= endMin; s += durationMins) {
+          const e = s + durationMins;
+          expanded.push({
+            start_time: minutesToTime(s),
+            end_time: minutesToTime(e),
+            is_booked: !isAvailable,
+          });
+        }
+      });
+
+      return expanded.filter((slot: TimeSlot) => {
+        // Ensure slot fits within working window 9–21
+        const startHour = parseInt(slot.start_time.split(':')[0], 10);
+        const endHour = parseInt(slot.end_time.split(':')[0], 10);
+        return startHour >= 9 && endHour <= 21 && endHour > startHour;
+      });
     }
 
+    // Fallback: generate slots in increments of service duration
     const slots: TimeSlot[] = [];
-    for (let hour = 9; hour <= 18; hour += 2) {
+    for (let hour = 9; hour + durationHours <= 21; hour += durationHours) {
       const startTime = `${String(hour).padStart(2, '0')}:00:00`;
-      const endTime = `${String(hour + 2).padStart(2, '0')}:00:00`;
+      const endTime = `${String(hour + durationHours).padStart(2, '0')}:00:00`;
       slots.push({ start_time: startTime, end_time: endTime, is_booked: false });
     }
     return slots;
@@ -114,7 +168,8 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentYear, currentMonth, day);
-      const dateString = date.toISOString().split('T')[0];
+      // Use local Y-M-D to avoid timezone shifting the day
+      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const isPast = date < todayDate;
       const isToday = date.toDateString() === todayDate.toDateString();
 
@@ -134,9 +189,20 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
   useEffect(() => {
     if (availabilityState.timeSlots) {
       const slots = generateAvailableTimeSlots(availabilityState.timeSlots);
+      setSelectedSlot(null);
       setTimeSlots(slots);
     }
-  }, [availabilityState.timeSlots]);
+  }, [availabilityState.timeSlots, selectedService?.duration_hours]);
+
+  // Reset internal selection when modal closes to avoid stale state
+  useEffect(() => {
+    if (!visible) {
+      setSelectedDate('');
+      setShowTimeSlots(false);
+      setSelectedSlot(null);
+      setTimeSlots([]);
+    }
+  }, [visible]);
 
   const handleDateSelect = (day: CalendarDay) => {
     if (day.isPast) return;
@@ -242,6 +308,18 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
           <View style={styles.serviceInfo}>
             <Text style={styles.serviceTitle}>{selectedService?.title || 'Service'}</Text>
             <Text style={styles.servicePrice}>₹{(selectedService?.base_price || 0).toLocaleString()}</Text>
+            {selectedService ? (
+              <View style={styles.serviceMetaRow}>
+                <Text style={styles.serviceMetaLabel}>Duration:</Text>
+                <Text style={styles.serviceMetaValue}>{selectedService.duration_hours} hours</Text>
+              </View>
+            ) : null}
+            {selectedService?.equipment_included?.length ? (
+              <View style={styles.serviceMetaRow}>
+                <Text style={styles.serviceMetaLabel}>Includes:</Text>
+                <Text style={styles.serviceMetaValue}>{selectedService.equipment_included.join(', ')}</Text>
+              </View>
+            ) : null}
           </View>
 
           {/* Calendar Section */}
@@ -359,6 +437,10 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
               <View style={styles.pricingCard}>
                 <View style={styles.pricingRow}>
                   <Text style={styles.pricingLabel}>Service:</Text>
+                  <Text style={styles.pricingValue}>{selectedService?.title || '-'}</Text>
+                </View>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>Price:</Text>
                   <Text style={styles.pricingValue}>₹{(selectedService?.base_price || 0).toLocaleString()}</Text>
                 </View>
                 <View style={styles.divider} />
@@ -414,7 +496,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   placeholder: {
@@ -431,21 +513,36 @@ const styles = StyleSheet.create({
   },
   serviceTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 4,
   },
   servicePrice: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.secondary,
+  },
+  serviceMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  serviceMetaLabel: {
+    fontSize: 14,
+    ...typography.regular,
+    color: COLORS.text.secondary,
+  },
+  serviceMetaValue: {
+    fontSize: 14,
+    ...typography.medium,
+    color: COLORS.text.primary,
   },
   section: {
     paddingVertical: 20,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginBottom: 16,
     flexDirection: 'row',
@@ -462,7 +559,7 @@ const styles = StyleSheet.create({
   },
   monthTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   weekdayHeader: {
@@ -473,7 +570,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.secondary,
   },
   calendarGrid: {
@@ -492,13 +589,16 @@ const styles = StyleSheet.create({
   pastDay: {
     backgroundColor: '#F3F4F6',
   },
+  selectedDay: {
+    backgroundColor: COLORS.primary,
+  },
   todayDay: {
     borderWidth: 2,
     borderColor: COLORS.primary,
   },
   calendarDayText: {
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
   },
   pastDayText: {
@@ -506,10 +606,12 @@ const styles = StyleSheet.create({
   },
   selectedDayText: {
     color: COLORS.background,
-    fontWeight: '700',
+    // backgroundColor:COLORS.bg,
+    ...typography.bold,
   },
   selectedDateText: {
     fontSize: 14,
+    ...typography.regular,
     color: COLORS.text.secondary,
     marginBottom: 16,
   },
@@ -520,6 +622,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 8,
     fontSize: 14,
+    ...typography.regular,
     color: COLORS.text.secondary,
   },
   timeSlotsContainer: {
@@ -547,7 +650,7 @@ const styles = StyleSheet.create({
   },
   timeSlotText: {
     fontSize: 16,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
   },
   bookedSlotText: {
@@ -555,7 +658,7 @@ const styles = StyleSheet.create({
   },
   selectedSlotText: {
     color: COLORS.primary,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -570,7 +673,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   availableBadgeText: {
     color: '#065F46',
@@ -596,7 +699,7 @@ const styles = StyleSheet.create({
   },
   pricingValue: {
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
   },
   divider: {
@@ -606,12 +709,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   totalValue: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.primary,
   },
   bookButton: {
@@ -632,7 +735,7 @@ const styles = StyleSheet.create({
   bookButtonText: {
     color: COLORS.background,
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
     marginLeft: 8,
   },
 });

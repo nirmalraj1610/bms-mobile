@@ -17,9 +17,10 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { studioAvailabilityThunk } from '../features/studios/studiosSlice';
 import { doCreateBooking } from '../features/bookings/bookingsSlice';
 import { COLORS } from '../constants';
+import { typography } from '../constants/typography';
 import { ENV } from '../config/env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { bookingAddEquipment } from '../lib/api';
+import { bookingAddEquipment, studioEquipmentList } from '../lib/api';
 import TimeSlotSkeleton from './skeletonLoaders/TimeSlotSkeleton';
 interface BookingModalProps {
   visible: boolean;
@@ -66,7 +67,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   const [dayBookings, setDayBookings] = useState<any[]>([]);
   const [isBooking, setIsBooking] = useState(false);
   const [equipmentHourlySubtotal, setEquipmentHourlySubtotal] = useState(0);
-  const [selectedEquipments, setSelectedEquipments] = useState<{ equipment_id: string; quantity: number; hourly_rate?: number }[]>([]);
+  const [selectedEquipments, setSelectedEquipments] = useState<{ equipment_id: string; quantity: number; hourly_rate?: number; name?: string }[]>([]);
+  const [equipmentNameMap, setEquipmentNameMap] = useState<Record<string, string>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successInfo, setSuccessInfo] = useState({
     dateText: '',
@@ -102,9 +104,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
   const generateAvailableTimeSlots = (bookings: any[], durationHours: number) => {
     const slots: TimeSlot[] = [];
 
-    // Studio working window: 9:00 to 18:00
+    // Studio working window: 9:00 to 21:00
     const WORK_START = 9 * 60; // minutes
-    const WORK_END = 18 * 60; // minutes
+    const WORK_END = 21 * 60; // minutes
 
     const durationMins = durationHours * 60;
     const latestStart = WORK_END - durationMins; // last valid start time
@@ -323,6 +325,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
             equipment_id: String(it?.equipment_id ?? it?.id),
             quantity: Number(it?.quantity ?? 0),
             hourly_rate: Number(it?.hourly_rate ?? 0),
+            name: String(it?.name ?? ''),
           })).filter((x) => x.quantity > 0);
           setSelectedEquipments(normalized);
           const subtotal = normalized.reduce((sum, item) => sum + (item.hourly_rate || 0) * item.quantity, 0);
@@ -337,6 +340,26 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
       }
     };
     if (visible) loadEquipments();
+  }, [visible, studio?.id]);
+
+  // Fallback: fetch equipment names for this studio if not present in storage
+  useEffect(() => {
+    const fetchNames = async () => {
+      try {
+        if (!visible || !studio?.id) return;
+        const res = await studioEquipmentList(String(studio?.id), true);
+        const map: Record<string, string> = {};
+        (res?.equipment || []).forEach((e: any) => {
+          const id = String(e?.id ?? e?.equipment_id);
+          const nm = String(e?.item_name ?? e?.name ?? e?.title ?? 'Equipment');
+          if (id) map[id] = nm;
+        });
+        setEquipmentNameMap(map);
+      } catch {
+        setEquipmentNameMap({});
+      }
+    };
+    fetchNames();
   }, [visible, studio?.id]);
 
   // Recalculate time slots when duration changes (after date is selected)
@@ -700,20 +723,44 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                 </View>
               )}
 
-              {/* Pricing summary card below available slots */}
+              {/* Pricing summary card below available slots - with detailed equipment lines */}
               <View style={styles.pricingCard}>
+                <Text style={styles.pricingTitle}>Price Details</Text>
                 <View style={styles.pricingRow}>
                   <Text style={styles.pricingLabel}>Duration:</Text>
                   <Text style={styles.pricingValue}>{selectedDurationHours} hours</Text>
                 </View>
+
+                <Text style={styles.pricingSubHeader}>Equipments:</Text>
+                {selectedEquipments.length > 0 ? (
+                  selectedEquipments.map((item, idx) => {
+                    const rawName = String(item?.name || '').trim();
+                    const label = rawName && rawName.toLowerCase() !== 'equipment'
+                      ? rawName
+                      : (equipmentNameMap[item.equipment_id] || `Equipment #${item.equipment_id}`);
+                    const lineAmount = (item.hourly_rate || 0) * item.quantity * selectedDurationHours;
+                    return (
+                      <View key={`${item.equipment_id}-${idx}`} style={styles.pricingRowItem}>
+                        <View style={styles.pricingRowItemLeft}>
+                          <Text style={styles.pricingItemLabel}>{label}</Text>
+                          <Text style={styles.pricingItemSub}>Qty: {item.quantity} × ₹{Number(item.hourly_rate || 0).toLocaleString()}</Text>
+                        </View>
+                        <Text style={styles.pricingItemValue}>₹{lineAmount.toLocaleString()}</Text>
+                      </View>
+                    );
+                  })
+                ) : (
+                  <View style={styles.pricingRowItem}>
+                    <Text style={styles.pricingItemLabelMuted}>No equipments selected</Text>
+                    <Text style={styles.pricingItemValue}>₹0</Text>
+                  </View>
+                )}
+
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Equipments:</Text>
-                  <Text style={styles.pricingValue}>₹{equipmentTotal.toLocaleString()}</Text>
-                </View>
-                <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Studio:</Text>
+                  <Text style={styles.pricingLabel}>Studio Rate:</Text>
                   <Text style={styles.pricingValue}>₹{studioTotal.toLocaleString()}</Text>
                 </View>
+
                 <View style={styles.divider} />
                 <View style={styles.pricingRow}>
                   <Text style={styles.totalLabel}>Total:</Text>
@@ -801,13 +848,13 @@ const styles = StyleSheet.create({
   },
   studioName: {
     fontSize: 20,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 4,
   },
   studioPrice: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.secondary,
   },
   section: {
@@ -815,7 +862,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
     marginBottom: 16,
     flexDirection: 'row',
@@ -832,7 +879,7 @@ const styles = StyleSheet.create({
   },
   monthTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   weekdayHeader: {
@@ -843,7 +890,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.secondary,
   },
   calendarGrid: {
@@ -871,7 +918,7 @@ const styles = StyleSheet.create({
   },
   calendarDayText: {
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
   },
   pastDayText: {
@@ -879,16 +926,17 @@ const styles = StyleSheet.create({
   },
   selectedDayText: {
     color: COLORS.background,
-    fontWeight: '700',
+    ...typography.bold,
   },
   todayDayText: {
     color: COLORS.primary,
-    fontWeight: '700',
+    ...typography.bold,
   },
   selectedDateText: {
     fontSize: 14,
     color: COLORS.text.secondary,
     marginBottom: 16,
+    ...typography.regular,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -898,6 +946,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     color: COLORS.text.secondary,
+    ...typography.regular,
   },
   timeSlotsContainer: {
     gap: 12,
@@ -924,7 +973,7 @@ const styles = StyleSheet.create({
   },
   timeSlotText: {
     fontSize: 16,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
   },
   bookedSlotText: {
@@ -932,7 +981,7 @@ const styles = StyleSheet.create({
   },
   selectedSlotText: {
     color: COLORS.primary,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -947,7 +996,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   availableBadgeText: {
     color: '#065F46',
@@ -975,12 +1024,12 @@ const styles = StyleSheet.create({
   },
   durationText: {
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
   },
   selectedDurationText: {
     color: COLORS.primary,
-    fontWeight: '600',
+    ...typography.semibold,
   },
   pricingCard: {
     backgroundColor: COLORS.surface,
@@ -996,12 +1045,58 @@ const styles = StyleSheet.create({
   },
   pricingLabel: {
     fontSize: 14,
-    color: COLORS.text.secondary,
+    color: COLORS.bg,
+    ...typography.bold,
   },
   pricingValue: {
     fontSize: 14,
-    fontWeight: '500',
+    ...typography.medium,
     color: COLORS.text.primary,
+  },
+  pricingTitle: {
+    fontSize: 16,
+    ...typography.bold,
+    color: COLORS.text.primary,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  pricingSubHeader: {
+    fontSize: 14,
+    color: COLORS.text.primary,
+    ...typography.bold,
+
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  pricingRowItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  pricingRowItemLeft: {
+    flexShrink: 1,
+    paddingRight: 8,
+  },
+  pricingItemLabel: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    ...typography.medium,
+  },
+  pricingItemLabelMuted: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  pricingItemSub: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginTop: 2,
+    ...typography.regular,
+  },
+  pricingItemValue: {
+    fontSize: 14,
+    color: COLORS.text.primary,
+    ...typography.medium,
   },
   divider: {
     height: 1,
@@ -1010,12 +1105,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    ...typography.semibold,
     color: COLORS.text.primary,
   },
   totalValue: {
     fontSize: 18,
-    fontWeight: '700',
+    ...typography.bold,
     color: COLORS.primary,
   },
   bookButton: {
@@ -1036,7 +1131,7 @@ const styles = StyleSheet.create({
   bookButtonText: {
     color: COLORS.background,
     fontSize: 16,
-    fontWeight: '700',
+    ...typography.bold,
   },
 });
 

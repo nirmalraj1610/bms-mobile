@@ -291,7 +291,8 @@ const StudioDetailsScreen: React.FC = () => {
           .map(([equipment_id, quantity]) => {
             const full = equipmentItems.find((e: any) => String(e.id) === String(equipment_id));
             const hourly = Number(full?.rental_price_hourly ?? full?.hourly_rate ?? 0);
-            return { equipment_id, quantity, hourly_rate: hourly };
+            const name = String((full as any)?.item_name ?? full?.name ?? (full as any)?.title ?? 'Equipment');
+            return { equipment_id, quantity, hourly_rate: hourly, name };
           });
         const data = { studio_id: String(studioId), equipment_items: selected };
         await AsyncStorage.setItem(storageKey, JSON.stringify(data));
