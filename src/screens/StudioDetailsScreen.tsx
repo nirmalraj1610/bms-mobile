@@ -453,7 +453,13 @@ const StudioDetailsScreen: React.FC = () => {
                   return (
                     <View key={eq.id} style={styles.equipCard}>
                       {thumb ? (
+                        <View>
                         <Image source={{ uri: thumb }} resizeMode='cover' style={styles.equipThumb} />
+                        {imgCount > 0 && <TouchableOpacity onPress={() => openImage(eq)} style={styles.acceptBtn}>
+                            <Icon name="image" size={16} color={'#FFFFFF'} style={styles.equipMetaIcon} />
+                            <Text style={styles.acceptText}>{imgCount > 1 ? `View ${imgCount} images` : `View ${imgCount} image`}</Text>
+                          </TouchableOpacity>}
+                        </View>
                       ) : (
                         // <View style={[styles.equipThumb, styles.equipThumbPlaceholder]} />
                         <Image source={imagePaths.StudioPlaceHolderImage} resizeMode='cover' style={styles.equipThumb} />
@@ -485,9 +491,6 @@ const StudioDetailsScreen: React.FC = () => {
                               <Text style={styles.equipMetaText}>{`${qty} available`}</Text>
                             </View>
                           )}
-                          {imgCount > 0 && <TouchableOpacity onPress={() => openImage(eq)} style={styles.acceptBtn}>
-                            <Text style={styles.acceptText}>View Image</Text>
-                          </TouchableOpacity>}
                         </View>
                         {/* Quantity selector */}
                         <View style={styles.equipQtyRow}>
@@ -923,7 +926,8 @@ const styles = StyleSheet.create({
     width: 100,
     height: 140,
     borderRadius: 8,
-    backgroundColor: '#F2F4F7',
+    borderWidth: 1,
+    borderColor: '#EFF1F4',
     marginRight: 12,
   },
   equipThumbPlaceholder: {
@@ -972,22 +976,25 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   equipMetaIcon: {
-    marginRight: 6,
+    marginRight: 5,
   },
   equipMetaText: {
     fontSize: 12,
     color: COLORS.title,
   },
   acceptBtn: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#034833',
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     paddingVertical: 4,
     borderRadius: 6,
-    marginRight: 8,
+    marginRight: 10,
   },
   acceptText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
   },
   equipImagesPill: {

@@ -900,7 +900,7 @@ else{
             contentContainerStyle={styles.listContainer}
           />
 
-          <Text style={styles.title}>Available Equipment</Text>
+          {/* <Text style={styles.title}>Available Equipment</Text>
 
           <FlatList
             data={equipments}
@@ -908,7 +908,7 @@ else{
             numColumns={2}
             keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
-          />
+          /> */}
 
           <Text style={styles.title}>Operating Hours</Text>
 
@@ -1115,7 +1115,7 @@ else{
             ) : (
               <Text style={{ ...styles.listInformation, fontSize: 12 }}>No amenities selected</Text>
             )}
-            <Text style={styles.title}>
+            {/* <Text style={styles.title}>
               Selected Equipments ({selectedEquipments.length})
             </Text>
 
@@ -1128,8 +1128,8 @@ else{
                 ))}
               </View>
             ) : (
-              <Text style={{ ...styles.listInformation, fontSize: 12 }}>No amenities selected</Text>
-            )}
+              <Text style={{ ...styles.listInformation, fontSize: 12 }}>No equipments selected</Text>
+            )} */}
 
             <View style={styles.noteTextOutline}>
               <Icon
@@ -1157,7 +1157,7 @@ else{
         <View style={styles.actionButtonOutline}>
           {selectedTab !== 1 ? (
             <TouchableOpacity onPress={onpressPrevious} style={styles.previousButton}>
-              <Image source={imagePaths.backArrow} style={{ width: 18, height: 18, tintColor: '#FFFFFF' }} />
+              <Icon name={"arrow-back-ios"} size={16} color="#FFFFFF" />
               <Text style={styles.previousText}>Previous</Text>
             </TouchableOpacity>
           ) : (
