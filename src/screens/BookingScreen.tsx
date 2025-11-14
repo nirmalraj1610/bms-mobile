@@ -29,6 +29,9 @@ const BookingScreen: React.FC = () => {
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [selectedBookingForEquipment, setSelectedBookingForEquipment] = useState<any>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<any[]>([]);
+  // View booked equipments modal state
+  const [showEquipmentsViewModal, setShowEquipmentsViewModal] = useState(false);
+  const [equipmentsViewBooking, setEquipmentsViewBooking] = useState<any | null>(null);
 
   // Reschedule modal state
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
@@ -114,6 +117,20 @@ const BookingScreen: React.FC = () => {
       time: `${startTime} - ${endTime}`,
     };
   };
+
+  // Open modal to view already booked equipments for a booking
+  const openEquipmentsViewModal = (booking: any) => {
+    // Prefer the original booking from the raw API for full equipment details.
+    // If not found (id mismatch or filtered view), fall back to the transformed item.
+    const original = bookings.find(b => b.id === booking.id) || booking;
+    setEquipmentsViewBooking(original);
+    setShowEquipmentsViewModal(true);
+  };
+
+  const closeEquipmentsViewModal = () => {
+    setShowEquipmentsViewModal(false);
+    setEquipmentsViewBooking(null);
+  };
   console.log('bookings:', bookings);
 
   // Transform API data to match component expectations
@@ -134,6 +151,8 @@ const BookingScreen: React.FC = () => {
         image: 'https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400', // Default image
         isFavorite: false,
         total_amount: booking.total_amount,
+        // Equipment visibility flag (so we can show the button without peeking original array each render)
+        hasEquipment: Array.isArray((booking as any).booking_equipment) && ((booking as any).booking_equipment as any[]).length > 0,
         // You can 
         // implement favorites logic later
       };
@@ -155,6 +174,7 @@ const BookingScreen: React.FC = () => {
       booking.bookingType === selectedBookingType
     );
   }, [query, transformedBookings, selectedBookingType]);
+console.log('filteredBookings:', filteredBookings);
 
   const filteredPastBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -463,10 +483,17 @@ const BookingScreen: React.FC = () => {
             {item.status === 'Confirmed' && (
               <View style={styles.actionButtonsContainer}>
                 {hasEnded ? (
-                  // After end time has passed: show only View Studio
-                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
-                    <Text style={styles.viewStudioButtonText}>View Studio</Text>
-                  </TouchableOpacity>
+                  <>
+                    {/* After end time has passed: show only View Studio (plus optional equipments) */}
+                    <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
+                      <Text style={styles.viewStudioButtonText}>View Studio</Text>
+                    </TouchableOpacity>
+                    {item.hasEquipment ? (
+                      <TouchableOpacity style={styles.viewEquipmentsButton} onPress={() => openEquipmentsViewModal(item)}>
+                        <Text style={styles.viewEquipmentsButtonText}>View Equipments</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </>
                 ) : (
                   <>
                     <TouchableOpacity style={styles.rescheduleButton} onPress={() => openRescheduleModal(item)}>
@@ -501,6 +528,11 @@ const BookingScreen: React.FC = () => {
                     <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                       <Text style={styles.viewStudioButtonText}>View Studio</Text>
                     </TouchableOpacity>
+                    {item.hasEquipment ? (
+                      <TouchableOpacity style={styles.viewEquipmentsButton} onPress={() => openEquipmentsViewModal(item)}>
+                        <Text style={styles.viewEquipmentsButtonText}>View Equipments</Text>
+                      </TouchableOpacity>
+                    ) : null}
                   </>
                 )}
               </View>
@@ -510,10 +542,17 @@ const BookingScreen: React.FC = () => {
             {item.status === 'Pending' && (
               <View style={styles.actionButtonsContainer}>
                 {hasEnded ? (
-                  // After end time: only View Studio
-                  <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
-                    <Text style={styles.viewStudioButtonText}>View Studio</Text>
-                  </TouchableOpacity>
+                  <>
+                    {/* After end time: only View Studio (plus optional equipments) */}
+                    <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
+                      <Text style={styles.viewStudioButtonText}>View Studio</Text>
+                    </TouchableOpacity>
+                    {item.hasEquipment ? (
+                      <TouchableOpacity style={styles.viewEquipmentsButton} onPress={() => openEquipmentsViewModal(item)}>
+                        <Text style={styles.viewEquipmentsButtonText}>View Equipments</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </>
                 ) : (
                   <>
                     {/* <TouchableOpacity
@@ -526,6 +565,11 @@ const BookingScreen: React.FC = () => {
                     <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                       <Text style={styles.viewStudioButtonText}>View Studio</Text>
                     </TouchableOpacity>
+                    {item.hasEquipment ? (
+                      <TouchableOpacity style={styles.viewEquipmentsButton} onPress={() => openEquipmentsViewModal(item)}>
+                        <Text style={styles.viewEquipmentsButtonText}>View Equipments</Text>
+                      </TouchableOpacity>
+                    ) : null}
                   </>
                 )}
               </View>
@@ -537,6 +581,11 @@ const BookingScreen: React.FC = () => {
                 <TouchableOpacity style={styles.viewStudioButton} onPress={() => handleViewStudio(item)}>
                   <Text style={styles.viewStudioButtonText}>View Studio</Text>
                 </TouchableOpacity>
+                {item.hasEquipment ? (
+                  <TouchableOpacity style={styles.viewEquipmentsButton} onPress={() => openEquipmentsViewModal(item)}>
+                    <Text style={styles.viewEquipmentsButtonText}>View Equipments</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             )}
           </View>
@@ -840,6 +889,59 @@ const BookingScreen: React.FC = () => {
         </Modal>
       </View>
 
+      {/* View Booked Equipments Modal */}
+      <Modal
+        visible={showEquipmentsViewModal}
+        transparent
+        animationType="slide"
+        onRequestClose={closeEquipmentsViewModal}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Booked Equipments</Text>
+              {/* <TouchableOpacity onPress={closeEquipmentsViewModal}>
+                <Icon name="close" size={22} color={COLORS.text.primary} />
+              </TouchableOpacity> */}
+            </View>
+
+            {(() => {
+              const list = (equipmentsViewBooking?.booking_equipment || []) as any[];
+              if (!list.length) {
+                return <Text style={styles.modalLabel}>No equipments found for this booking.</Text>;
+              }
+              return (
+                <View style={{ alignSelf: 'stretch' }}>
+                  {list.map((eq, idx) => {
+                    const name =
+                      eq.item_name ||
+                      eq.name ||
+                      eq.equipment_name ||
+                      (eq.studio_equipment && (eq.studio_equipment.item_name || eq.studio_equipment.name)) ||
+                      (eq.item && (eq.item.item_name || eq.item.name)) ||
+                      'Equipment';
+                    const qty = typeof eq.quantity === 'number' ? eq.quantity : '-';
+                    const cost = typeof eq.rental_cost === 'number' ? eq.rental_cost : eq.cost || 0;
+                    return (
+                      <View key={`${eq.equipment_id || idx}`} style={styles.equipmentRow}>
+                        <Text style={styles.equipmentName}>{name}</Text>
+                        <Text style={styles.equipmentMeta}>Qty: {String(qty)} • Cost: ₹{String(cost)}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })()}
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelButtonModal} onPress={closeEquipmentsViewModal}>
+                <Text style={styles.cancelButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Equipment Selection Modal */}
       <EquipmentSelectionModal
         visible={showEquipmentModal}
@@ -1110,7 +1212,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ff0000ff',
     paddingVertical: 4,
-    marginBottom: 10,
+    // marginBottom: 10,
     minWidth: '85%',
   },
   cancelButtonText: {
@@ -1168,6 +1270,23 @@ const styles = StyleSheet.create({
     ...typography.semibold,
     color: '#8D8D8D',
   },
+  viewEquipmentsButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: '#00BCD4',
+    paddingVertical: 4,
+    marginBottom: 10,
+    minWidth: '85%',
+  },
+  viewEquipmentsButtonText: {
+    fontSize: 12,
+    paddingHorizontal: 6,
+    ...typography.semibold,
+    color: '#00BCD4',
+  },
   selectEquipmentButton: {
     flexDirection: 'column',
     alignItems: 'center',
@@ -1185,6 +1304,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     ...typography.semibold,
     color: '#00BCD4',
+  },
+  equipmentRow: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  equipmentName: {
+    fontSize: 14,
+    ...typography.semibold,
+    color: COLORS.text.primary,
+  },
+  equipmentMeta: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+    marginTop: 2,
   },
   sectionTitle: {
     fontSize: 18,
@@ -1301,7 +1435,8 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    gap: 32,
     marginBottom: 12,
   },
   modalTitle: {
@@ -1349,8 +1484,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    marginTop: 12,
+    // gap: 12,
+    marginTop: 5,
   },
   confirmButton: {
     backgroundColor: COLORS.bg,
@@ -1364,8 +1499,8 @@ const styles = StyleSheet.create({
   },
   cancelButtonModal: {
     backgroundColor: '#ECECEC',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 8,
   },
 });
