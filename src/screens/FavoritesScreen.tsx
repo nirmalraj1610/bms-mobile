@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, A
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import imagePaths from '../constants/imagePaths';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
@@ -16,6 +16,7 @@ import FavoriteStudiosSkeleton from '../components/skeletonLoaders/FavoriteStudi
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const isFocused = useIsFocused();
   const dispatch = useDispatch<AppDispatch>();
   const [query, setQuery] = useState('');
   const [thumbErrorIds, setThumbErrorIds] = useState<Record<string, boolean>>({});
@@ -51,9 +52,13 @@ const FavoritesScreen: React.FC = () => {
         } catch { }
       };
 
-      checkAuth();
+      if(isFocused)
+      {
+        checkAuth();
+      }
+
       dispatch(loadFavoritesThunk());
-    }, [dispatch])
+    }, [dispatch, isFocused])
   );
 
   // Show login modal when API returns auth errors
@@ -99,6 +104,13 @@ const FavoritesScreen: React.FC = () => {
       }
       try { console.log('toggleFavorite error:', err); } catch { }
     }
+  };
+
+    // Login modal handlers
+  const closeLoginModal = () => setShowLoginModal(false);
+  const goToLogin = () => {
+    setShowLoginModal(false);
+    navigation.navigate('Auth', { screen: 'Login' });
   };
 
   const isStudioFavorited = (studioId: string) => {
@@ -248,29 +260,31 @@ const FavoritesScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+
       {/* Login Required Modal */}
-      <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
-        <View style={styles.loginBackdrop}>
-          {/* True blur backdrop with light, white-tinted feel */}
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            blurType="light"
-            blurAmount={20}
-            reducedTransparencyFallbackColor="white"
-          />
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Login Required</Text>
-            </View>
-            <Text style={styles.modalLabel}>Please log in to view your favorites.</Text>
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.confirmButton} onPress={() => { setShowLoginModal(false); (navigation as any).navigate('Auth', { screen: 'Login' }); }}>
-                <Text style={styles.confirmButtonText}>Login</Text>
-              </TouchableOpacity>
+      {showLoginModal && <View style={{flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0, zIndex: 99 }} >
+          <View style={styles.loginBackdrop}>
+            {/* True blur backdrop with light, white-tinted feel */}
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="light"
+              blurAmount={20}
+              reducedTransparencyFallbackColor="white"
+            />
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Login Required</Text>
+              </View>
+              <Text style={styles.modalLabel}>Please log in to view your favorites.</Text>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                  <Text style={styles.confirmButtonText}>Login</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </View>}
+
       {filtered.length === 0 ? (
         <EmptyState />
       ) : (

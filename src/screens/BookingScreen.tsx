@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, Modal, Alert } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import HeaderBar from '../components/HeaderBar';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { typography } from '../constants/typography';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -12,7 +12,6 @@ import { getBookings, doCheckinBooking, doCheckoutBooking, doRescheduleBooking, 
 import { getStudioEquipmentThunk } from '../features/studios/studiosSlice';
 import type { BookingHistoryItem, Equipment } from '../types/api';
 import EquipmentSelectionModal from '../components/EquipmentSelectionModal';
-import { white } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
@@ -22,6 +21,7 @@ import imagePaths from '../constants/imagePaths';
 const BookingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
+  const isFocused = useIsFocused();
   const [query, setQuery] = useState('');
   const [selectedBookingType, setSelectedBookingType] = useState<'studio' | 'photographer'>('studio');
 
@@ -89,8 +89,13 @@ const BookingScreen: React.FC = () => {
         }
       } catch { }
     };
+
+    if(isFocused)
+    {
     checkAuth();
-  }, []);
+    }
+
+  }, [dispatch, isFocused]);
 
   // Show login modal when API returns auth errors
   useEffect(() => {
@@ -820,30 +825,6 @@ console.log('filteredBookings:', filteredBookings);
           </View>
         </Modal>
 
-        {/* Login Required Modal */}
-        <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
-          <View style={styles.loginBackdrop}>
-            {/* True blur backdrop with light, white-tinted feel */}
-            <BlurView
-              style={StyleSheet.absoluteFill}
-              blurType="light"
-              blurAmount={20}
-              reducedTransparencyFallbackColor="white"
-            />
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Login Required</Text>
-              </View>
-              <Text style={styles.modalLabel}>Please log in to view your bookings.</Text>
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
-                  <Text style={styles.confirmButtonText}>Login</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-
         {/* Cancel Modal */}
         <Modal
           visible={showCancelModal}
@@ -972,6 +953,30 @@ console.log('filteredBookings:', filteredBookings);
           setSelectedEquipment(selectedEquipment.filter(eq => eq.id !== equipmentId));
         }}
       />
+
+      {/* Login Required Modal */}
+      {showLoginModal && <View style={{flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0 , zIndex: 99 }} >
+          <View style={styles.loginBackdrop}>
+            {/* True blur backdrop with light, white-tinted feel */}
+            <BlurView
+              style={StyleSheet.absoluteFill}
+              blurType="light"
+              blurAmount={20}
+              reducedTransparencyFallbackColor="white"
+            />
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Login Required</Text>
+              </View>
+              <Text style={styles.modalLabel}>Please log in to view your bookings.</Text>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                  <Text style={styles.confirmButtonText}>Login</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>}
     </SafeAreaView>
   );
 };

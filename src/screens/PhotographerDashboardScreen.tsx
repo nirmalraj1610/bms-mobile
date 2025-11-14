@@ -7,10 +7,8 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
-  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Picker } from '@react-native-picker/picker';
 import { COLORS } from '../constants';
 import { DashboardComponent } from '../components/photographer/Dashboard';
 import { BookingsComponent } from '../components/photographer/Bookings';
@@ -24,7 +22,7 @@ import { getUserData } from '../lib/http';
 import imagePaths from '../constants/imagePaths';
 
 const PhotographerDashboardScreen: React.FC = () => {
-  const isFocused = useIsFocused();
+ const isFocused = useIsFocused();
   const navigation = useNavigation();
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -190,29 +188,30 @@ const PhotographerDashboardScreen: React.FC = () => {
         {selectedMenu === "Services" && <ServicesComponent />}
         {selectedMenu === "portfolio" && <PortfolioComponent />}
       </View>
-      {/* Login Required Modal */}
-      <Modal visible={showLoginModal} transparent animationType="fade" statusBarTranslucent onRequestClose={() => { }}>
-        <View style={styles.loginBackdrop}>
-          {/* True blur backdrop with light, white-tinted feel */}
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            blurType="light"
-            blurAmount={20}
-            reducedTransparencyFallbackColor="white"
-          />
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Login Required</Text>
-            </View>
-            <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
-                <Text style={styles.confirmButtonText}>Login</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+
+            {showLoginModal && <View style={{flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0 , zIndex: 99 }} >
+                <View style={styles.loginBackdrop}>
+                  {/* True blur backdrop with light, white-tinted feel */}
+                  <BlurView
+                    style={StyleSheet.absoluteFill}
+                    blurType="light"
+                    blurAmount={20}
+                    reducedTransparencyFallbackColor="white"
+                  />
+                  <View style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                      <Text style={styles.modalTitle}>Login Required</Text>
+                    </View>
+                    <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
+                    <View style={styles.modalActions}>
+                      <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                        <Text style={styles.confirmButtonText}>Login</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </View>}
+
       {dropdownVisible ? <TouchableOpacity onPress={() => setDropdownVisible(false)} style={{ backgroundColor: 'rgba(0,0,0,0.1)', height: '100%', width: '100%', position: 'absolute' }} ></TouchableOpacity> : null}
     </SafeAreaView>
   );
