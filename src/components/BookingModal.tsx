@@ -32,6 +32,7 @@ interface TimeSlot {
   start_time: string;
   end_time: string;
   is_booked: boolean;
+  hourly_rate?: number;
 }
 
 interface CalendarDay {
@@ -60,13 +61,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
 
   // Booking state
   const [selectedTime, setSelectedTime] = useState('');
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [selectedDurationHours, setSelectedDurationHours] = useState(2);
+  const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [dayBookings, setDayBookings] = useState<any[]>([]);
   const [isBooking, setIsBooking] = useState(false);
   const [equipmentHourlySubtotal, setEquipmentHourlySubtotal] = useState(0);
+  const [noSlotsMessage, setNoSlotsMessage] = useState('');
   const [selectedEquipments, setSelectedEquipments] = useState<{ equipment_id: string; quantity: number; hourly_rate?: number; name?: string }[]>([]);
   const [equipmentNameMap, setEquipmentNameMap] = useState<Record<string, string>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -217,7 +218,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     setSelectedDate(date);
     setShowTimeSlots(true);
     setSelectedTime('');
-    setSelectedSlot(null);
+    setSelectedSlots([]);
+    setNoSlotsMessage('');
 
     // Extract studio ID with comprehensive validation
     let studioId = studio?.id;
@@ -267,14 +269,21 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
       const result = await dispatch(studioAvailabilityThunk({ studio_id: studioIdString, date }));
       if (studioAvailabilityThunk.fulfilled.match(result)) {
         console.log('BookingModal - Successfully fetched availability:', result.payload);
-        const bookingsForDay = result.payload.bookings || [];
-        setDayBookings(bookingsForDay);
-        const availableSlots = generateAvailableTimeSlots(bookingsForDay, selectedDurationHours);
-        setTimeSlots(availableSlots);
+        const payload: any = result.payload || {};
+        const apiSlots = (payload.available_slots || payload.booking_slots || []).map((s: any) => ({
+          start_time: String(s.start_time).slice(0,5),
+          end_time: String(s.end_time).slice(0,5),
+          is_booked: false,
+        }));
+        setDayBookings(payload.booked_slots || payload.bookings || []);
+        setTimeSlots(apiSlots);
+        const msg = String(payload.message || (payload.is_available === false ? 'No available slots for this date' : ' Studio is not available on this day'));
+        setNoSlotsMessage(apiSlots.length === 0 ? msg : '');
       } else {
         console.error('BookingModal - Failed to fetch availability:', result.payload);
         setDayBookings([]);
         setTimeSlots([]);
+        setNoSlotsMessage('Unable to load availability. Please try another date.');
       }
     } catch (error) {
       console.error('BookingModal - Error fetching time slots:', error);
@@ -283,10 +292,21 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     }
   };
 
-  // Handle time slot selection
-  const handleTimeSlotSelect = (slot: TimeSlot) => {
-    setSelectedSlot(slot);
-    setSelectedTime(`${slot.start_time}-${slot.end_time}`);
+  // Handle time slot multi-select toggle
+  const handleTimeSlotToggle = (slot: TimeSlot) => {
+    setSelectedSlots(prev => {
+      const exists = prev.find(s => s.start_time === slot.start_time && s.end_time === slot.end_time);
+      const next = exists ? prev.filter(s => !(s.start_time === slot.start_time && s.end_time === slot.end_time)) : [...prev, slot];
+      next.sort((a, b) => a.start_time.localeCompare(b.start_time));
+      if (next.length > 0) {
+        const rangeStart = next[0].start_time;
+        const rangeEnd = next[next.length - 1].end_time;
+        setSelectedTime(`${rangeStart}-${rangeEnd}`);
+      } else {
+        setSelectedTime('');
+      }
+      return next;
+    });
   };
 
   // Calculate total amount
@@ -294,17 +314,19 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     return studio?.pricing?.hourly_rate || studio?.pricing?.hourlyRate || 100;
   }, [studio]);
 
-  const totalAmount = useMemo(() => {
-    return selectedDurationHours * (studioHourlyRate + equipmentHourlySubtotal);
-  }, [selectedDurationHours, studioHourlyRate, equipmentHourlySubtotal]);
-
-  const equipmentTotal = useMemo(() => {
-    return equipmentHourlySubtotal * selectedDurationHours;
-  }, [equipmentHourlySubtotal, selectedDurationHours]);
+  const totalHours = useMemo(() => selectedSlots.length, [selectedSlots]);
 
   const studioTotal = useMemo(() => {
-    return studioHourlyRate * selectedDurationHours;
-  }, [studioHourlyRate, selectedDurationHours]);
+    return studioHourlyRate * totalHours;
+  }, [studioHourlyRate, totalHours]);
+
+  const equipmentTotal = useMemo(() => {
+    return equipmentHourlySubtotal * totalHours;
+  }, [equipmentHourlySubtotal, totalHours]);
+
+  const totalAmount = useMemo(() => {
+    return studioTotal + equipmentTotal;
+  }, [studioTotal, equipmentTotal]);
 
   // Load selected equipments from storage to compute hourly subtotal
   useEffect(() => {
@@ -362,20 +384,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     fetchNames();
   }, [visible, studio?.id]);
 
-  // Recalculate time slots when duration changes (after date is selected)
-  useEffect(() => {
-    if (selectedDate && showTimeSlots) {
-      const newSlots = generateAvailableTimeSlots(dayBookings, selectedDurationHours);
-      setTimeSlots(newSlots);
-      // Reset selected slot if it no longer fits new duration
-      setSelectedSlot(null);
-      setSelectedTime('');
-    }
-  }, [selectedDurationHours]);
+  // Slots come directly from API; no duration-based recalculation needed
 
   // Handle Razorpay payment and booking creation
   const handleBookNow = async () => {
-    if (!selectedDate || !selectedSlot) {
+    if (!selectedDate || selectedSlots.length === 0) {
       Alert.alert('Error', 'Please select a date and time slot');
       return;
     }
@@ -431,11 +444,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
           console.log('Payment successful:', data);
 
           try {
+            const sorted = [...selectedSlots].sort((a,b) => a.start_time.localeCompare(b.start_time));
             const bookingPayload = {
               studio_id: String(studio.id),
               booking_date: selectedDate,
-              start_time: selectedSlot.start_time,
-              end_time: selectedSlot.end_time,
+              start_time: sorted[0].start_time,
+              end_time: sorted[sorted.length - 1].end_time,
               total_amount: totalAmount,
             };
 
@@ -480,9 +494,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                 try { await AsyncStorage.removeItem(`selected_equipment_${studio.id}`); } catch { }
               }
               // Show cool UI success modal instead of native alert
+              const rangeStart = sorted[0].start_time;
+              const rangeEnd = sorted[sorted.length - 1].end_time;
               setSuccessInfo({
                 dateText: formatDateForDisplay(selectedDate),
-                timeRange: `${formatTime(selectedSlot.start_time)} to ${formatTime(selectedSlot.end_time)}`,
+                timeRange: `${formatTime(rangeStart)} to ${formatTime(rangeEnd)}`,
                 paymentId: data.razorpay_payment_id,
                 totalAmount: totalAmount,
               });
@@ -641,36 +657,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
             </View>
           </View>
 
-          {/* Duration selection - placed BEFORE time slots */}
-          {showTimeSlots && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                <Icon name="schedule" size={20} color={COLORS.primary} /> Select Duration
-              </Text>
-
-              <View style={styles.durationContainer}>
-                {[2, 4, 6, 8].map((hours) => (
-                  <TouchableOpacity
-                    key={hours}
-                    style={[
-                      styles.durationOption,
-                      selectedDurationHours === hours && styles.selectedDuration,
-                    ]}
-                    onPress={() => setSelectedDurationHours(hours)}
-                  >
-                    <Text style={[
-                      styles.durationText,
-                      selectedDurationHours === hours && styles.selectedDurationText,
-                    ]}>
-                      {hours}h
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Pricing summary moved below time slots */}
-            </View>
-          )}
+          {/* Duration selection removed; using API-provided 1-hour slots with multi-select */}
 
           {/* Time Slots Section - filtered by selected duration */}
           {showTimeSlots && (
@@ -685,50 +672,56 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
 
               {availabilityState.loading ? (
                 <TimeSlotSkeleton />
-              ) : (
-                <View style={styles.timeSlotsContainer}>
-                  {timeSlots.map((slot, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.timeSlot,
-                        slot.is_booked && styles.bookedSlot,
-                        selectedSlot === slot && styles.selectedSlot,
-                      ]}
-                      disabled={slot.is_booked}
-                      onPress={() => handleTimeSlotSelect(slot)}
-                    >
-                      <View style={styles.timeSlotContent}>
-                        <Text style={[
-                          styles.timeSlotText,
-                          slot.is_booked && styles.bookedSlotText,
-                          selectedSlot === slot && styles.selectedSlotText,
-                        ]}>
-                          {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                        </Text>
-                        <View style={[
-                          styles.statusBadge,
-                          slot.is_booked ? styles.bookedBadge : styles.availableBadge,
-                        ]}>
+      ) : (
+                timeSlots.length === 0 ? (
+                  <View style={styles.noSlotsContainer}>
+                    <Text style={styles.noSlotsText}>{noSlotsMessage || 'No available slots for this date'}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.timeSlotsContainer}>
+                    {timeSlots.map((slot, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.timeSlot,
+                          slot.is_booked && styles.bookedSlot,
+                          selectedSlots.some(s => s.start_time === slot.start_time && s.end_time === slot.end_time) && styles.selectedSlot,
+                        ]}
+                        disabled={slot.is_booked}
+                        onPress={() => handleTimeSlotToggle(slot)}
+                      >
+                        <View style={styles.timeSlotContent}>
                           <Text style={[
-                            styles.statusBadgeText,
-                            slot.is_booked ? styles.bookedBadgeText : styles.availableBadgeText,
+                            styles.timeSlotText,
+                            slot.is_booked && styles.bookedSlotText,
+                            selectedSlots.some(s => s.start_time === slot.start_time && s.end_time === slot.end_time) && styles.selectedSlotText,
                           ]}>
-                            {slot.is_booked ? 'Booked' : 'Available'}
+                            {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                           </Text>
+                          <View style={[
+                            styles.statusBadge,
+                            slot.is_booked ? styles.bookedBadge : styles.availableBadge,
+                          ]}>
+                            <Text style={[
+                              styles.statusBadgeText,
+                              slot.is_booked ? styles.bookedBadgeText : styles.availableBadgeText,
+                            ]}>
+                              {slot.is_booked ? 'Booked' : 'Available'}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )
               )}
 
               {/* Pricing summary card below available slots - with detailed equipment lines */}
               <View style={styles.pricingCard}>
                 <Text style={styles.pricingTitle}>Price Details</Text>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Duration:</Text>
-                  <Text style={styles.pricingValue}>{selectedDurationHours} hours</Text>
+                  <Text style={styles.pricingLabel}>Selected Hours:</Text>
+                  <Text style={styles.pricingValue}>{totalHours} hours</Text>
                 </View>
 
                 <Text style={styles.pricingSubHeader}>Equipments:</Text>
@@ -738,7 +731,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                     const label = rawName && rawName.toLowerCase() !== 'equipment'
                       ? rawName
                       : (equipmentNameMap[item.equipment_id] || `Equipment #${item.equipment_id}`);
-                    const lineAmount = (item.hourly_rate || 0) * item.quantity * selectedDurationHours;
+                    const lineAmount = (item.hourly_rate || 0) * item.quantity * totalHours;
                     return (
                       <View key={`${item.equipment_id}-${idx}`} style={styles.pricingRowItem}>
                         <View style={styles.pricingRowItemLeft}>
@@ -769,7 +762,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
               </View>
 
               {/* Book Button */}
-              {selectedSlot && (
+              {selectedSlots.length > 0 && (
                 <TouchableOpacity
                   style={[styles.bookButton, isBooking && styles.bookButtonDisabled]}
                   onPress={handleBookNow}
@@ -803,9 +796,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
           // Reset states
           setSelectedDate('');
           setSelectedTime('');
-          setSelectedSlot(null);
+          setSelectedSlots([]);
           setShowTimeSlots(false);
-          setSelectedDurationHours(2);
         }}
       />
     </Modal>
@@ -1003,6 +995,17 @@ const styles = StyleSheet.create({
   },
   bookedBadgeText: {
     color: '#991B1B',
+  },
+  noSlotsContainer: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  noSlotsText: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+    ...typography.medium,
   },
   durationContainer: {
     flexDirection: 'row',

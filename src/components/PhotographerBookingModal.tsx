@@ -53,12 +53,13 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
   const dispatch = useAppDispatch();
   const availabilityState = useAppSelector(state => state.photographers.availability);
   const bookingState = useAppSelector(state => state.photographers.booking);
+console.log(availabilityState,'availabilityState');
 
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState('');
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>([]);
   const [showTimeSlots, setShowTimeSlots] = useState(false);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isBooking, setIsBooking] = useState(false);
@@ -70,8 +71,10 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
 
   const totalAmount = useMemo(() => {
     if (!selectedService) return 0;
-    return selectedService.base_price;
-  }, [selectedService]);
+    const pricePerHour = Number(selectedService?.base_price || selectedService?.hourly_rate || 0);
+    const hours = selectedSlots.length; // each selected slot is 1 hour
+    return pricePerHour * hours;
+  }, [selectedService, selectedSlots]);
 
   // Helpers to convert time strings <HH:MM[:SS]> to minutes and back
   const timeToMinutes = (t: string) => {
@@ -97,63 +100,18 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
     });
   };
 
-  const generateAvailableTimeSlots = (rawSlots: any[]) => {
-    const durationHours = Number(selectedService?.duration_hours || 2);
-    const durationMins = durationHours * 60;
-
-    const addHours = (time: string, hoursToAdd: number) => {
-      // Accepts 'HH:MM' or 'HH:MM:SS' and returns 'HH:MM:SS'
-      const [h, m] = time.split(':');
-      const hour = parseInt(h, 10);
-      const endHour = hour + hoursToAdd;
-      return `${String(endHour).padStart(2, '0')}:${m}${m.length === 2 ? ':00' : ''}`;
-    };
-
+  // Map normalized API slots (already 1-hour windows) to component state
+  const mapApiSlots = (rawSlots: any[]) => {
     const normalize = (time: string) => {
-      // Normalize to 'HH:MM:SS'
       if (/^\d{2}:\d{2}$/.test(time)) return `${time}:00`;
       return time;
     };
-
-    // If API returns explicit slots
-    if (rawSlots && rawSlots.length > 0) {
-      const expanded: TimeSlot[] = [];
-      rawSlots.forEach((slot: any) => {
-        // Support both {start_time,end_time} and {time,available}
-        const start = normalize(slot.start_time || slot.time || '09:00');
-        const end = normalize(slot.end_time || addHours(start, durationHours));
-        const isAvailable = typeof slot.available === 'boolean' ? slot.available : !Boolean(slot.is_booked);
-
-        // Split window into service-sized chunks
-        const startMin = timeToMinutes(start);
-        const endMin = timeToMinutes(end);
-
-        for (let s = startMin; s + durationMins <= endMin; s += durationMins) {
-          const e = s + durationMins;
-          expanded.push({
-            start_time: minutesToTime(s),
-            end_time: minutesToTime(e),
-            is_booked: !isAvailable,
-          });
-        }
-      });
-
-      return expanded.filter((slot: TimeSlot) => {
-        // Ensure slot fits within working window 9–21
-        const startHour = parseInt(slot.start_time.split(':')[0], 10);
-        const endHour = parseInt(slot.end_time.split(':')[0], 10);
-        return startHour >= 9 && endHour <= 21 && endHour > startHour;
-      });
-    }
-
-    // Fallback: generate slots in increments of service duration
-    const slots: TimeSlot[] = [];
-    for (let hour = 9; hour + durationHours <= 21; hour += durationHours) {
-      const startTime = `${String(hour).padStart(2, '0')}:00:00`;
-      const endTime = `${String(hour + durationHours).padStart(2, '0')}:00:00`;
-      slots.push({ start_time: startTime, end_time: endTime, is_booked: false });
-    }
-    return slots;
+    if (!Array.isArray(rawSlots)) return [];
+    return rawSlots.map((slot: any) => ({
+      start_time: normalize(slot.start_time || slot.time || '09:00'),
+      end_time: normalize(slot.end_time || ''),
+      is_booked: !!slot.is_booked === true ? true : (slot.available === false ? true : false),
+    }));
   };
 
   const generateCalendarDays = (): (CalendarDay | null)[] => {
@@ -188,18 +146,18 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
 
   useEffect(() => {
     if (availabilityState.timeSlots) {
-      const slots = generateAvailableTimeSlots(availabilityState.timeSlots);
-      setSelectedSlot(null);
+      const slots = mapApiSlots(availabilityState.timeSlots);
+      setSelectedSlots([]);
       setTimeSlots(slots);
     }
-  }, [availabilityState.timeSlots, selectedService?.duration_hours]);
+  }, [availabilityState.timeSlots]);
 
   // Reset internal selection when modal closes to avoid stale state
   useEffect(() => {
     if (!visible) {
       setSelectedDate('');
       setShowTimeSlots(false);
-      setSelectedSlot(null);
+      setSelectedSlots([]);
       setTimeSlots([]);
     }
   }, [visible]);
@@ -207,18 +165,27 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
   const handleDateSelect = (day: CalendarDay) => {
     if (day.isPast) return;
     setSelectedDate(day.date);
-    setSelectedSlot(null);
+    setSelectedSlots([]);
     setShowTimeSlots(true);
   };
 
-  const handleTimeSlotSelect = (slot: TimeSlot) => {
+  // Free multi-select: toggle any 1-hour slot independently
+  const handleTimeSlotToggle = (slot: TimeSlot) => {
     if (slot.is_booked) return;
-    setSelectedSlot(slot);
+    setSelectedSlots(prev => {
+      const exists = prev.some(s => s.start_time === slot.start_time && s.end_time === slot.end_time);
+      const next = exists
+        ? prev.filter(s => !(s.start_time === slot.start_time && s.end_time === slot.end_time))
+        : [...prev, slot];
+      // Keep sorted for consistent range derivation
+      next.sort((a, b) => a.start_time.localeCompare(b.start_time));
+      return next;
+    });
   };
 
   const handleBookNow = async () => {
     if (!selectedService) return Alert.alert('Error', 'Please select a service');
-    if (!selectedDate || !selectedSlot) return Alert.alert('Error', 'Please select a date and time slot');
+    if (!selectedDate || selectedSlots.length === 0) return Alert.alert('Error', 'Please select a date and contiguous time slots');
     if (!photographerId) return Alert.alert('Error', 'Photographer information missing');
     if (!ENV.RAZORPAY_KEY_ID) return Alert.alert('Error', 'Missing Razorpay key');
     if (totalAmount <= 0) return Alert.alert('Error', 'Invalid booking amount');
@@ -242,12 +209,14 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
 
       RazorpayCheckout.open({ ...options, order_id: '' })
         .then(async (data: any) => {
+          const rangeStart = selectedSlots[0].start_time;
+          const rangeEnd = selectedSlots[selectedSlots.length - 1].end_time;
           const bookingPayload = {
             photographer_id: photographerId,
             service_id: String(selectedService.id),
             booking_date: selectedDate,
-            start_time: selectedSlot.start_time,
-            end_time: selectedSlot.end_time,
+            start_time: rangeStart,
+            end_time: rangeEnd,
             total_amount: totalAmount,
           };
 
@@ -257,7 +226,7 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
           if (createPhotographerBooking.fulfilled.match(result)) {
             Alert.alert(
               'Booking Successful!',
-              `Your booking is confirmed for ${selectedDate} from ${selectedSlot.start_time} to ${selectedSlot.end_time}.`,
+              `Your booking is confirmed for ${selectedDate} from ${rangeStart} to ${rangeEnd}.`,
               [{ text: 'OK', onPress: onClose }],
             );
           } else throw new Error('Booking failed');
@@ -308,12 +277,12 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
           <View style={styles.serviceInfo}>
             <Text style={styles.serviceTitle}>{selectedService?.title || 'Service'}</Text>
             <Text style={styles.servicePrice}>₹{(selectedService?.base_price || 0).toLocaleString()}</Text>
-            {selectedService ? (
+            {/* {selectedService ? (
               <View style={styles.serviceMetaRow}>
                 <Text style={styles.serviceMetaLabel}>Duration:</Text>
                 <Text style={styles.serviceMetaValue}>{selectedService.duration_hours} hours</Text>
               </View>
-            ) : null}
+            ) : null} */}
             {selectedService?.equipment_included?.length ? (
               <View style={styles.serviceMetaRow}>
                 <Text style={styles.serviceMetaLabel}>Includes:</Text>
@@ -395,7 +364,7 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
                   <ActivityIndicator size="large" color={COLORS.primary} />
                   <Text style={styles.loadingText}>Loading time slots...</Text>
                 </View>
-              ) : (
+              ) : timeSlots.length > 0 ? (
                 <View style={styles.timeSlotsContainer}>
                   {timeSlots.map((slot, index) => (
                     <TouchableOpacity
@@ -403,16 +372,16 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
                       style={[
                         styles.timeSlot,
                         slot.is_booked && styles.bookedSlot,
-                        selectedSlot === slot && styles.selectedSlot,
+                        selectedSlots.some(s => s.start_time === slot.start_time && s.end_time === slot.end_time) && styles.selectedSlot,
                       ]}
                       disabled={slot.is_booked}
-                      onPress={() => handleTimeSlotSelect(slot)}
+                      onPress={() => handleTimeSlotToggle(slot)}
                     >
                       <View style={styles.timeSlotContent}>
                         <Text style={[
                           styles.timeSlotText,
                           slot.is_booked && styles.bookedSlotText,
-                          selectedSlot === slot && styles.selectedSlotText,
+                          selectedSlots.some(s => s.start_time === slot.start_time && s.end_time === slot.end_time) && styles.selectedSlotText,
                         ]}>
                           {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                         </Text>
@@ -431,17 +400,26 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
                     </TouchableOpacity>
                   ))}
                 </View>
+              ) : (
+                <View style={styles.emptySlotsContainer}>
+                  <Text style={styles.emptySlotsText}>No time slots available for this date.</Text>
+                  <Text style={styles.emptySlotsSubText}>Try another date or service.</Text>
+                </View>
               )}
 
-              {/* Pricing summary card */}
+              {/* Pricing summary card: updates with selected hours */}
               <View style={styles.pricingCard}>
                 <View style={styles.pricingRow}>
                   <Text style={styles.pricingLabel}>Service:</Text>
                   <Text style={styles.pricingValue}>{selectedService?.title || '-'}</Text>
                 </View>
                 <View style={styles.pricingRow}>
-                  <Text style={styles.pricingLabel}>Price:</Text>
-                  <Text style={styles.pricingValue}>₹{(selectedService?.base_price || 0).toLocaleString()}</Text>
+                  <Text style={styles.pricingLabel}>Selected Hours:</Text>
+                  <Text style={styles.pricingValue}>{selectedSlots.length} hour(s)</Text>
+                </View>
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>Price / hour:</Text>
+                  <Text style={styles.pricingValue}>₹{Number(selectedService?.base_price || selectedService?.hourly_rate || 0).toLocaleString()}</Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.pricingRow}>
@@ -451,7 +429,7 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
               </View>
 
               {/* Book Button */}
-              {selectedSlot && (
+              {selectedSlots.length > 0 && (
                 <TouchableOpacity
                   style={[styles.bookButton, isBooking && styles.bookButtonDisabled]}
                   onPress={handleBookNow}
@@ -627,6 +605,24 @@ const styles = StyleSheet.create({
   },
   timeSlotsContainer: {
     gap: 12,
+  },
+  emptySlotsContainer: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  emptySlotsText: {
+    fontSize: 16,
+    ...typography.semibold,
+    color: COLORS.text.primary,
+    marginBottom: 6,
+  },
+  emptySlotsSubText: {
+    fontSize: 14,
+    ...typography.regular,
+    color: COLORS.text.secondary,
   },
   timeSlot: {
     backgroundColor: COLORS.surface,

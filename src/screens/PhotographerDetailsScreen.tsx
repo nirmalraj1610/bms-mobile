@@ -289,7 +289,7 @@ const PhotographerDetailsScreen: React.FC = () => {
                   <Text style={styles.serviceDescription}>{service.description}</Text>
                   <View style={styles.serviceDetails}>
                     <Text style={styles.servicePrice}>₹{service.base_price || service.hourly_rate}</Text>
-                    <Text style={styles.serviceDuration}>{service.duration_hours}h</Text>
+                    {/* <Text style={styles.serviceDuration}>{service.duration_hours}h</Text> */}
                   </View>
                   {service.equipment_included && service.equipment_included.length > 0 && (
                     <Text style={styles.serviceEquipment}>

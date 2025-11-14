@@ -150,7 +150,8 @@ export async function photographerDetail(id: string) {
 }
 
 export async function photographerAvailability(id: string, date?: string) {
-  return apiFetch<any>(`/photographer-availability`, { method: 'GET', query: { photographer_id: id, date }, auth: false });
+  // Attach auth to avoid unauthorized logs and ensure protected endpoints work
+  return apiFetch<any>(`/photographer-availability`, { method: 'GET', query: { photographer_id: id, date }, auth: true });
 }
 
 export async function photographerBookingCreate(payload: { booking_id: string; photographer_id: string; service_id: string }) {

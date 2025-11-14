@@ -89,7 +89,33 @@ export const fetchPhotographerServices = async (photographerId: string) => {
 
 export const fetchPhotographerAvailability = async (id: string, date?: string) => {
   try {
-    return await photographerAvailability(id, date);
+    const res = await photographerAvailability(id, date);
+
+    // Normalize API response into the shape used by the UI: { date, timeSlots }
+    // Expected API sample:
+    // {
+    //   date: "2025-11-16",
+    //   available_slots: [{ start_time: "10:00", end_time: "11:00" }, ...],
+    //   booked_slots: [{ start_time: "09:00", end_time: "10:00" }, ...]
+    // }
+
+    const normalize = (t: string | undefined) => {
+      if (!t) return '';
+      // Convert HH:MM to HH:MM:SS
+      return /^\d{2}:\d{2}$/.test(t) ? `${t}:00` : t;
+    };
+
+    const available = Array.isArray(res?.available_slots) ? res.available_slots : [];
+    const timeSlots = available.map((s: any) => ({
+      start_time: normalize(s?.start_time),
+      end_time: normalize(s?.end_time),
+      is_booked: false,
+    }));
+
+    return {
+      date: res?.date || date || new Date().toISOString().split('T')[0],
+      timeSlots,
+    };
   } catch (error: any) {
     // If the API endpoint doesn't exist (404), return mock data
     if (error.message?.includes('404') || error.message?.includes('Not Found')) {

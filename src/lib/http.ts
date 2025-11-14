@@ -104,8 +104,10 @@ export async function apiFetch<T>(
     if (authHeader) {
       const preview = authHeader.slice(0, 20) + '...';
       console.log('[apiFetch] Authorization header attached:', preview);
+    } else if (auth) {
+      console.log('[apiFetch] Authorization header missing (no token found)');
     } else {
-      console.log('[apiFetch] Authorization header NOT attached');
+      console.log('[apiFetch] Authorization header intentionally omitted (auth:false)');
     }
   } catch {}
 
