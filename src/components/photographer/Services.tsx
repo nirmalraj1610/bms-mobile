@@ -10,6 +10,7 @@ import { getUserData } from "../../lib/http";
 import { createPhotographerServices, getPhotographerServices, updatePhotographerServices } from "../../features/photographers/photographersSlice";
 import imagePaths from "../../constants/imagePaths";
 import ServicesSkeleton from "../skeletonLoaders/Photographer/ServicesSkeleton";
+import { typography } from "../../constants/typography";
 
 
 // --- Main Component ---
@@ -191,12 +192,12 @@ export const ServicesComponent = () => {
                     {/* Text Info */}
                     <View style={styles.cardTextContainer}>
                         <Text style={styles.studioName}>{item.title}</Text>
-                        <Text style={styles.studioDesc}>{item.description}</Text>
-                        <Text style={styles.avaliable}>Duration : <Text style={{ ...styles.avaliable, fontWeight: '600' }}> {item.duration_hours} hours</Text></Text>
-                        <Text style={styles.avaliable}>Service : <Text style={{ ...styles.avaliable, fontWeight: '600' }}>{item.service_type}</Text></Text>
+                        <Text numberOfLines={3} style={styles.studioDesc}>{item.description}</Text>
+                        <Text style={styles.avaliable}>Duration : <Text style={{ ...styles.avaliable, ...typography.semibold, }}> {item.duration_hours} hours</Text></Text>
+                        <Text style={styles.avaliable}>Service : <Text style={{ ...styles.avaliable, ...typography.semibold, }}>{item.service_type}</Text></Text>
                         <Text style={styles.avaliable}>Equipments included:</Text>
                         {item.equipment_included?.length > 0 ? (
-                            <Text style={{ ...styles.avaliable, fontWeight: '600' }}>
+                            <Text style={{ ...styles.avaliable, ...typography.semibold, }}>
                                 {item.equipment_included.join(', ')}
                             </Text>
                         ) : null}
@@ -371,7 +372,7 @@ export const ServicesComponent = () => {
                             maxHeight={300}
                             labelField="label"
                             valueField="value"
-                            placeholder="Select a equipment type"
+                            placeholder="Select a service type"
                             value={addService.serviceType}
                             onChange={(item) => {
                                 setAddservice({ ...addService, serviceType: item.value });
@@ -384,7 +385,7 @@ export const ServicesComponent = () => {
                                 <Text style={styles.selectedText}>
                                     {selectedEquipments.join(', ')}
                                 </Text> :
-                                <Text style={styles.label}>Select equipment type</Text>
+                                <Text style={styles.label}>Select equipment included</Text>
                             }
                             <Icon
                                 name={showDropdown ? 'expand-less' : 'expand-more'}
@@ -466,12 +467,14 @@ const styles = StyleSheet.create({
     studioName: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#034833'
+        color: '#034833',
+        ...typography.bold,
     },
     studioDesc: {
-        fontSize: 12,
+        fontSize: 10,
         color: '#666',
         marginTop: 2,
+        ...typography.regular,
     },
     equipmentType: {
         fontSize: 14,
@@ -483,18 +486,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#101010',
         marginTop: 2,
+        ...typography.regular,
     },
     price: {
         fontSize: 18,
         color: '#FF6B35',
         fontWeight: '600',
         marginTop: 2,
+        ...typography.bold,
     },
     labelText: {
-        color: '#6C757D',
-        fontSize: 15,
+        color: '#101010',
+        fontSize: 16,
         fontWeight: "500",
         marginBottom: 6,
+        ...typography.semibold,
     },
     required: {
         color: '#DC3545'
@@ -509,6 +515,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         backgroundColor: "#ffffff",
         fontWeight: '600',
+        ...typography.medium,
     },
     textArea: {
         height: 100,
@@ -525,8 +532,9 @@ const styles = StyleSheet.create({
     },
     viewButtonText: {
         fontWeight: '600',
-        fontSize: 13,
-        color: '#FFFFFF'
+        fontSize: 12,
+        color: '#FFFFFF',
+        ...typography.semibold,
     },
     createButton: {
         backgroundColor: "#034833",
@@ -540,6 +548,7 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontWeight: "bold",
         fontSize: 16,
+        ...typography.semibold,
     },
     uploadButton: {
         borderWidth: 1,
@@ -558,22 +567,26 @@ const styles = StyleSheet.create({
         color: "#101010",
         fontSize: 16,
         marginTop: 10,
+        ...typography.bold,
     },
     uploadTextDesc: {
         fontSize: 13,
         color: "#555",
         marginTop: 5,
+        ...typography.semibold,
     },
     supportedFilesText: {
         fontSize: 12,
         color: "#777",
         marginTop: 5,
         textAlign: "center",
+        ...typography.medium,
     },
     chooseFilesText: {
         marginTop: 10,
         fontWeight: "bold",
         color: "#034833",
+        ...typography.semibold,
     },
     selectedImage: {
         height: 150,
@@ -613,9 +626,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: COLORS.text.secondary,
         marginLeft: 6,
+        ...typography.semibold,
     },
     toggleButtonTextActive: {
         color: COLORS.background,
+        ...typography.bold,
     },
     dropdown: {
         height: 50,
@@ -629,17 +644,20 @@ const styles = StyleSheet.create({
     placeholderStyle: {
         fontSize: 14,
         color: '#999',
+        ...typography.semibold,
     },
     selectedTextStyle: {
         fontSize: 14,
         color: '#101010',
         fontWeight: '600',
+        ...typography.semibold,
     },
     inputSearchStyle: {
         height: 40,
         fontSize: 14,
         color: '#101010',
-        borderRadius: 10
+        borderRadius: 10,
+        ...typography.semibold,
     },
     dropdownContainerStyle: {
         borderRadius: 10,
@@ -671,12 +689,14 @@ const styles = StyleSheet.create({
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500'
+        fontWeight: '500',
+        ...typography.bold,
     },
     addStudioDesc: {
         fontSize: 14,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
+        ...typography.semibold,
     },
     addStudioBtn: {
         marginTop: 10,
@@ -691,7 +711,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
+        ...typography.bold,
     },
     infoRow: {
         borderWidth: 1,
@@ -714,16 +734,19 @@ const styles = StyleSheet.create({
     optionLabel: {
         fontSize: 14,
         color: '#101010',
-        fontWeight: '500'
+        fontWeight: '500',
+        ...typography.semibold,
     },
     selectedText: {
         fontSize: 14,
         color: '#101010',
         fontWeight: '600',
+        ...typography.semibold,
     },
     label: {
-        fontSize: 15,
-        color: '#ccc',
+        fontSize: 14,
+        color: '#9A9696',
+        ...typography.medium,
     },
 
 });

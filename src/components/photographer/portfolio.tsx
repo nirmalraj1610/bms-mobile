@@ -9,6 +9,7 @@ import { getUserData } from "../../lib/http";
 import { createPhotographerPortfolio, getPhotographerPortfolio } from "../../features/photographers/photographersSlice";
 import imagePaths from "../../constants/imagePaths";
 import PortfolioSkeleton from "../skeletonLoaders/Photographer/PortfolioSkeleton";
+import { typography } from "../../constants/typography";
 
 
 // --- Main Component ---
@@ -26,42 +27,6 @@ export const PortfolioComponent = () => {
         featured: false,
     });
     const [activeTab, setActiveTab] = useState("Portfolio"); // 'Portfolio' or 'Add Portfolio'
-
-    // --- Data for the Studio Cards ---
-    const serviceData = [
-        {
-            id: '1',
-            title: 'wedding',
-            category: 'Wedding Photography',
-            desc: 'we can give the best wedding photo service',
-            featured: true,
-            image: 'https://fotocentreindia.com/wp-content/uploads/2020/01/Ulanzi-MT-08-Extendable-Mini-Tripod-Online-Buy-Mumbai-India-4.jpg' // Placeholder image
-        },
-        {
-            id: '2',
-            title: 'Pre-wedding',
-            category: 'Engagement & Pre-wedding Shoots',
-            desc: 'Professional Engagement & Pre-wedding photography',
-            featured: false,
-            image: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcQffoQTJWbabG47mNsJsEE8PUiVEPx-XPvbwFklqWMiJ2u5wPPubzud4oS-JJKtCwS4SfBcq1gHG1JZorjn-hLc059j9dT-uIrtWMNJwUkZDRUnbViSxJWI'
-        },
-        {
-            id: '3',
-            title: 'Birthday',
-            category: 'Birthday Parties',
-            desc: 'Birthday coverage with 2 photographers and drone shots',
-            featured: true,
-            image: 'https://atlas-content-cdn.pixelsquid.com/assets_v2/275/2750427660483040505/jpeg-600/G03.jpg'
-        },
-        {
-            id: '4',
-            title: 'Corporate',
-            category: 'Corporate Events',
-            desc: 'Gneral meetings and Corporate events',
-            featured: false,
-            image: 'https://3.imimg.com/data3/VH/BQ/GLADMIN-119035/photo-studio-equipment-250x250.jpg'
-        },
-    ];
 
     useEffect(() => {
         if (activeTab === "Portfolio") {
@@ -201,10 +166,10 @@ export const PortfolioComponent = () => {
 
                     {/* Text Info */}
                     <View style={styles.cardTextContainer}>
-                        <Text style={styles.avaliable}>Photographer Id : <Text style={{ ...styles.avaliable, fontWeight: '600' }}> {item.photographer_id}</Text></Text>
+                        <Text style={styles.avaliable}>Photographer Id : <Text style={{ ...styles.avaliable, ...typography.semibold, }}> {item.photographer_id}</Text></Text>
                         <Text style={styles.studioName}>{item.title}</Text>
-                        <Text style={styles.studioDesc}>{item.description}</Text>
-                        <Text style={styles.avaliable}>Category : <Text style={{ ...styles.avaliable, fontWeight: '600' }}> {item.category}</Text></Text>
+                        <Text numberOfLines={3} style={styles.studioDesc}>{item.description}</Text>
+                        <Text style={styles.avaliable}>Category : <Text style={{ ...styles.avaliable, ...typography.semibold, }}> {item.category}</Text></Text>
 
                         {/* Edit Button (Bordered)  */}
                         <View style={styles.actionsContainer}>
@@ -432,27 +397,32 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 10,
         fontWeight: '600',
+        ...typography.medium,
     },
     studioName: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#034833'
+        color: '#034833',
+        ...typography.bold,
     },
     studioDesc: {
         fontSize: 12,
         color: '#666',
         marginTop: 2,
+        ...typography.regular,
     },
     avaliable: {
         fontSize: 12,
         color: '#101010',
         marginTop: 2,
+        ...typography.regular,
     },
     labelText: {
-        color: '#6C757D',
-        fontSize: 15,
+        color: '#101010',
+        fontSize: 16,
         fontWeight: "500",
         marginBottom: 6,
+        ...typography.semibold,
     },
     required: {
         color: '#DC3545'
@@ -467,6 +437,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         backgroundColor: "#ffffff",
         fontWeight: '600',
+        ...typography.semibold,
     },
     textArea: {
         height: 100,
@@ -482,8 +453,9 @@ const styles = StyleSheet.create({
     },
     viewButtonText: {
         fontWeight: '600',
-        fontSize: 13,
-        color: '#FFFFFF'
+        fontSize: 12,
+        color: '#FFFFFF',
+        ...typography.semibold,        
     },
     actionsContainer: {
         flexDirection: 'row',
@@ -502,6 +474,7 @@ const styles = StyleSheet.create({
         color: "#FFFFFF",
         fontWeight: "bold",
         fontSize: 16,
+        ...typography.semibold,
     },
     uploadButton: {
         borderWidth: 1,
@@ -520,22 +493,26 @@ const styles = StyleSheet.create({
         color: "#101010",
         fontSize: 16,
         marginTop: 10,
+        ...typography.bold,
     },
     uploadTextDesc: {
         fontSize: 13,
         color: "#555",
         marginTop: 5,
+        ...typography.semibold,
     },
     supportedFilesText: {
         fontSize: 12,
         color: "#777",
         marginTop: 5,
         textAlign: "center",
+        ...typography.medium,
     },
     chooseFilesText: {
         marginTop: 10,
         fontWeight: "bold",
         color: "#034833",
+        ...typography.semibold,
     },
     selectedImage: {
         height: 150,
@@ -549,8 +526,9 @@ const styles = StyleSheet.create({
     checkboxLabel: {
         marginLeft: 8,
         color: "#101010",
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: "500",
+        ...typography.semibold,
     },
     toggleContainer: {
         flexDirection: 'row',
@@ -585,9 +563,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: COLORS.text.secondary,
         marginLeft: 6,
+        ...typography.semibold,
     },
     toggleButtonTextActive: {
         color: COLORS.background,
+        ...typography.bold,
     },
     noStudioOutline: {
         alignItems: 'center',
@@ -607,12 +587,14 @@ const styles = StyleSheet.create({
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500'
+        fontWeight: '500',
+        ...typography.bold,
     },
     addStudioDesc: {
         fontSize: 14,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
+        ...typography.semibold,
     },
     addStudioBtn: {
         marginTop: 10,
@@ -628,5 +610,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: '600',
+        ...typography.bold,
     },
 });

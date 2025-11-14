@@ -1,9 +1,10 @@
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { typography } from "../constants/typography";
 
 const ConfirmationModal = ({
     Visible = false,
-    onClose = () => { },
-    onSubmit = () => { },
+    onClose = () => {},
+    onSubmit = () => {},
 }) => {
     return (
         <Modal
@@ -14,9 +15,21 @@ const ConfirmationModal = ({
         >
             <View style={styles.overlay}>
                 <View style={styles.modalBox}>
-                    <Text style={styles.modalTitle}>Are you sure you want to log out?</Text>
 
-                    <View style={styles.modalActions}>
+                    {/* Header */}
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalHeaderText}>Logout</Text>
+                    </View>
+
+                    {/* Content */}
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>
+                            Are you sure you want to log out?
+                        </Text>
+                    </View>
+
+                    {/* Footer */}
+                    <View style={styles.modalFooter}>
                         <TouchableOpacity
                             style={[styles.modalButton, styles.cancelButton]}
                             onPress={onClose}
@@ -31,58 +44,91 @@ const ConfirmationModal = ({
                             <Text style={styles.okText}>Logout</Text>
                         </TouchableOpacity>
                     </View>
+
                 </View>
             </View>
         </Modal>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.45)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0,0,0,0.45)",
+        justifyContent: "center",
+        alignItems: "center",
     },
+
     modalBox: {
-        backgroundColor: '#fff',
-        width: '80%',
+        backgroundColor: "#fff",
+        width: "80%",
         borderRadius: 16,
-        padding: 24,
+        padding: 0,
+        overflow: "hidden",
         elevation: 8,
     },
+
+    /* Header */
+    modalHeader: {
+        paddingVertical: 15,
+        alignItems: "center",
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E5E5",
+        backgroundColor: "#F9F9F9",
+    },
+    modalHeaderText: {
+        fontSize: 18,
+        color: "#101010",
+        ...typography.bold,
+    },
+
+    /* Content */
+    modalContent: {
+        padding: 20,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
     modalTitle: {
-        fontSize: 16,
-        color: '#6C757D',
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '600',
+        fontSize: 14,
+        color: "#6C757D",
+        textAlign: "center",
+        ...typography.semibold,
     },
-    modalActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+
+    /* Footer */
+    modalFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        padding: 15,
+        borderTopWidth: 1,
+        borderTopColor: "#E5E5E5",
+        backgroundColor: "#F9F9F9",
     },
+
     modalButton: {
         flex: 1,
-        paddingVertical: 10,
+        paddingVertical: 12,
         borderRadius: 8,
-        alignItems: 'center',
+        alignItems: "center",
     },
+
     cancelButton: {
-        backgroundColor: '#DC3545',
+        backgroundColor: "#DC3545",
         marginRight: 8,
     },
     okButton: {
-        backgroundColor: '#034833',
+        backgroundColor: "#034833",
         marginLeft: 8,
     },
+
     cancelText: {
-        color: '#FFFFFF',
-        fontWeight: '600',
+        color: "#FFFFFF",
+        fontWeight: "600",
     },
     okText: {
-        color: '#fff',
-        fontWeight: '600',
+        color: "#fff",
+        fontWeight: "600",
     },
 });
 

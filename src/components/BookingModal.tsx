@@ -314,7 +314,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     return studio?.pricing?.hourly_rate || studio?.pricing?.hourlyRate || 100;
   }, [studio]);
 
-  const totalHours = useMemo(() => selectedSlots.length, [selectedSlots]);
+  const totalHours = useMemo(() => selectedSlots?.length, [selectedSlots]);
 
   const studioTotal = useMemo(() => {
     return studioHourlyRate * totalHours;

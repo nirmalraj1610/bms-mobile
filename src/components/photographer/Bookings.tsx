@@ -9,6 +9,7 @@ import imagePaths from "../../constants/imagePaths";
 import CancelPhotographerBookingModal from "./CancelPhotographerBookingModal";
 import AcceptPhotographerBookingModal from "./AcceptPhotographerBookingModal";
 import BookingsSkeleton from "../skeletonLoaders/Photographer/BookingsSkeleton";
+import { typography } from "../../constants/typography";
 
 export const BookingsComponent = () => {
     const filterOptions = [
@@ -139,9 +140,9 @@ export const BookingsComponent = () => {
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>
-                            Booking ID:<Text style={{ fontWeight: '600' }}> {item.id}</Text>
+                            Booking ID:<Text style={{ ...typography.semibold, }}> {item.id}</Text>
                         </Text>
-                        <Text style={styles.time}>Booked on :<Text style={{ fontWeight: '600' }}> {item.booking_date}</Text></Text>
+                        <Text style={styles.time}>Booked on :<Text style={{ ...typography.semibold, }}> {item.booking_date}</Text></Text>
                         <Text style={styles.name}>{item?.customer?.full_name}</Text>
                         <Text style={styles.studio}>{item?.service?.service_type} ({item?.booking_type})</Text>
                         <Text style={styles.time}>{item.start_time} - {item.end_time}</Text>
@@ -425,11 +426,13 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: '#2F2F2F',
         fontWeight: '500',
+        ...typography.medium,
     },
     bgCountText: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#FF6B35',
         fontWeight: '700',
+        ...typography.bold,
     },
     card: {
         backgroundColor: '#fff',
@@ -480,17 +483,19 @@ const styles = StyleSheet.create({
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500'
+        fontWeight: '500',
+        ...typography.bold,
     },
     addStudioDesc: {
         fontSize: 14,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
+        ...typography.semibold,
     },
     statusText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.regular,
     },
     cardContent: {
         flexDirection: 'row',
@@ -508,6 +513,7 @@ const styles = StyleSheet.create({
     bookingId: {
         fontSize: 12,
         color: '#2F2F2F',
+        ...typography.regular,
     },
     date: {
         fontSize: 12,
@@ -518,15 +524,18 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#034833',
         marginTop: 2,
+        ...typography.extrabold,
     },
     studio: {
         fontSize: 12,
         color: '#2F2F2F',
+        ...typography.bold,
     },
     time: {
         fontSize: 12,
         color: '#2F2F2F',
         marginTop: 2,
+        ...typography.semibold,
     },
     paymentOutline: {
         flexDirection: 'row',
@@ -538,6 +547,7 @@ const styles = StyleSheet.create({
         color: '#FF6B35',
         fontWeight: '600',
         marginTop: 2,
+        ...typography.bold,
     },
     paid: {
         fontSize: 16,
@@ -569,6 +579,7 @@ const styles = StyleSheet.create({
         color: '#007BFF',
         fontSize: 12,
         fontWeight: '600',
+        ...typography.semibold,
     },
     declineBtn: {
         borderWidth: 1,
@@ -582,6 +593,7 @@ const styles = StyleSheet.create({
         color: '#DC3545',
         fontSize: 12,
         fontWeight: '600',
+        ...typography.semibold,
     },
     acceptBtn: {
         backgroundColor: '#034833',
@@ -594,6 +606,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 12,
         fontWeight: '600',
+        ...typography.semibold,
     },
     timeRow: {
         flexDirection: "row",
@@ -612,10 +625,12 @@ const styles = StyleSheet.create({
     timeLabel: {
         fontSize: 13,
         color: "#555",
+        ...typography.semibold,
     },
     timeValue: {
         fontSize: 15,
         fontWeight: "600",
         color: "#1B4332",
+        ...typography.bold,
     },
 })

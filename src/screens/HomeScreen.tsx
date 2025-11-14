@@ -1602,9 +1602,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   locationLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: COLORS.text.secondary,
     marginBottom: 2,
+    ...typography.medium,
   },
   locationRow: {
     flexDirection: 'row',

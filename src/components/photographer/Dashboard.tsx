@@ -8,6 +8,7 @@ import imagePaths from "../../constants/imagePaths";
 import CancelPhotographerBookingModal from "./CancelPhotographerBookingModal";
 import AcceptPhotographerBookingModal from "./AcceptPhotographerBookingModal";
 import BookingsSkeleton from "../skeletonLoaders/Photographer/BookingsSkeleton";
+import { typography } from "../../constants/typography";
 
 export const DashboardComponent = () => {
     const filterOptions = [
@@ -105,9 +106,9 @@ export const DashboardComponent = () => {
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>
-                            Booking ID:<Text style={{ fontWeight: '600' }}> {item.id}</Text>
+                            Booking ID:<Text style={{ ...typography.semibold, }}> {item.id}</Text>
                         </Text>
-                        <Text style={styles.time}>Booked on :<Text style={{ fontWeight: '600' }}> {item.booking_date}</Text></Text>
+                        <Text style={styles.bookingId}>Booked on :<Text style={{ ...typography.semibold, }}> {item.booking_date}</Text></Text>
                         <Text style={styles.name}>{item?.customer?.full_name}</Text>
                         <Text style={styles.studio}>{item?.service?.service_type} ({item?.booking_type})</Text>
                         <Text style={styles.time}>{item.start_time} - {item.end_time}</Text>
@@ -319,14 +320,16 @@ const styles = StyleSheet.create({
         backgroundColor: '#F2F5EC'
     },
     bgText: {
-        fontSize: 10,
+        fontSize: 12,
         color: '#2F2F2F',
         fontWeight: '500',
+        ...typography.medium,
     },
     bgCountText: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#FF6B35',
         fontWeight: '700',
+        ...typography.bold,
     },
     card: {
         backgroundColor: '#fff',
@@ -350,7 +353,7 @@ const styles = StyleSheet.create({
     statusText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.regular,
     },
     cardContent: {
         flexDirection: 'row',
@@ -368,27 +371,32 @@ const styles = StyleSheet.create({
     bookingId: {
         fontSize: 12,
         color: '#2F2F2F',
+        ...typography.regular,
     },
-    date: {
+    studio: {
         fontSize: 12,
         color: '#2F2F2F',
+        ...typography.bold,
     },
     name: {
         fontSize: 14,
         fontWeight: '700',
         color: '#034833',
         marginTop: 2,
+        ...typography.extrabold,
     },
     time: {
         fontSize: 12,
         color: '#2F2F2F',
         marginTop: 2,
+        ...typography.semibold,
     },
     price: {
         fontSize: 16,
         color: '#FF6B35',
         fontWeight: '600',
         marginTop: 2,
+        ...typography.bold,
     },
     actions: {
         flexDirection: 'row',
@@ -408,6 +416,7 @@ const styles = StyleSheet.create({
         color: '#007BFF',
         fontSize: 12,
         fontWeight: '600',
+        ...typography.semibold,
     },
     declineBtn: {
         borderWidth: 1,
@@ -421,6 +430,7 @@ const styles = StyleSheet.create({
         color: '#DC3545',
         fontSize: 12,
         fontWeight: '600',
+        ...typography.semibold,
     },
     acceptBtn: {
         backgroundColor: '#034833',
@@ -433,6 +443,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 12,
         fontWeight: '600',
+        ...typography.semibold,
     },
     datelableOutline: {
         flexDirection: 'row',
@@ -458,11 +469,13 @@ const styles = StyleSheet.create({
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500'
+        fontWeight: '500',
+        ...typography.bold,
     },
     addStudioDesc: {
         fontSize: 14,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
+        ...typography.semibold,
     },
 })
