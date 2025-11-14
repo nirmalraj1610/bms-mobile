@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   FlatList,
   Image,
   Platform,
@@ -44,9 +45,6 @@ const AddStudioComponent = ({
     { id: 7, name: "Sunday", selected: true, openTime: null, closeTime: null },
   ]);
 
-  // 9 to 21
-
-
   const [basicInfo, setBasicInfo] = useState({
     studioName: "",
     studioType: "",
@@ -60,6 +58,16 @@ const AddStudioComponent = ({
     longitude: "",
   });
 
+  const [basicInfoError, setBasicInfoError] = useState({
+    studioName: false,
+    studioType: false,
+    studioDesc: false,
+    studioAddress: false,
+    state: false,
+    city: false,
+    pinCode: false,
+  });
+
   const [details, setDetails] = useState({
     studioSize: "",
     maximumPeople: "",
@@ -71,6 +79,18 @@ const AddStudioComponent = ({
     securityDeposit: "",
     contactPhone: "",
     alternatePhone: "",
+  });
+
+  const [detailsError, setDetailsError] = useState({
+    studioSize: false,
+    maximumPeople: false,
+    minBookingHours: false,
+    maxBookingHours: false,
+    basePrice: false,
+    weekendPrice: false,
+    overtimePrice: false,
+    securityDeposit: false,
+    contactPhone: false,
   });
 
   const [amenities, setAmenities] = useState([
@@ -99,33 +119,56 @@ const AddStudioComponent = ({
 
   const setStudioValues = () => {
 
-    // clear basic info
+    // 🧭 Set Basic Info
     setBasicInfo({
-      studioName: editStudioValues?.name || '',
+      studioName: editStudioValues?.name?.trim() || '',
       studioType: editStudioValues?.studio_type || '',
-      studioDesc: editStudioValues?.description || '',
-      studioAddress: editStudioValues?.location?.address || '',
-      state: editStudioValues?.location?.state || '',
-      city: editStudioValues?.location?.city || '',
-      pinCode: String(editStudioValues?.location?.pincode) || '',
-      landMark: "",
-      latitude: String(editStudioValues?.location?.coordinates?.lat) || '',
-      longitude: String(editStudioValues?.location?.coordinates?.lng) || '',
+      studioDesc: editStudioValues?.description?.trim() || '',
+      studioAddress: editStudioValues?.location?.address?.trim() || '',
+      state: editStudioValues?.location?.state?.trim() || '',
+      city: editStudioValues?.location?.city?.trim() || '',
+      pinCode: editStudioValues?.location?.pincode
+        ? String(editStudioValues.location.pincode)
+        : '',
+      landMark: '',
+      latitude: editStudioValues?.location?.coordinates?.lat
+        ? String(editStudioValues.location.coordinates.lat)
+        : '',
+      longitude: editStudioValues?.location?.coordinates?.lng
+        ? String(editStudioValues.location.coordinates.lng)
+        : '',
     });
 
-    // set details value
+    // 🧩 Set Details Info
     setDetails({
-      studioSize: String(editStudioValues?.studio_size) || '',
-      maximumPeople: String(editStudioValues?.max_capacity) || '',
-      minBookingHours: String(editStudioValues?.pricing?.minimum_hours) || '',
-      maxBookingHours: String(editStudioValues?.max_booking_hours) || '',
-      basePrice: String(editStudioValues?.pricing?.hourly_rate) || '',
-      weekendPrice: String(editStudioValues?.pricing?.weekend_multiplier) || '',
-      overtimePrice: String(editStudioValues?.pricing?.extra_hour_rate) || '',
-      securityDeposit: String(editStudioValues?.security_deposit) || '',
-      contactPhone: String(editStudioValues?.contact_phone) || '',
-      alternatePhone: "",
+      studioSize: editStudioValues?.studio_size
+        ? String(editStudioValues.studio_size)
+        : '',
+      maximumPeople: editStudioValues?.max_capacity
+        ? String(editStudioValues.max_capacity)
+        : '',
+      minBookingHours: editStudioValues?.pricing?.minimum_hours
+        ? String(editStudioValues.pricing.minimum_hours)
+        : '',
+      maxBookingHours: editStudioValues?.max_booking_hours
+        ? String(editStudioValues.max_booking_hours)
+        : '',
+      basePrice: editStudioValues?.pricing?.hourly_rate
+        ? String(editStudioValues.pricing.hourly_rate)
+        : '',
+      weekendPrice: editStudioValues?.pricing?.weekend_multiplier
+        ? String(editStudioValues.pricing.weekend_multiplier)
+        : '',
+      overtimePrice: editStudioValues?.pricing?.extra_hour_rate
+        ? String(editStudioValues.pricing.extra_hour_rate)
+        : '',
+      securityDeposit: editStudioValues?.security_deposit
+        ? String(editStudioValues.security_deposit)
+        : '',
+      contactPhone: editStudioValues?.contact_phone?.trim() || '',
+      alternatePhone: '',
     });
+
 
     // set amenities values
     const selectedFromAPI = editStudioValues?.amenities || [];
@@ -223,6 +266,12 @@ const AddStudioComponent = ({
     additionalRules: "",
   });
 
+  const [imagesError, setImagesError] = useState({
+    cancellationPolicy: false,
+    paymentPolicy: false,
+    additionalRules: false,
+  });
+
   const studioTypes = [
     { label: "Portrait studio", value: "Portrait studio" },
     { label: "Fashion studio", value: "Fashion studio" },
@@ -268,6 +317,12 @@ const AddStudioComponent = ({
   ];
 
   const onSubmitPress = async () => {
+
+    if (!termsSelected) {
+      Alert.alert("To proceed", "you need to confirm your agreement to the Terms and Conditions.");
+      return;
+    }
+
     const payload = {
       name: basicInfo?.studioName?.trim() || "",
       description: basicInfo?.studioDesc?.trim() || "",
@@ -325,7 +380,7 @@ const AddStudioComponent = ({
     formData.append('pricing', JSON.stringify(payload.pricing));
     formData.append('details', JSON.stringify(payload.details));
     formData.append('policies', JSON.stringify(payload.policies));
-    formData.append('operating_hours', JSON.stringify(payload.availability_slots));
+    formData.append('availability_slots', JSON.stringify(payload.availability_slots));
 
     // Arrays
     formData.append('amenities', JSON.stringify(payload.amenities));
@@ -404,8 +459,8 @@ const AddStudioComponent = ({
 
       return {
         day_of_week: dayOfWeekMap[day.name],
-        start_time: day.openTime || "09:00",
-        end_time: day.closeTime || "21:00",
+        start_time: day.openTime ? day.openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "09:00",
+        end_time: day.closeTime ? day.closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '21:00',
         is_available: day.selected,
         hourly_rate: details?.basePrice || 0,
       };
@@ -469,12 +524,6 @@ const AddStudioComponent = ({
     setShowPicker(true);
   };
 
-
-  const onPressTab = (item: any) => {
-    setSelectedTab(item.id);
-    scrollToTab(item.id);
-  };
-
   const scrollToTab = (tabId: number) => {
     const index = tabs.findIndex((t) => t.id === tabId);
     if (flatListRef.current) {
@@ -513,12 +562,82 @@ const AddStudioComponent = ({
   };
 
   const onpressNext = () => {
+    if (selectedTab === 1) {
+      // 🧩 Validate Tab 1 — Basic Info
+
+      const newErrors = {
+        studioName: !basicInfo.studioName,
+        studioType: !basicInfo.studioType,
+        studioDesc: !basicInfo.studioDesc,
+        studioAddress: !basicInfo.studioAddress,
+        state: !basicInfo.state,
+        city: !basicInfo.city,
+        pinCode: !basicInfo.pinCode,
+      };
+
+      setBasicInfoError(newErrors);
+
+      // ❌ If any value is empty → show alert and stop
+      if (Object.values(newErrors).includes(true)) {
+        return;
+      }
+
+      // ✅ All good → move next
+    }
+
+    if (selectedTab === 2) {
+      // 🧩 Validate Tab 2 — Details
+
+      const newErrors = {
+        studioSize: !details.studioSize,
+        maximumPeople: !details.maximumPeople,
+        minBookingHours: !details.minBookingHours,
+        maxBookingHours: !details.maxBookingHours,
+        basePrice: !details.basePrice,
+        weekendPrice: !details.weekendPrice,
+        overtimePrice: !details.overtimePrice,
+        securityDeposit: !details.securityDeposit,
+        contactPhone: !details.contactPhone,
+      };
+
+      setDetailsError(newErrors);
+
+      // ❌ If any value is empty → show alert and stop
+      if (Object.values(newErrors).includes(true)) {
+        return;
+      }
+
+      // ✅ All good → move next
+    }
+
+    // 🧩 Tab 3 — Amenities (optional, no validation)
+
+    if (selectedTab === 4) {
+      // 🧩 Validate Tab 4 — Images/Policies
+      const newErrors = {
+        cancellationPolicy: !images.cancellationPolicy,
+        paymentPolicy: !images.paymentPolicy,
+        additionalRules: !images.additionalRules,
+      };
+
+      setImagesError(newErrors);
+
+      // ❌ If any value is empty → show alert and stop
+      if (Object.values(newErrors).includes(true)) {
+        return;
+      }
+
+      // ✅ All good → move next
+    }
+
+    // ✅ Move to next tab
     const nextTab = selectedTab + 1;
     if (nextTab <= tabs.length) {
       setSelectedTab(nextTab);
       scrollToTab(nextTab);
     }
   };
+
 
   // ✅ Render each day
   const renderDayList = ({ item }: any) => {
@@ -569,8 +688,7 @@ const AddStudioComponent = ({
   };
 
   const rendertabs = ({ item }: any) => (
-    <TouchableOpacity
-      onPress={() => onPressTab(item)}
+    <View
       style={[
         styles.tabContainer,
         {
@@ -587,7 +705,7 @@ const AddStudioComponent = ({
       >
         {item.name}
       </Text>
-    </TouchableOpacity>
+    </View>
   );
 
   const removeSelectedImage = (item: any) => {
@@ -660,17 +778,24 @@ const AddStudioComponent = ({
           <Text style={styles.labelText} >Studio Name<Text style={styles.required}> *</Text></Text>
 
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: basicInfoError.studioName ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             placeholder="e.g., Elite Photography Studio"
             value={basicInfo.studioName}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, studioName: text })
-            }
+            onChangeText={(text) => {
+              setBasicInfo({ ...basicInfo, studioName: text });
+              setBasicInfoError({ ...basicInfoError, studioName: false });
+            }}
           />
+          {basicInfoError.studioName && (
+            <Text style={styles.errorText}>Studio name is required</Text>
+          )}
           <Text style={styles.labelText} >Studio Type<Text style={styles.required}> *</Text></Text>
           <Dropdown
-            style={styles.dropdown}
+            style={[styles.dropdown, { borderColor: basicInfoError.studioType ? "#DC3545" : "#BABABA" }]}
             placeholderStyle={styles.placeholderStyle}
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
@@ -681,62 +806,97 @@ const AddStudioComponent = ({
             valueField="value"
             placeholder="Select studio type"
             value={basicInfo.studioType}
-            onChange={(item) => setBasicInfo({ ...basicInfo, studioType: item.value })}
+            onChange={(item) => {
+              setBasicInfo({ ...basicInfo, studioType: item.value })
+              setBasicInfoError({ ...basicInfoError, studioType: false });
+            }}
           />
+          {basicInfoError.studioType && (
+            <Text style={styles.errorText}>Studio Type is required</Text>
+          )}
           <Text style={styles.labelText} >Description<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={{ ...styles.input, ...styles.textArea }}
+            style={{ ...styles.input, ...styles.textArea, borderColor: basicInfoError.studioDesc ? "#DC3545" : "#BABABA" }}
             placeholderTextColor={'#898787'}
             multiline
             placeholder="Describe your studio , its unique features and what make it special..."
             value={basicInfo.studioDesc}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, studioDesc: text })
-            }
+            onChangeText={(text) => {
+              setBasicInfo({ ...basicInfo, studioDesc: text });
+              setBasicInfoError({ ...basicInfoError, studioDesc: false });
+            }}
           />
+          {basicInfoError.studioDesc && (
+            <Text style={styles.errorText}>Studio Description is required</Text>
+          )}
           <Text style={styles.labelText} >Full Address<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={{ ...styles.input, ...styles.textArea }}
+            style={{ ...styles.input, ...styles.textArea, borderColor: basicInfoError.studioAddress ? "#DC3545" : "#BABABA" }}
             placeholderTextColor={'#898787'}
             placeholder="Enter the complete studio adress..."
             multiline
             value={basicInfo.studioAddress}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, studioAddress: text })
-            }
+            onChangeText={(text) => {
+              setBasicInfo({ ...basicInfo, studioAddress: text });
+              setBasicInfoError({ ...basicInfoError, studioAddress: false });
+            }}
           />
+          {basicInfoError.studioAddress && (
+            <Text style={styles.errorText}>Studio Address is required</Text>
+          )}
           <Text style={styles.labelText} >State<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: basicInfoError.state ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             placeholder="Enter the state"
             value={basicInfo.state}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, state: text })
-            }
+            onChangeText={(text) => {
+              setBasicInfo({ ...basicInfo, state: text });
+              setBasicInfoError({ ...basicInfoError, state: false });
+            }}
           />
+          {basicInfoError.state && (
+            <Text style={styles.errorText}>State is required</Text>
+          )}
           <Text style={styles.labelText} >City<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: basicInfoError.city ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             placeholder="Enter the city"
             value={basicInfo.city}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, city: text })
-            }
+            onChangeText={(text) => {
+              setBasicInfo({ ...basicInfo, city: text });
+              setBasicInfoError({ ...basicInfoError, city: false });
+            }}
           />
+          {basicInfoError.city && (
+            <Text style={styles.errorText}>City is required</Text>
+          )}
           <Text style={styles.labelText} >Pin Code<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: basicInfoError.pinCode ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="number-pad"
             placeholder="Enter the pincode"
             value={basicInfo.pinCode}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, pinCode: text })
-            }
+            onChangeText={(text) => {
+              setBasicInfo({ ...basicInfo, pinCode: text });
+              setBasicInfoError({ ...basicInfoError, pinCode: false });
+            }}
           />
-          <Text style={styles.labelText} >Landmark<Text style={styles.required}> *</Text></Text>
+          {basicInfoError.pinCode && (
+            <Text style={styles.errorText}>Pin Code is required</Text>
+          )}
+          <Text style={styles.labelText} >Landmark</Text>
           <TextInput
             style={styles.input}
             placeholderTextColor={'#898787'}
@@ -746,7 +906,7 @@ const AddStudioComponent = ({
               setBasicInfo({ ...basicInfo, landMark: text })
             }
           />
-          <Text style={styles.labelText} >Latitude<Text style={styles.required}> *</Text></Text>
+          <Text style={styles.labelText} >Latitude</Text>
           <TextInput
             style={styles.input}
             placeholderTextColor={'#898787'}
@@ -757,7 +917,7 @@ const AddStudioComponent = ({
               setBasicInfo({ ...basicInfo, latitude: text })
             }
           />
-          <Text style={styles.labelText} >Longitude<Text style={styles.required}> *</Text></Text>
+          <Text style={styles.labelText} >Longitude</Text>
           <TextInput
             style={styles.input}
             placeholderTextColor={'#898787'}
@@ -772,29 +932,43 @@ const AddStudioComponent = ({
           <Text style={styles.title}>Studio Details & Pricing</Text>
           <Text style={styles.labelText} >Studio size (sq ft)<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: detailsError.studioSize ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="number-pad"
             placeholder="e.g., 1200"
             value={details.studioSize}
-            onChangeText={(text) =>
-              setDetails({ ...details, studioSize: text })
-            }
+            onChangeText={(text) => {
+              setDetails({ ...details, studioSize: text });
+              setDetailsError({ ...detailsError, studioSize: false });
+            }}
           />
+          {detailsError.studioSize && (
+            <Text style={styles.errorText}>Studio size is required</Text>
+          )}
           <Text style={styles.labelText} >Maximum People<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: detailsError.maximumPeople ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="number-pad"
             placeholder="e.g., 2"
             value={details.maximumPeople}
-            onChangeText={(text) =>
-              setDetails({ ...details, maximumPeople: text })
-            }
+            onChangeText={(text) => {
+              setDetails({ ...details, maximumPeople: text });
+              setDetailsError({ ...detailsError, maximumPeople: false });
+            }}
           />
+          {detailsError.maximumPeople && (
+            <Text style={styles.errorText}>Maximum People is required</Text>
+          )}
           <Text style={styles.labelText} >Min Booking Hours<Text style={styles.required}> *</Text></Text>
           <Dropdown
-            style={styles.dropdown}
+            style={[styles.dropdown, { borderColor: detailsError.minBookingHours ? "#DC3545" : "#BABABA" }]}
             placeholderStyle={styles.placeholderStyle}
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
@@ -805,11 +979,17 @@ const AddStudioComponent = ({
             valueField="value"
             placeholder="Select min hours"
             value={details.minBookingHours}
-            onChange={(item) => setDetails({ ...details, minBookingHours: item.value })}
+            onChange={(item) => {
+              setDetails({ ...details, minBookingHours: item.value });
+              setDetailsError({ ...detailsError, minBookingHours: false });
+            }}
           />
+          {detailsError.minBookingHours && (
+            <Text style={styles.errorText}>Min Booking Hours is required</Text>
+          )}
           <Text style={styles.labelText} >Max Booking Hours<Text style={styles.required}> *</Text></Text>
           <Dropdown
-            style={styles.dropdown}
+            style={[styles.dropdown, { borderColor: detailsError.maxBookingHours ? "#DC3545" : "#BABABA" }]}
             placeholderStyle={styles.placeholderStyle}
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
@@ -820,64 +1000,105 @@ const AddStudioComponent = ({
             valueField="value"
             placeholder="Select max hours"
             value={details.maxBookingHours}
-            onChange={(item) => setDetails({ ...details, maxBookingHours: item.value })}
+            onChange={(item) => {
+              setDetails({ ...details, maxBookingHours: item.value });
+              setDetailsError({ ...detailsError, maxBookingHours: false });
+            }}
           />
+          {detailsError.maxBookingHours && (
+            <Text style={styles.errorText}>Max Booking Hours is required</Text>
+          )}
           <Text style={styles.labelText} >Base Price (per Hour)<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: detailsError.basePrice ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="number-pad"
             placeholder="e.g., 2500"
             value={details.basePrice}
-            onChangeText={(text) =>
-              setDetails({ ...details, basePrice: text })
-            }
+            onChangeText={(text) => {
+              setDetails({ ...details, basePrice: text });
+              setDetailsError({ ...detailsError, basePrice: false });
+            }}
           />
+          {detailsError.basePrice && (
+            <Text style={styles.errorText}>Base Price is required</Text>
+          )}
           <Text style={styles.labelText} >Weekend Price (per hour)<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: detailsError.weekendPrice ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="number-pad"
             placeholder="e.g., 1200"
             value={details.weekendPrice}
-            onChangeText={(text) =>
-              setDetails({ ...details, weekendPrice: text })
-            }
+            onChangeText={(text) => {
+              setDetails({ ...details, weekendPrice: text });
+              setDetailsError({ ...detailsError, weekendPrice: false });
+            }}
           />
+          {detailsError.weekendPrice && (
+            <Text style={styles.errorText}>Weekend Price is required</Text>
+          )}
           <Text style={styles.labelText} >Overtime Price (per hour)<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: detailsError.overtimePrice ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="number-pad"
             placeholder="e.g., 3000"
             value={details.overtimePrice}
-            onChangeText={(text) =>
+            onChangeText={(text) => {
               setDetails({ ...details, overtimePrice: text })
-            }
+              setDetailsError({ ...detailsError, overtimePrice: false });
+            }}
           />
+          {detailsError.overtimePrice && (
+            <Text style={styles.errorText}>Overtime Price is required</Text>
+          )}
           <Text style={styles.labelText} >Security Deposit<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: detailsError.securityDeposit ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="number-pad"
             placeholder="e.g., 5000"
             value={details.securityDeposit}
-            onChangeText={(text) =>
+            onChangeText={(text) => {
               setDetails({ ...details, securityDeposit: text })
-            }
+              setDetailsError({ ...detailsError, securityDeposit: false });
+            }}
           />
+          {detailsError.securityDeposit && (
+            <Text style={styles.errorText}>Security Deposit is required</Text>
+          )}
           <Text style={styles.labelText} >Contact Phone<Text style={styles.required}> *</Text></Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { borderColor: detailsError.contactPhone ? "#DC3545" : "#BABABA" }
+            ]}
             placeholderTextColor={'#898787'}
             keyboardType="phone-pad"
             placeholder="e.g., +91 9876543210"
             value={details.contactPhone}
-            onChangeText={(text) =>
+            onChangeText={(text) => {
               setDetails({ ...details, contactPhone: text })
-            }
+              setDetailsError({ ...detailsError, contactPhone: false });
+            }}
           />
-          <Text style={styles.labelText} >Alternate Phone<Text style={styles.required}> *</Text></Text>
+          {detailsError.contactPhone && (
+            <Text style={styles.errorText}>Contact Phone is required</Text>
+          )}
+          <Text style={styles.labelText} >Alternate Phone</Text>
           <TextInput
             style={styles.input}
             placeholderTextColor={'#898787'}
@@ -910,7 +1131,7 @@ const AddStudioComponent = ({
 
         </View> : selectedTab === 4 ? <View>
           <Text style={styles.title}>Studio Images</Text>
-          <Text style={styles.labelText} >Upload high-quality images of your studio. First image will be used as cover photo.<Text style={styles.required}> *</Text></Text>
+          <Text style={styles.labelText} >Upload high-quality images of your studio. First image will be used as cover photo.</Text>
           {selectedImages.length > 0 ? (
             <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
               <FlatList
@@ -935,8 +1156,8 @@ const AddStudioComponent = ({
             </TouchableOpacity>
           )}
           <Text style={styles.labelText} >Cancellation Policy<Text style={styles.required}> *</Text></Text>
-          <Dropdown
-            style={styles.dropdown}
+          {/* <Dropdown
+            style={[styles.dropdown, { borderColor: imagesError.cancellationPolicy ? "#DC3545" : "#BABABA" }]}
             placeholderStyle={styles.placeholderStyle}
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
@@ -947,12 +1168,29 @@ const AddStudioComponent = ({
             valueField="value"
             placeholder="Select Cancellation Policy"
             value={images.cancellationPolicy}
-            onChange={(item) => setImages({ ...images, cancellationPolicy: item.value })}
+            onChange={(item) => {
+              setImages({ ...images, cancellationPolicy: item.value });
+              setImagesError({ ...imagesError, cancellationPolicy: false });
+            }}
+          /> */}
+          <TextInput
+            style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.cancellationPolicy ? "#DC3545" : "#BABABA" }}
+            placeholderTextColor={'#898787'}
+            multiline
+            placeholder="Write your cancellation rules here..."
+            value={images.cancellationPolicy}
+            onChangeText={(text) => {
+              setImages({ ...images, cancellationPolicy: text });
+              setImagesError({ ...imagesError, cancellationPolicy: false });
+            }}
           />
+          {imagesError.cancellationPolicy && (
+            <Text style={styles.errorText}>Cancellation Policy is required</Text>
+          )}
           <Text style={styles.labelText} >Payment Policy<Text style={styles.required}> *</Text></Text>
 
-          <Dropdown
-            style={styles.dropdown}
+          {/* <Dropdown
+            style={[styles.dropdown, { borderColor: imagesError.paymentPolicy ? "#DC3545" : "#BABABA" }]}
             placeholderStyle={styles.placeholderStyle}
             selectedTextStyle={styles.selectedTextStyle}
             inputSearchStyle={styles.inputSearchStyle}
@@ -963,19 +1201,40 @@ const AddStudioComponent = ({
             valueField="value"
             placeholder="Select Payment Policy"
             value={images.paymentPolicy}
-            onChange={(item) => setImages({ ...images, paymentPolicy: item.value })}
-          />
-          <Text style={styles.labelText} >Additional Rules & Policies<Text style={styles.required}> *</Text></Text>
+            onChange={(item) => {
+              setImages({ ...images, paymentPolicy: item.value });
+              setImagesError({ ...imagesError, paymentPolicy: false });
+            }}
+          /> */}
           <TextInput
-            style={{ ...styles.input, ...styles.textArea }}
+            style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.paymentPolicy ? "#DC3545" : "#BABABA" }}
             placeholderTextColor={'#898787'}
             multiline
-            placeholder="Any additional rules, restrictions, or policies for your studio"
-            value={images.additionalRules}
-            onChangeText={(text) =>
-              setImages({ ...images, additionalRules: text })
-            }
+            placeholder="Write your payment rules here...."
+            value={images.paymentPolicy}
+            onChangeText={(text) => {
+              setImages({ ...images, paymentPolicy: text });
+              setImagesError({ ...imagesError, paymentPolicy: false });
+            }}
           />
+          {imagesError.paymentPolicy && (
+            <Text style={styles.errorText}>Payment Policy is required</Text>
+          )}
+          <Text style={styles.labelText} >Additional Rules & Policies<Text style={styles.required}> *</Text></Text>
+          <TextInput
+            style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.additionalRules ? "#DC3545" : "#BABABA" }}
+            placeholderTextColor={'#898787'}
+            multiline
+            placeholder="e.g., Full refund before 24 hours, 50% refund within 24 hours, no refund for last-minute cancellations"
+            value={images.additionalRules}
+            onChangeText={(text) => {
+              setImages({ ...images, additionalRules: text });
+              setImagesError({ ...imagesError, additionalRules: false });
+            }}
+          />
+          {imagesError.additionalRules && (
+            <Text style={styles.errorText}>Additional Rules & Policies is required</Text>
+          )}
 
         </View> :
           <View>
@@ -1192,10 +1451,14 @@ const styles = StyleSheet.create({
     color: '#101010',
     borderRadius: 10,
     padding: 12,
-    marginBottom: 12,
     fontSize: 14,
     backgroundColor: "#ffffff",
     fontWeight: '600',
+  },
+  errorText: {
+    color: '#DC3545',
+    fontWeight: '400',
+    fontSize: 12,
   },
   textArea: {
     height: 100,
@@ -1214,7 +1477,8 @@ const styles = StyleSheet.create({
     color: '#6C757D',
     fontSize: 15,
     fontWeight: "500",
-    marginBottom: 6,
+    marginTop: 12,
+    marginBottom: 6
   },
   actionButtonOutline: {
     flexDirection: "row",
@@ -1409,7 +1673,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     backgroundColor: '#fff',
-    marginBottom: 12,
   },
   placeholderStyle: {
     fontSize: 14,
