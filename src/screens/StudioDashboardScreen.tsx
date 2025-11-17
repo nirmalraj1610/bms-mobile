@@ -288,9 +288,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   locationLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: COLORS.text.secondary,
     marginBottom: 2,
+    ...typography.medium,
   },
   locationRow: {
     flexDirection: 'row',
@@ -323,9 +324,10 @@ const styles = StyleSheet.create({
     marginRight: 5
   },
   menuLabel: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#2F2F2F',
     marginLeft: 6,
+    ...typography.medium,
   },
   dropdownWrapper: {
     position: 'relative',
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#fff',
-    fontWeight: '600',
+    ...typography.semibold,
   },
 
   dropdownOverlay: {
@@ -386,12 +388,12 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: 14,
     color: '#034833',
-    fontWeight: '500',
+    ...typography.semibold,
   },
 
   dropdownItemTextActive: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    ...typography.bold,
   },
   loginBackdrop: {
     flex: 1,
@@ -425,22 +427,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text.secondary,
     textAlign: 'center',
+    ...typography.semibold,
   },
   modalActions: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
     marginTop: 12,
   },
   confirmButton: {
     backgroundColor: COLORS.bg,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    width: '40%',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 8,
   },
   confirmButtonText: {
     color: '#fff',
+    fontSize: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     ...typography.semibold,
   },
 });

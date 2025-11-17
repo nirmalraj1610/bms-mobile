@@ -10,6 +10,7 @@ import AcceptStudioBookingModal from "./AcceptStudioBookingModal";
 import imagePaths from "../../constants/imagePaths";
 import { Dropdown } from 'react-native-element-dropdown';
 import BookingsSkeleton from "../skeletonLoaders/StudioOwner/BookingsSkeleton";
+import { typography } from "../../constants/typography";
 
 export const DashboardComponent = () => {
     const dispatch = useDispatch();
@@ -175,13 +176,13 @@ export const DashboardComponent = () => {
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>
-                            Booking ID: <Text style={{ fontWeight: '600' }}>{item.id}</Text>
+                            Booking ID: <Text style={{ ...typography.bold, }}>{item.id}</Text>
                         </Text>
                         <Text style={styles.name}>{item?.customer?.full_name}</Text>
-                        <Text style={styles.date}>Date: <Text style={{ fontWeight: '600' }}>{item.booking_date}</Text></Text>
-                        <Text style={styles.time}>Booking type: <Text style={{ fontWeight: '600' }}>{item.booking_type}</Text></Text>
-                        <Text style={styles.time}>Start time: <Text style={{ fontWeight: '600' }}>{item.start_time}</Text></Text>
-                        <Text style={styles.time}>End time: <Text style={{ fontWeight: '600' }}>{item.end_time}</Text></Text>
+                        <Text style={styles.date}>Date: <Text style={{ ...typography.bold, }}>{item.booking_date}</Text></Text>
+                        <Text style={styles.time}>Booking type: <Text style={{ ...typography.bold, }}>{item.booking_type}</Text></Text>
+                        <Text style={styles.time}>Start time: <Text style={{ ...typography.bold, }}>{item.start_time}</Text></Text>
+                        <Text style={styles.time}>End time: <Text style={{ ...typography.bold, }}>{item.end_time}</Text></Text>
                         <Text style={styles.time}>Price: <Text style={styles.price}>₹{item.total_amount}</Text></Text>
                     </View>
                 </View>
@@ -250,17 +251,17 @@ export const DashboardComponent = () => {
                         <View style={styles.info}>
                             <Text style={styles.labelText}>Contact Information:</Text>
                             <Text style={styles.time}>
-                                Phone: <Text style={{ fontWeight: '600' }}>+91 {item?.customer?.phone}</Text>
+                                Phone: <Text style={{ ...typography.bold, }}>+91 {item?.customer?.phone}</Text>
                             </Text>
                             <Text style={[styles.time, { marginBottom: 10 }]}>
-                                Email: <Text style={{ fontWeight: '600' }}>{item?.customer?.email}</Text>
+                                Email: <Text style={{ ...typography.bold, }}>{item?.customer?.email}</Text>
                             </Text>
 
                             <Text style={styles.labelText}>Required Equipment:</Text>
                             {item?.equipment?.length > 0 ? (
                                 <>
                                     {item.equipment.map(eq => (
-                                        <Text key={eq?.id} style={{ ...styles.time, fontWeight: '600' }}>
+                                        <Text key={eq?.id} style={{ ...styles.time, ...typography.bold, }}>
                                             • {eq.item_name}
                                         </Text>
                                     ))}
@@ -479,7 +480,7 @@ const styles = StyleSheet.create({
     },
     title: {
         color: '#101010',
-        fontWeight: '700',
+        ...typography.bold,
         fontSize: 16,
     },
     addButton: {
@@ -488,7 +489,7 @@ const styles = StyleSheet.create({
     },
     addButtonText: {
         color: '#1B4332',
-        fontWeight: '600',
+        ...typography.bold,
         fontSize: 16,
         marginLeft: 4,
         marginRight: 10
@@ -508,12 +509,12 @@ const styles = StyleSheet.create({
     bgText: {
         fontSize: 10,
         color: '#2F2F2F',
-        fontWeight: '500',
+        ...typography.medium,
     },
     bgCountText: {
         fontSize: 16,
         color: '#FF6B35',
-        fontWeight: '700',
+        ...typography.bold,
     },
     card: {
         backgroundColor: '#fff',
@@ -537,7 +538,7 @@ const styles = StyleSheet.create({
     statusText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.regular,
     },
     cardContent: {
         flexDirection: 'row',
@@ -555,31 +556,35 @@ const styles = StyleSheet.create({
     bookingId: {
         fontSize: 12,
         color: '#2F2F2F',
+        ...typography.regular,
     },
     date: {
         fontSize: 12,
         color: '#2F2F2F',
+        ...typography.bold,
     },
     name: {
         fontSize: 16,
-        fontWeight: '700',
         color: '#034833',
         marginTop: 2,
+        ...typography.extrabold,
     },
     studio: {
         fontSize: 12,
         color: '#2F2F2F',
+        ...typography.bold,
     },
     time: {
         fontSize: 12,
         color: '#2F2F2F',
         marginTop: 2,
+        ...typography.semibold,
     },
     price: {
         fontSize: 16,
         color: '#FF6B35',
-        fontWeight: '600',
         marginTop: 2,
+        ...typography.bold,
     },
     actions: {
         flexDirection: 'row',
@@ -598,7 +603,7 @@ const styles = StyleSheet.create({
     contactBtnText: {
         color: '#007BFF',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.semibold,
     },
     declineBtn: {
         borderWidth: 1,
@@ -611,7 +616,7 @@ const styles = StyleSheet.create({
     declineText: {
         color: '#DC3545',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.semibold,
     },
     acceptBtn: {
         backgroundColor: '#034833',
@@ -623,7 +628,7 @@ const styles = StyleSheet.create({
     acceptText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.semibold,
     },
     timeRow: {
         flexDirection: "row",
@@ -642,17 +647,18 @@ const styles = StyleSheet.create({
     timeLabel: {
         fontSize: 13,
         color: "#555",
+        ...typography.semibold,
     },
     timeValue: {
         fontSize: 15,
-        fontWeight: "600",
         color: "#1B4332",
+        ...typography.bold,
     },
     labelText: {
         color: '#6C757D',
         fontSize: 15,
-        fontWeight: "500",
         marginBottom: 6,
+        ...typography.bold,
     },
     required: {
         color: '#DC3545'
@@ -675,18 +681,19 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 20,
         color: "#101010",
-        fontWeight: "bold",
         fontSize: 16,
+        ...typography.bold,
     },
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500'
+        ...typography.bold,
     },
     addStudioDesc: {
         fontSize: 14,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
+        ...typography.semibold,
     },
     dropdown: {
         height: 50,
@@ -700,17 +707,19 @@ const styles = StyleSheet.create({
     placeholderStyle: {
         fontSize: 14,
         color: '#999',
+        ...typography.semibold,
     },
     selectedTextStyle: {
         fontSize: 14,
         color: '#101010',
-        fontWeight: '600',
+        ...typography.bold,
     },
     inputSearchStyle: {
         height: 40,
         fontSize: 14,
         color: '#101010',
-        borderRadius: 10
+        borderRadius: 10,
+        ...typography.semibold,
     },
     dropdownContainerStyle: {
         borderRadius: 10,

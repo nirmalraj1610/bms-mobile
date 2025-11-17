@@ -18,6 +18,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch } from "react-redux";
 import { createStudioThunk, updateStudioThunk } from "../../features/studios/studiosSlice";
 import { Dropdown } from "react-native-element-dropdown";
+import { typography } from "../../constants/typography";
 
 const AddStudioComponent = ({
   editStudio = false,
@@ -700,7 +701,7 @@ const AddStudioComponent = ({
       <Text
         style={[
           styles.tabText,
-          { color: item.id === selectedTab ? "#2F2F2F" : "#868484" },
+          { color: item.id === selectedTab ? "#2F2F2F" : "#868484", ...typography.bold, },
         ]}
       >
         {item.name}
@@ -1241,27 +1242,27 @@ const AddStudioComponent = ({
             {/* basic info list view */}
             <Text style={styles.title}>Basic Information</Text>
             <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%' }} >Studio Name</Text>
+              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Name</Text>
               <Text style={styles.listInformation} >{' : '} {basicInfo.studioName}</Text>
             </View>
             <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%' }} >Studio Type</Text>
+              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Type</Text>
               <Text style={styles.listInformation} >{' : '} {basicInfo.studioType}</Text>
             </View>
             <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%' }} >State</Text>
+              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >State</Text>
               <Text style={styles.listInformation} >{' : '} {basicInfo.state}</Text>
             </View>
             <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%' }} >City</Text>
+              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >City</Text>
               <Text style={styles.listInformation} >{' : '} {basicInfo.city}</Text>
             </View>
             <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%' }} >Studio Size</Text>
+              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Size</Text>
               <Text style={styles.listInformation} >{' : '} {details.studioSize} sq ft</Text>
             </View>
             <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%' }} >Capacity</Text>
+              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Capacity</Text>
               <Text style={styles.listInformation} >{' : '} {details.maximumPeople} Peoples</Text>
             </View>
 
@@ -1269,7 +1270,7 @@ const AddStudioComponent = ({
             <Text style={styles.title}>Pricing and Booking</Text>
             {details.basePrice ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Base Price (per Hour)
                 </Text>
                 <Text style={styles.listInformation}>{' : '} ₹{details.basePrice}</Text>
@@ -1278,7 +1279,7 @@ const AddStudioComponent = ({
 
             {details.weekendPrice ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Weekend Price (per Hour)
                 </Text>
                 <Text style={styles.listInformation}>{' : '} ₹{details.weekendPrice}</Text>
@@ -1287,7 +1288,7 @@ const AddStudioComponent = ({
 
             {details.securityDeposit ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Security Deposit
                 </Text>
                 <Text style={styles.listInformation}>{' : '} ₹{details.securityDeposit}</Text>
@@ -1296,7 +1297,7 @@ const AddStudioComponent = ({
 
             {details.overtimePrice ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Overtime Price (per Hour)
                 </Text>
                 <Text style={styles.listInformation}>{' : '} ₹{details.overtimePrice}</Text>
@@ -1305,7 +1306,7 @@ const AddStudioComponent = ({
 
             {details.minBookingHours ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Min Booking Hours
                 </Text>
                 <Text style={styles.listInformation}>
@@ -1316,7 +1317,7 @@ const AddStudioComponent = ({
 
             {details.maxBookingHours ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Max Booking Hours
                 </Text>
                 <Text style={styles.listInformation}>
@@ -1327,7 +1328,7 @@ const AddStudioComponent = ({
 
             {details.contactPhone ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Contact Phone
                 </Text>
                 <Text style={styles.listInformation}>
@@ -1338,7 +1339,7 @@ const AddStudioComponent = ({
 
             {details.alternatePhone ? (
               <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%' }}>
+                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
                   Alternate Phone
                 </Text>
                 <Text style={styles.listInformation}>
@@ -1439,11 +1440,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   tabText: {
-    fontWeight: "600",
     paddingHorizontal: 12,
     paddingVertical: 6,
     fontSize: 18,
-    lineHeight: 30
+    lineHeight: 30,
+    ...typography.semibold,
   },
   input: {
     borderWidth: 1,
@@ -1453,12 +1454,12 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 14,
     backgroundColor: "#ffffff",
-    fontWeight: '600',
+    ...typography.bold,
   },
   errorText: {
     color: '#DC3545',
-    fontWeight: '400',
     fontSize: 12,
+    ...typography.semibold,
   },
   textArea: {
     height: 100,
@@ -1466,19 +1467,19 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#101010',
-    fontWeight: '700',
     fontSize: 16,
-    marginVertical: 15
+    marginVertical: 15,
+    ...typography.bold,
   },
   required: {
     color: '#DC3545'
   },
   labelText: {
-    color: '#6C757D',
+    color: '#101010',
     fontSize: 15,
-    fontWeight: "500",
     marginTop: 12,
-    marginBottom: 6
+    marginBottom: 6,
+    ...typography.bold,
   },
   actionButtonOutline: {
     flexDirection: "row",
@@ -1504,14 +1505,14 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   previousText: {
-    fontWeight: "500",
+    ...typography.semibold,
     paddingRight: 12,
     paddingVertical: 6,
     fontSize: 14,
     color: "#FFFFFF",
   },
   nextText: {
-    fontWeight: "500",
+    ...typography.semibold,
     paddingLeft: 12,
     paddingVertical: 6,
     fontSize: 14,
@@ -1551,39 +1552,41 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     color: "#101010",
-    fontWeight: "600",
-    marginTop: 10
+    marginTop: 10,
+    ...typography.bold
   },
   uploadTextHeader: {
-    fontWeight: "600",
     color: "#101010",
     fontSize: 16,
     marginTop: 10,
+    ...typography.bold
   },
   uploadTextDesc: {
     fontSize: 13,
     color: "#555",
     marginTop: 5,
+    ...typography.semibold
   },
   supportedFilesText: {
     fontSize: 12,
     color: "#777",
     marginTop: 5,
     textAlign: "center",
+    ...typography.medium
   },
   chooseFilesText: {
     marginTop: 10,
-    fontWeight: "bold",
     color: "#034833",
+    ...typography.bold
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center'
   },
   listInformation: {
-    fontWeight: '600',
     color: '#101010',
     fontSize: 14,
+    ...typography.bold
   },
   listContainer: {
     paddingTop: 10,
@@ -1603,13 +1606,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: 25,
     color: '#333', // Dark text color
-    fontWeight: '400', // Regular weight for clear reading
+    ...typography.medium
   },
   DayText: {
     fontSize: 16,
     marginRight: 25,
     color: '#333', // Dark text color
-    fontWeight: '400', // Regular weight for clear reading
+    ...typography.medium
   },
   dayOuterContainer: {
     marginTop: 10,
@@ -1639,11 +1642,12 @@ const styles = StyleSheet.create({
   timeLabel: {
     fontSize: 13,
     color: "#555",
+    ...typography.semibold
   },
   timeValue: {
     fontSize: 15,
-    fontWeight: "600",
     color: "#1B4332",
+    ...typography.bold
   },
   noteTextOutline: {
     textAlign: 'center',
@@ -1659,8 +1663,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#101010',
     marginTop: 5,
-    fontWeight: '500',
-    fontSize: 14
+    fontSize: 14,
+    ...typography.bold
   },
   termsOutline: {
     flexDirection: 'row',
@@ -1677,17 +1681,19 @@ const styles = StyleSheet.create({
   placeholderStyle: {
     fontSize: 14,
     color: '#999',
+    ...typography.bold
   },
   selectedTextStyle: {
     fontSize: 14,
     color: '#101010',
-    fontWeight: '600',
+    ...typography.bold
   },
   inputSearchStyle: {
     height: 40,
     fontSize: 14,
     color: '#101010',
-    borderRadius: 10
+    borderRadius: 10,
+    ...typography.bold
   },
   dropdownContainerStyle: {
     borderRadius: 10,

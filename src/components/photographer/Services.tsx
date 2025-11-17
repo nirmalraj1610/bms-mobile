@@ -193,11 +193,11 @@ export const ServicesComponent = () => {
                     <View style={styles.cardTextContainer}>
                         <Text style={styles.studioName}>{item.title}</Text>
                         <Text numberOfLines={3} style={styles.studioDesc}>{item.description}</Text>
-                        <Text style={styles.avaliable}>Duration : <Text style={{ ...styles.avaliable, ...typography.semibold, }}> {item.duration_hours} hours</Text></Text>
-                        <Text style={styles.avaliable}>Service : <Text style={{ ...styles.avaliable, ...typography.semibold, }}>{item.service_type}</Text></Text>
+                        <Text style={styles.avaliable}>Duration : <Text style={{ ...styles.avaliable, ...typography.bold, }}> {item.duration_hours} hours</Text></Text>
+                        <Text style={styles.avaliable}>Service : <Text style={{ ...styles.avaliable, ...typography.bold, }}>{item.service_type}</Text></Text>
                         <Text style={styles.avaliable}>Equipments included:</Text>
                         {item.equipment_included?.length > 0 ? (
-                            <Text style={{ ...styles.avaliable, ...typography.semibold, }}>
+                            <Text style={{ ...styles.avaliable, ...typography.bold, }}>
                                 {item.equipment_included.join(', ')}
                             </Text>
                         ) : null}
@@ -411,7 +411,7 @@ export const ServicesComponent = () => {
                                                 color={isSelected ? '#034833' : '#666'}
                                                 style={{ marginRight: 5 }}
                                             />
-                                            <Text style={styles.optionLabel}>{item.label}</Text>
+                                            <Text style={isSelected ? styles.selectedText : styles.optionLabel}>{item.label}</Text>
                                         </TouchableOpacity>
                                     );
                                 })}
@@ -465,13 +465,12 @@ const styles = StyleSheet.create({
         borderColor: '#00000026',
     },
     studioName: {
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: 16,
         color: '#034833',
         ...typography.bold,
     },
     studioDesc: {
-        fontSize: 10,
+        fontSize: 12,
         color: '#666',
         marginTop: 2,
         ...typography.regular,
@@ -480,25 +479,23 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginTop: 2,
-        fontWeight: '500'
+        ...typography.semibold,
     },
     avaliable: {
         fontSize: 14,
         color: '#101010',
         marginTop: 2,
-        ...typography.regular,
+        ...typography.semibold,
     },
     price: {
         fontSize: 18,
         color: '#FF6B35',
-        fontWeight: '600',
         marginTop: 2,
         ...typography.bold,
     },
     labelText: {
         color: '#101010',
         fontSize: 16,
-        fontWeight: "500",
         marginBottom: 6,
         ...typography.semibold,
     },
@@ -514,8 +511,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         fontSize: 14,
         backgroundColor: "#ffffff",
-        fontWeight: '600',
-        ...typography.medium,
+        ...typography.bold,
     },
     textArea: {
         height: 100,
@@ -531,10 +527,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#1B4332',
     },
     viewButtonText: {
-        fontWeight: '600',
         fontSize: 12,
         color: '#FFFFFF',
-        ...typography.semibold,
+        ...typography.bold,
     },
     createButton: {
         backgroundColor: "#034833",
@@ -546,9 +541,8 @@ const styles = StyleSheet.create({
     },
     createButtonText: {
         color: "#FFFFFF",
-        fontWeight: "bold",
         fontSize: 16,
-        ...typography.semibold,
+        ...typography.bold,
     },
     uploadButton: {
         borderWidth: 1,
@@ -563,7 +557,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     uploadTextHeader: {
-        fontWeight: "600",
         color: "#101010",
         fontSize: 16,
         marginTop: 10,
@@ -584,9 +577,8 @@ const styles = StyleSheet.create({
     },
     chooseFilesText: {
         marginTop: 10,
-        fontWeight: "bold",
         color: "#034833",
-        ...typography.semibold,
+        ...typography.bold,
     },
     selectedImage: {
         height: 150,
@@ -623,7 +615,6 @@ const styles = StyleSheet.create({
     },
     toggleButtonText: {
         fontSize: 14,
-        fontWeight: '600',
         color: COLORS.text.secondary,
         marginLeft: 6,
         ...typography.semibold,
@@ -644,20 +635,20 @@ const styles = StyleSheet.create({
     placeholderStyle: {
         fontSize: 14,
         color: '#999',
-        ...typography.semibold,
+        ...typography.bold,
     },
     selectedTextStyle: {
         fontSize: 14,
         color: '#101010',
         fontWeight: '600',
-        ...typography.semibold,
+        ...typography.bold,
     },
     inputSearchStyle: {
         height: 40,
         fontSize: 14,
         color: '#101010',
         borderRadius: 10,
-        ...typography.semibold,
+        ...typography.bold,
     },
     dropdownContainerStyle: {
         borderRadius: 10,
@@ -683,13 +674,12 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 20,
         color: "#101010",
-        fontWeight: "bold",
         fontSize: 16,
+        ...typography.bold,
     },
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500',
         ...typography.bold,
     },
     addStudioDesc: {
@@ -734,19 +724,17 @@ const styles = StyleSheet.create({
     optionLabel: {
         fontSize: 14,
         color: '#101010',
-        fontWeight: '500',
         ...typography.semibold,
     },
     selectedText: {
         fontSize: 14,
         color: '#101010',
-        fontWeight: '600',
-        ...typography.semibold,
+        ...typography.bold,
     },
     label: {
         fontSize: 14,
         color: '#9A9696',
-        ...typography.medium,
+        ...typography.bold,
     },
 
 });

@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
     },
     title: {
         color: '#101010',
-        fontWeight: '700',
         fontSize: 16,
+        ...typography.bold,
     },
     addButton: {
         flexDirection: 'row',
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     },
     addButtonText: {
         color: '#1B4332',
-        fontWeight: '600',
+        ...typography.bold,
         fontSize: 16,
         marginLeft: 4,
         marginRight: 10
@@ -283,12 +283,12 @@ const styles = StyleSheet.create({
     bgText: {
         fontSize: 10,
         color: '#2F2F2F',
-        fontWeight: '500',
+        ...typography.semibold,
     },
     bgCountText: {
         fontSize: 16,
         color: '#FF6B35',
-        fontWeight: '700',
+        ...typography.bold,
     },
     listContent: {
         paddingVertical: 10,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     statusText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.regular,
     },
     infoContainer: {
         paddingVertical: 10,
@@ -353,15 +353,15 @@ const styles = StyleSheet.create({
         marginTop: 5
     },
     studioName: {
-        fontSize: 14,
-        color: '#101010',
-        fontWeight: '700',
+        fontSize: 16,
+        color: '#034833',
         ...typography.bold
     },
     studioLocation: {
         fontSize: 12,
         color: '#616161',
         marginTop: 2,
+        ...typography.semibold,
     },
     actionsContainer: {
         width: '50%',
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#034833',
     },
     viewButtonText: {
-        fontWeight: '600',
+        ...typography.bold,
         fontSize: 13,
         color: "#FFFFFF"
     },
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFA244',
     },
     editButtonText: {
-        fontWeight: '600',
+        ...typography.bold,
         fontSize: 13,
         color: "#FFFFFF"
     },
@@ -406,17 +406,18 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
+        ...typography.bold,
     },
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500'
+        ...typography.bold,
     },
     addStudioDesc: {
         fontSize: 14,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
+        ...typography.semibold,
     },
     noStudioOutline: {
         alignItems: 'center',
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 20,
         color: "#101010",
-        fontWeight: "bold",
+        ...typography.bold,
         fontSize: 16,
     },
 });

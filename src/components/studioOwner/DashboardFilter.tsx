@@ -7,6 +7,7 @@ import {
   FlatList,
   StyleSheet,
 } from "react-native";
+import { typography } from "../../constants/typography";
 
 const DashboardFilterPopup = ({
   visible = false,
@@ -115,9 +116,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: "700",
     color: "#034833",
     marginBottom: 12,
+    ...typography.bold,
   },
   optionButton: {
     paddingVertical: 10,
@@ -134,10 +135,11 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 14,
     color: "#101010",
+    ...typography.semibold,
   },
   selectedText: {
     color: "#fff",
-    fontWeight: "600",
+    ...typography.bold,
   },
   footerButtons: {
     flexDirection: "row",
@@ -161,12 +163,12 @@ const styles = StyleSheet.create({
   },
   clearText: {
     color: "#034833",
-    fontWeight: "600",
+...typography.bold,
     textAlign: "center",
   },
   applyText: {
     color: "#fff",
-    fontWeight: "600",
+...typography.bold,
     textAlign: "center",
   },
   closeBtn: {
@@ -179,7 +181,7 @@ const styles = StyleSheet.create({
   },
   closeText: {
     color: "#DC3545",
-    fontWeight: "600",
+...typography.bold,
     textAlign: "center",
   },
 });

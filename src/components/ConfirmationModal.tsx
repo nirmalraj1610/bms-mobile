@@ -124,11 +124,11 @@ const styles = StyleSheet.create({
 
     cancelText: {
         color: "#FFFFFF",
-        fontWeight: "600",
+        ...typography.bold
     },
     okText: {
         color: "#fff",
-        fontWeight: "600",
+        ...typography.bold
     },
 });
 

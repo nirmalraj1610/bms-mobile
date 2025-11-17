@@ -9,6 +9,7 @@ import { COLORS } from "../../constants";
 import imagePaths from "../../constants/imagePaths";
 import { Dropdown } from "react-native-element-dropdown";
 import EquipmentsSkeleton from "../skeletonLoaders/StudioOwner/EquipmentsSkeleton";
+import { typography } from "../../constants/typography";
 
 
 // --- Main Component ---
@@ -41,7 +42,7 @@ export const ManageEquipmentComponent = () => {
         dailyRate: "",
         Condition: ""
     });
-    const [activeTab, setActiveTab] = useState("Studio Equipment"); // 'Studio Equipment' or 'Add Equipment'
+    const [activeTab, setActiveTab] = useState("Equipments"); // 'Equipments' or 'Add Equipment'
 
     const equipmentList = [
         { label: "Camera", value: "camera" },
@@ -73,7 +74,7 @@ export const ManageEquipmentComponent = () => {
     }, [selectedStudio, selectedFilter])
 
     useEffect(() => {
-        if (activeTab === "Studio Equipment") {
+        if (activeTab === "Equipments") {
             clearStateValues();
             fetchStudiosEquipments();
         }
@@ -218,7 +219,7 @@ export const ManageEquipmentComponent = () => {
 
         // move to list equipment tab
 
-        setActiveTab("Studio Equipment");
+        setActiveTab("Equipments");
         setEditEquip(false);
         setEditEquipId('');
     }
@@ -353,7 +354,7 @@ export const ManageEquipmentComponent = () => {
                     {/* Text Info */}
                     <View style={styles.infoContainer}>
                         <Text style={styles.studioName}>{item.item_name} <Text style={styles.equipmentType}>({item.item_type})</Text></Text>
-                        <Text style={styles.studioDesc}>{item.description}</Text>
+                        <Text numberOfLines={2} style={styles.studioDesc}>{item.description}</Text>
                         <Text style={styles.avaliable}>Price range:</Text>
                         <Text style={styles.avaliable}>Per hour: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_hourly}</Text></Text>
                         <Text style={styles.avaliable}>Per Day: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_daily}</Text></Text>
@@ -380,20 +381,20 @@ export const ManageEquipmentComponent = () => {
                 <TouchableOpacity
                     style={[
                         styles.toggleButton,
-                        activeTab === "Studio Equipment" && styles.toggleButtonActive
+                        activeTab === "Equipments" && styles.toggleButtonActive
                     ]}
-                    onPress={() => setActiveTab("Studio Equipment")}
+                    onPress={() => setActiveTab("Equipments")}
                 >
                     <Icon
-                        name="camera-alt"
+                        name="handyman"
                         size={16}
-                        color={activeTab === "Studio Equipment" ? COLORS.background : COLORS.text.secondary}
+                        color={activeTab === "Equipments" ? COLORS.background : COLORS.text.secondary}
                     />
                     <Text style={[
                         styles.toggleButtonText,
-                        activeTab === "Studio Equipment" && styles.toggleButtonTextActive
+                        activeTab === "Equipments" && styles.toggleButtonTextActive
                     ]}>
-                        Studio Equipment
+                        Equipments
                     </Text>
                 </TouchableOpacity>
 
@@ -418,7 +419,7 @@ export const ManageEquipmentComponent = () => {
                 </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
-                {activeTab === "Studio Equipment" ? <>
+                {activeTab === "Equipments" ? <>
 
                     <View style={styles.header}>
                         <Text style={styles.labelText} >Select Studio to View Equipment<Text style={styles.required}> *</Text></Text>
@@ -711,36 +712,38 @@ const styles = StyleSheet.create({
     },
     studioName: {
         fontSize: 14,
-        fontWeight: '700',
-        color: '#034833'
+        color: '#034833',
+        ...typography.extrabold
     },
     studioDesc: {
         fontSize: 12,
         color: '#666',
         marginTop: 2,
+        ...typography.semibold
     },
     equipmentType: {
         fontSize: 14,
         color: '#666',
         marginTop: 2,
-        fontWeight: '500'
+        ...typography.semibold        
     },
     avaliable: {
         fontSize: 14,
         color: '#101010',
         marginTop: 2,
+        ...typography.semibold
     },
     price: {
         fontSize: 14,
         color: '#034833',
         marginTop: 2,
-        fontWeight: '600'
+        ...typography.bold
     },
     labelText: {
-        color: '#6C757D',
-        fontSize: 15,
-        fontWeight: "500",
+        color: '#101010',
+        fontSize: 14,
         marginBottom: 6,
+        ...typography.bold
     },
     pickerWrapper: {
         borderWidth: 1,
@@ -760,7 +763,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         fontSize: 14,
         backgroundColor: "#ffffff",
-        fontWeight: '600',
+        ...typography.bold
     },
     textArea: {
         height: 100,
@@ -776,9 +779,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#1B4332',
     },
     viewButtonText: {
-        fontWeight: '600',
         fontSize: 13,
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        ...typography.bold
     },
     createButton: {
         backgroundColor: "#034833",
@@ -790,8 +793,8 @@ const styles = StyleSheet.create({
     },
     createButtonText: {
         color: "#FFFFFF",
-        fontWeight: "bold",
         fontSize: 16,
+        ...typography.bold
     },
     uploadButton: {
         borderWidth: 1,
@@ -827,30 +830,32 @@ const styles = StyleSheet.create({
     },
     uploadText: {
         color: "#101010",
-        fontWeight: "600",
-        marginTop: 10
+        marginTop: 10,
+        ...typography.bold
     },
     uploadTextHeader: {
-        fontWeight: "600",
         color: "#101010",
         fontSize: 16,
         marginTop: 10,
+        ...typography.bold
     },
     uploadTextDesc: {
         fontSize: 13,
         color: "#555",
         marginTop: 5,
+        ...typography.semibold
     },
     supportedFilesText: {
         fontSize: 12,
         color: "#777",
         marginTop: 5,
         textAlign: "center",
+        ...typography.semibold
     },
     chooseFilesText: {
         marginTop: 10,
-        fontWeight: "bold",
         color: "#034833",
+        ...typography.bold
     },
     header: {
         flexDirection: 'row',
@@ -870,18 +875,19 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 20,
         color: "#101010",
-        fontWeight: "bold",
         fontSize: 16,
+        ...typography.bold
     },
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500'
+        ...typography.bold
     },
     addStudioDesc: {
         fontSize: 14,
         color: '#999',
-        marginTop: 4
+        marginTop: 4,
+        ...typography.semibold
     },
     addStudioBtn: {
         marginTop: 10,
@@ -896,7 +902,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
+        ...typography.bold
     },
     addButton: {
         flexDirection: 'row',
@@ -904,7 +910,7 @@ const styles = StyleSheet.create({
     },
     addButtonText: {
         color: '#1B4332',
-        fontWeight: '600',
+        ...typography.bold,
         fontSize: 16,
         marginLeft: 4,
         marginRight: 10
@@ -920,7 +926,7 @@ const styles = StyleSheet.create({
     statusText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
+        ...typography.medium
     },
     infoRow: {
         borderRadius: 10,
@@ -932,7 +938,7 @@ const styles = StyleSheet.create({
     infoLabel: {
         color: '#101010',
         fontSize: 14,
-        fontWeight: "600",
+        ...typography.bold
     },
     toggleContainer: {
         flexDirection: 'row',
@@ -964,12 +970,13 @@ const styles = StyleSheet.create({
     },
     toggleButtonText: {
         fontSize: 14,
-        fontWeight: '600',
         color: COLORS.text.secondary,
         marginLeft: 6,
+        ...typography.semibold
     },
     toggleButtonTextActive: {
         color: COLORS.background,
+        ...typography.bold
     },
     dropdown: {
         height: 50,
@@ -983,17 +990,19 @@ const styles = StyleSheet.create({
     placeholderStyle: {
         fontSize: 14,
         color: '#999',
+        ...typography.bold
     },
     selectedTextStyle: {
         fontSize: 14,
         color: '#101010',
-        fontWeight: '600',
+        ...typography.bold
     },
     inputSearchStyle: {
         height: 40,
         fontSize: 14,
         color: '#101010',
-        borderRadius: 10
+        borderRadius: 10,
+        ...typography.bold
     },
     dropdownContainerStyle: {
         borderRadius: 10,

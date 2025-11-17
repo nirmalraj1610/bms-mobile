@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { doCancelBooking } from "../../features/bookings/bookingsSlice";
+import { typography } from "../../constants/typography";
 
 const CancelPhotographerBookingModal = ({ visible = false, onClose = () => { }, booking = {} }) => {
   const dispatch = useDispatch();
@@ -109,16 +110,18 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
     color: COLORS.text.primary,
+    ...typography.bold
   },
 
   modalLabel: {
     fontSize: 14,
+    marginBottom: 5,
     color: COLORS.text.secondary,
+    ...typography.medium
   },
   modalTextInput: {
-    minHeight: 80,
+    minHeight: 100,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
@@ -127,6 +130,7 @@ const styles = StyleSheet.create({
     color: COLORS.text.primary,
     textAlignVertical: 'top',
     backgroundColor: COLORS.background,
+    ...typography.semibold
   },
   modalActions: {
     flexDirection: 'row',
@@ -143,7 +147,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    ...typography.semibold,
   },
   cancelButtonModal: {
     backgroundColor: '#ECECEC',
@@ -153,7 +157,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 12,
-    fontWeight: '600',
     color: '#ff0000ff',
+    ...typography.semibold,
   },
 });

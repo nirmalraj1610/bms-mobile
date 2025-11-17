@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { doAcceptBooking } from "../../features/bookings/bookingsSlice";
 import imagePaths from "../../constants/imagePaths";
+import { typography } from "../../constants/typography";
 
 const AcceptPhotographerBookingModal = ({ visible = false, onClose = () => { }, booking = {} }) => {
   const dispatch = useDispatch();
@@ -56,14 +57,14 @@ const AcceptPhotographerBookingModal = ({ visible = false, onClose = () => { }, 
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>
-                            Booking ID:<Text style={{ fontWeight: '600' }}> {booking.id}</Text>
+                            Booking ID:<Text style={{ ...typography.bold }}> {booking.id}</Text>
                         </Text>
-                        <Text style={styles.time}>Booked on :<Text style={{ fontWeight: '600' }}> {booking.booking_date}</Text></Text>
+                        <Text style={styles.bookedOn}>Booked on :<Text style={{ ...typography.bold }}> {booking.booking_date}</Text></Text>
                         <Text style={styles.name}>{booking?.customer?.full_name}</Text>
                         <Text style={styles.studio}>{booking?.service?.service_type} ({booking?.booking_type})</Text>
                         <Text style={styles.time}>{booking?.start_time} - {booking?.end_time}</Text>
                         <Text style={styles.studio}>+91 {booking?.customer?.phone}</Text>
-                        <Text style={styles.price}><Text style={{ ...styles.price, color: '#2F2F2F', fontSize: 14 }}>Total price : </Text>₹{booking?.total_amount}</Text>
+                        <Text style={styles.price}><Text style={{ ...styles.price, color: '#2F2F2F', fontSize: 14, ...typography.bold }}>Total price : </Text>₹{booking?.total_amount}</Text>
                     </View>
                 </View>
           </View>
@@ -111,8 +112,8 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
     color: COLORS.text.primary,
+    ...typography.bold
   },
   modalActions: {
     flexDirection: 'row',
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: '#fff',
-    fontWeight: '600',
+    ...typography.bold,
   },
   cancelButtonModal: {
     backgroundColor: '#ECECEC',
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    ...typography.bold,
     color: '#ff0000ff',
   },
   cardContent: {
@@ -158,30 +159,39 @@ const styles = StyleSheet.create({
   bookingId: {
     fontSize: 12,
     color: '#2F2F2F',
+    ...typography.semibold
   },
   date: {
     fontSize: 12,
     color: '#2F2F2F',
   },
   name: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
     color: '#034833',
     marginTop: 2,
+    ...typography.extrabold
   },
   studio: {
     fontSize: 12,
     color: '#2F2F2F',
+    ...typography.bold
   },
-  time: {
+  bookedOn: {
     fontSize: 12,
     color: '#2F2F2F',
     marginTop: 2,
+    ...typography.semibold
+  },
+    time: {
+    fontSize: 12,
+    color: '#2F2F2F',
+    marginTop: 2,
+    ...typography.bold
   },
   price: {
     fontSize: 16,
     color: '#FF6B35',
-    fontWeight: '600',
     marginTop: 2,
+    ...typography.extrabold
   },
 });

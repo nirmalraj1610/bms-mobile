@@ -742,7 +742,7 @@ const HomeScreen: React.FC = () => {
         styles.whyCard,
         {
           marginLeft: index === 0 ? 10 : 5,
-          marginRight: index === whyChooseData.length - 1 ? 10 : 5,
+          marginRight: index === whyChooseData.length - 1 ? 5 : 10,
         },
       ]}
     >
@@ -1500,6 +1500,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.text.secondary,
     lineHeight: 16,
+    ...typography.semibold,
   },
   dotsRow: {
     flexDirection: 'row',

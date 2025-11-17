@@ -140,9 +140,9 @@ export const BookingsComponent = () => {
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>
-                            Booking ID:<Text style={{ ...typography.semibold, }}> {item.id}</Text>
+                            Booking ID:<Text style={{ ...typography.bold, }}> {item.id}</Text>
                         </Text>
-                        <Text style={styles.time}>Booked on :<Text style={{ ...typography.semibold, }}> {item.booking_date}</Text></Text>
+                        <Text style={styles.time}>Booked on :<Text style={{ ...typography.bold, }}> {item.booking_date}</Text></Text>
                         <Text style={styles.name}>{item?.customer?.full_name}</Text>
                         <Text style={styles.studio}>{item?.service?.service_type} ({item?.booking_type})</Text>
                         <Text style={styles.time}>{item.start_time} - {item.end_time}</Text>
@@ -209,10 +209,10 @@ export const BookingsComponent = () => {
                         <View style={styles.info}>
                             <Text style={styles.labelText}>Contact Information:</Text>
                             <Text style={styles.time}>
-                                Phone: <Text style={{ fontWeight: '600' }}>+91 {item?.customer?.phone}</Text>
+                                Phone: <Text style={{ ...typography.bold, }}>+91 {item?.customer?.phone}</Text>
                             </Text>
                             <Text style={[styles.time, { marginBottom: 10 }]}>
-                                Email: <Text style={{ fontWeight: '600' }}>{item?.customer?.email}</Text>
+                                Email: <Text style={{ ...typography.bold, }}>{item?.customer?.email}</Text>
                             </Text>
                         </View>
                     </View>
@@ -396,8 +396,8 @@ const styles = StyleSheet.create({
     },
     title: {
         color: '#101010',
-        fontWeight: '700',
         fontSize: 16,
+        ...typography.bold,
     },
     addButton: {
         flexDirection: 'row',
@@ -405,10 +405,10 @@ const styles = StyleSheet.create({
     },
     addButtonText: {
         color: '#1B4332',
-        fontWeight: '600',
         fontSize: 16,
         marginLeft: 4,
-        marginRight: 10
+        marginRight: 10,
+        ...typography.bold,
     },
 
     bgImageCard: {
@@ -425,13 +425,11 @@ const styles = StyleSheet.create({
     bgText: {
         fontSize: 10,
         color: '#2F2F2F',
-        fontWeight: '500',
         ...typography.medium,
     },
     bgCountText: {
         fontSize: 14,
         color: '#FF6B35',
-        fontWeight: '700',
         ...typography.bold,
     },
     card: {
@@ -454,10 +452,10 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     labelText: {
-        color: '#6C757D',
-        fontSize: 15,
-        fontWeight: "500",
+        color: '#101010',
+        fontSize: 16,
         marginBottom: 6,
+        ...typography.semibold,
     },
     datelableOutline: {
         flexDirection: 'row',
@@ -477,13 +475,12 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 20,
         color: "#101010",
-        fontWeight: "bold",
         fontSize: 16,
+        ...typography.bold,
     },
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500',
         ...typography.bold,
     },
     addStudioDesc: {
@@ -513,7 +510,7 @@ const styles = StyleSheet.create({
     bookingId: {
         fontSize: 12,
         color: '#2F2F2F',
-        ...typography.regular,
+        ...typography.semibold,
     },
     date: {
         fontSize: 12,
@@ -521,7 +518,6 @@ const styles = StyleSheet.create({
     },
     name: {
         fontSize: 16,
-        fontWeight: '700',
         color: '#034833',
         marginTop: 2,
         ...typography.extrabold,
@@ -545,21 +541,20 @@ const styles = StyleSheet.create({
     price: {
         fontSize: 16,
         color: '#FF6B35',
-        fontWeight: '600',
         marginTop: 2,
         ...typography.bold,
     },
     paid: {
         fontSize: 16,
         color: '#034833',
-        fontWeight: '600',
         marginTop: 2,
+        ...typography.bold,
     },
     due: {
         fontSize: 16,
         color: '#DC3545',
-        fontWeight: '600',
         marginTop: 2,
+        ...typography.bold,
     },
     actions: {
         flexDirection: 'row',
@@ -578,7 +573,6 @@ const styles = StyleSheet.create({
     contactBtnText: {
         color: '#007BFF',
         fontSize: 12,
-        fontWeight: '600',
         ...typography.semibold,
     },
     declineBtn: {
@@ -592,7 +586,6 @@ const styles = StyleSheet.create({
     declineText: {
         color: '#DC3545',
         fontSize: 12,
-        fontWeight: '600',
         ...typography.semibold,
     },
     acceptBtn: {
@@ -605,7 +598,6 @@ const styles = StyleSheet.create({
     acceptText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
         ...typography.semibold,
     },
     timeRow: {
@@ -629,7 +621,6 @@ const styles = StyleSheet.create({
     },
     timeValue: {
         fontSize: 15,
-        fontWeight: "600",
         color: "#1B4332",
         ...typography.bold,
     },

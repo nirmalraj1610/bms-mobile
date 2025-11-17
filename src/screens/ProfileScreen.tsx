@@ -133,15 +133,6 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  // const onLogoutPress = async () => {
-  //   try {
-  //     await clearToken();
-  //     await clearUserData();
-  //     fetchProfile();
-  //   } catch {
-  //     return null;
-  //   }
-  // }
 
   const onOpenLogoutModal = () => {
     setLogoutVisible(true);
@@ -174,7 +165,7 @@ const ProfileScreen: React.FC = () => {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       colors={['#2CBA9E', '#CEF9ED']}
-      style={[styles.whyCard, { marginLeft: index == 0 ? 5 : -5, marginRight: whyChooseData.length - 1 ? 10 : 5, width: WHY_CHOOSE_CARD_WIDTH }]}>
+      style={[styles.whyCard, { marginLeft: index == 0 ? 5 : -5, marginRight: index === whyChooseData.length - 1 ? 5 : 10, width: WHY_CHOOSE_CARD_WIDTH }]}>
       <View>
         <Image
           source={item.image}
@@ -253,6 +244,26 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
+  const convertedUserType = (type: string) => {
+    let userType = 'User'
+    switch (type) {
+            case 'studio_owner':
+              userType = 'Studio owner';
+              break;
+            case 'photographer':
+              userType = 'Photographer';
+              break;
+
+            case 'client':
+              userType = 'User';
+              break;
+
+            default:
+              userType = 'User';
+          }
+          return userType;
+  }
+
 
 
   return (
@@ -271,7 +282,7 @@ const ProfileScreen: React.FC = () => {
                       selectedProfile
                         ? { uri: selectedProfile.uri }
                         : fullProfileData?.customer_profiles?.profile_image_url
-                          ? { uri: fullProfileData.customer_profiles.profile_image_url }
+                          ? { uri: fullProfileData?.customer_profiles.profile_image_url }
                           : require('../assets/images/logoo.png')
                     }
                     style={styles.profileImage}
@@ -286,18 +297,11 @@ const ProfileScreen: React.FC = () => {
                   </View>
                 </TouchableOpacity>
                 <View style={styles.userDetailOutline}>
-                  <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {fullProfileData?.customer_profiles?.user_type} )</Text>
-                  {/* <Text style={styles.userStatus}>{fullProfileData?.kyc_status == "pending" ? "❌" : "✅" }</Text> */}
+                  <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {convertedUserType(fullProfileData?.customer_profiles?.user_type)} )</Text>
                 </View>
                 <TouchableOpacity onPress={onOpenLogoutModal} style={styles.logoutBtn}>
                   <Text style={styles.logoutBtnText}>Logout</Text>
                 </TouchableOpacity>
-                {/* <View style={styles.userDetailOutline}>
-                          <Text style={styles.userEmail}>{fullProfileData?.email}</Text> <Text style={styles.userStatus}>{fullProfileData?.email_verified ? "✅" : "❌" }</Text>
-                          </View>
-                          <View style={styles.userDetailOutline}>
-                          <Text style={styles.userPhone}>+91 {fullProfileData?.phone}</Text> <Text style={styles.userStatus}>{fullProfileData?.phone_verified ? "✅" : "❌" }</Text>
-                          </View> */}
               </View>
 
               {/* Tabs */}
@@ -520,23 +524,6 @@ const ProfileScreen: React.FC = () => {
               )}
             </View> :
             <View style={styles.logoutUserContainer}>
-              {/* <ImageBackground
-        source={imagePaths.LoginBg}
-        resizeMode="cover"
-        style={styles.backgroundImage}
-      >
-        <Image source={imagePaths.logo} resizeMode="contain" style={styles.logo} />
-        <Text style={styles.titleText}>Discover Your</Text>
-        <Text style={styles.titleText}>Best Photo Studio, Photographers</Text>
-
-          <TouchableOpacity style={{...styles.tempButton, marginTop: 100}} onPress={navigateToLogin}>
-            <Text style={styles.tempButtonText}>Login</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.tempButton, styles.signUpButton]} onPress={navigateToSignUp}>
-            <Text style={[styles.tempButtonText, styles.signUpButtonText]}>SignUp</Text>
-          </TouchableOpacity>
-      </ImageBackground> */}
               <ImageBackground
                 source={imagePaths.LoginBg}
                 resizeMode="cover"
@@ -716,7 +703,6 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
   titleText: {
-    fontWeight: "700",
     color: "#034833",
     fontSize: 20,
     ...typography.bold,
@@ -769,8 +755,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   labelText: {
-    color: '#6C757D',
-    fontSize: 15,
+    color: '#101010',
+    fontSize: 14,
     ...typography.medium,
     marginBottom: 6,
   },
@@ -787,7 +773,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   uploadTextHeader: {
-    ...typography.semibold,
+    ...typography.bold,
     color: "#101010",
     fontSize: 16,
     marginTop: 10,
@@ -796,12 +782,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#555",
     marginTop: 5,
+    ...typography.semibold,
   },
   supportedFilesText: {
     fontSize: 12,
     color: "#777",
     marginTop: 5,
     textAlign: "center",
+    ...typography.medium,
   },
   chooseFilesText: {
     marginTop: 10,
@@ -930,8 +918,8 @@ const styles = StyleSheet.create({
   whyHeading: {
     marginBottom: 10,
     fontSize: 18,
-    ...typography.bold,
     color: '#034833',
+    ...typography.bold,
   },
   studioList: {
     paddingBottom: 5,
@@ -952,14 +940,15 @@ const styles = StyleSheet.create({
   },
   whyTitle: {
     fontSize: 16,
-    ...typography.bold,
     color: COLORS.text.primary,
     marginBottom: 6,
+    ...typography.bold,
   },
   whySubtitle: {
     fontSize: 12,
     color: COLORS.text.secondary,
     lineHeight: 16,
+    ...typography.semibold,
   },
   dotsRow: {
     flexDirection: 'row',
@@ -1000,10 +989,10 @@ const styles = StyleSheet.create({
   },
 
   infoLabel: {
-    color: '#6C757D',
+    color: '#101010',
     fontSize: 15,
-    ...typography.medium,
     marginBottom: 6,
+    ...typography.medium,
   },
 
   infoValue: {
@@ -1015,12 +1004,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#DC3545',
     paddingHorizontal: 40,
     paddingVertical: 10,
+    marginTop: 10,
     borderRadius: 6,
   },
   logoutBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
-    ...typography.semibold,
+    ...typography.bold,
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -1059,6 +1049,7 @@ const styles = StyleSheet.create({
   },
   toggleButtonTextActive: {
     color: COLORS.background,
+    ...typography.bold,
   },
   dropdown: {
     height: 50,
@@ -1072,17 +1063,19 @@ const styles = StyleSheet.create({
   placeholderStyle: {
     fontSize: 14,
     color: '#999',
+    ...typography.bold,
   },
   selectedTextStyle: {
     fontSize: 14,
     color: '#101010',
-    fontWeight: '600',
+    ...typography.bold,
   },
   inputSearchStyle: {
     height: 40,
     fontSize: 14,
     color: '#101010',
-    borderRadius: 10
+    borderRadius: 10,
+    ...typography.bold,
   },
   dropdownContainerStyle: {
     borderRadius: 10,

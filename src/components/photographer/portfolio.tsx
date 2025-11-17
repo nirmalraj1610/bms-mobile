@@ -396,12 +396,10 @@ const styles = StyleSheet.create({
     statusText: {
         color: '#FFFFFF',
         fontSize: 10,
-        fontWeight: '600',
         ...typography.medium,
     },
     studioName: {
         fontSize: 16,
-        fontWeight: '700',
         color: '#034833',
         ...typography.bold,
     },
@@ -420,7 +418,6 @@ const styles = StyleSheet.create({
     labelText: {
         color: '#101010',
         fontSize: 16,
-        fontWeight: "500",
         marginBottom: 6,
         ...typography.semibold,
     },
@@ -436,7 +433,6 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         fontSize: 14,
         backgroundColor: "#ffffff",
-        fontWeight: '600',
         ...typography.semibold,
     },
     textArea: {
@@ -452,7 +448,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#1B4332',
     },
     viewButtonText: {
-        fontWeight: '600',
         fontSize: 12,
         color: '#FFFFFF',
         ...typography.semibold,        
@@ -472,9 +467,8 @@ const styles = StyleSheet.create({
     },
     createButtonText: {
         color: "#FFFFFF",
-        fontWeight: "bold",
         fontSize: 16,
-        ...typography.semibold,
+        ...typography.bold,
     },
     uploadButton: {
         borderWidth: 1,
@@ -489,7 +483,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     uploadTextHeader: {
-        fontWeight: "600",
         color: "#101010",
         fontSize: 16,
         marginTop: 10,
@@ -510,9 +503,8 @@ const styles = StyleSheet.create({
     },
     chooseFilesText: {
         marginTop: 10,
-        fontWeight: "bold",
         color: "#034833",
-        ...typography.semibold,
+        ...typography.bold,
     },
     selectedImage: {
         height: 150,
@@ -527,7 +519,6 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         color: "#101010",
         fontSize: 14,
-        fontWeight: "500",
         ...typography.semibold,
     },
     toggleContainer: {
@@ -560,7 +551,6 @@ const styles = StyleSheet.create({
     },
     toggleButtonText: {
         fontSize: 14,
-        fontWeight: '600',
         color: COLORS.text.secondary,
         marginLeft: 6,
         ...typography.semibold,
@@ -581,13 +571,12 @@ const styles = StyleSheet.create({
     loadingText: {
         marginTop: 20,
         color: "#101010",
-        fontWeight: "bold",
         fontSize: 16,
+        ...typography.bold,
     },
     noStudioText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500',
         ...typography.bold,
     },
     addStudioDesc: {
@@ -609,7 +598,6 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         color: '#fff',
         fontSize: 16,
-        fontWeight: '600',
         ...typography.bold,
     },
 });
