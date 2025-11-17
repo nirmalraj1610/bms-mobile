@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardFilterPopup from "./DashboardFilter";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -33,6 +33,9 @@ export const BookingsComponent = () => {
     const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
     const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
     const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
+
+    // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
 
     const onFilterPress = () => {
         setShowFilter(!showFilter)
@@ -113,6 +116,7 @@ export const BookingsComponent = () => {
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -150,6 +154,11 @@ export const BookingsComponent = () => {
         setShowAcceptModal({ status: true, selectedBooking: item })
     }
 
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchStudiosBookings();
+    }
+
     const renderItem = ({ item }: any) => {
         let statusColor = '#FE9A55'; // default Pending orange
         if (item.status === 'pending') statusColor = '#FFC107'; // yellow
@@ -175,13 +184,13 @@ export const BookingsComponent = () => {
 
                     <View style={styles.info}>
                         <Text style={styles.bookingId}>
-                            Booking ID: <Text style={{ ...typography.bold,}}>{item.id}</Text>
+                            Booking ID: <Text style={{ ...typography.bold, }}>{item.id}</Text>
                         </Text>
                         <Text style={styles.name}>{item?.customer?.full_name}</Text>
-                        <Text style={styles.date}>Date: <Text style={{ ...typography.bold,}}>{item.booking_date}</Text></Text>
-                        <Text style={styles.time}>Booking type: <Text style={{ ...typography.bold,}}>{item.booking_type}</Text></Text>
-                        <Text style={styles.time}>Start time: <Text style={{ ...typography.bold,}}>{item.start_time}</Text></Text>
-                        <Text style={styles.time}>End time: <Text style={{ ...typography.bold,}}>{item.end_time}</Text></Text>
+                        <Text style={styles.date}>Date: <Text style={{ ...typography.bold, }}>{item.booking_date}</Text></Text>
+                        <Text style={styles.time}>Booking type: <Text style={{ ...typography.bold, }}>{item.booking_type}</Text></Text>
+                        <Text style={styles.time}>Start time: <Text style={{ ...typography.bold, }}>{item.start_time}</Text></Text>
+                        <Text style={styles.time}>End time: <Text style={{ ...typography.bold, }}>{item.end_time}</Text></Text>
                         <Text style={styles.time}>Price: <Text style={styles.price}>₹{item.total_amount}</Text></Text>
                     </View>
                 </View>
@@ -282,7 +291,14 @@ export const BookingsComponent = () => {
 
     return (
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#034833"]}      // Android
+                />}
+        >
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>

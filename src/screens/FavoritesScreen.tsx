@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, Modal, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import imagePaths from '../constants/imagePaths';
@@ -21,6 +21,9 @@ const FavoritesScreen: React.FC = () => {
   const [query, setQuery] = useState('');
   const [thumbErrorIds, setThumbErrorIds] = useState<Record<string, boolean>>({});
   const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
 
   // Get favorites data from Redux store
   const { favorites: favoritesState } = useSelector((state: RootState) => state.studios);
@@ -52,14 +55,19 @@ const FavoritesScreen: React.FC = () => {
         } catch { }
       };
 
-      if(isFocused)
-      {
+      if (isFocused) {
         checkAuth();
       }
 
       dispatch(loadFavoritesThunk());
     }, [dispatch, isFocused])
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await dispatch(loadFavoritesThunk());
+    setRefreshing(false);
+  }
 
   // Show login modal when API returns auth errors
   useEffect(() => {
@@ -106,7 +114,7 @@ const FavoritesScreen: React.FC = () => {
     }
   };
 
-    // Login modal handlers
+  // Login modal handlers
   const closeLoginModal = () => setShowLoginModal(false);
   const goToLogin = () => {
     setShowLoginModal(false);
@@ -175,15 +183,15 @@ const FavoritesScreen: React.FC = () => {
   };
 
   const renderItem = ({ item }: { item: any }) => (
-              <TouchableOpacity
-                style={styles.card}
-                onPress={() =>
-                  navigation.navigate('Main' as never, {
-                    screen: 'Home',
-                    params: { screen: 'StudioDetails', params: { studioId: item.id } },
-                  } as never)
-                }
-              >
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        navigation.navigate('Main' as never, {
+          screen: 'Home',
+          params: { screen: 'StudioDetails', params: { studioId: item.id } },
+        } as never)
+      }
+    >
       <Image
         source={thumbErrorIds[item.id] || !item.thumbnail
           ? require('../assets/images/studio_placeholder.png')
@@ -262,28 +270,28 @@ const FavoritesScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
 
       {/* Login Required Modal */}
-      {showLoginModal && <View style={{flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0, zIndex: 99 }} >
-          <View style={styles.loginBackdrop}>
-            {/* True blur backdrop with light, white-tinted feel */}
-            <BlurView
-              style={StyleSheet.absoluteFill}
-              blurType="light"
-              blurAmount={20}
-              reducedTransparencyFallbackColor="white"
-            />
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Login Required</Text>
-              </View>
-              <Text style={styles.modalLabel}>Please log in to view your favorites.</Text>
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
-                  <Text style={styles.confirmButtonText}>Login</Text>
-                </TouchableOpacity>
-              </View>
+      {showLoginModal && <View style={{ flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0, zIndex: 99 }} >
+        <View style={styles.loginBackdrop}>
+          {/* True blur backdrop with light, white-tinted feel */}
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="light"
+            blurAmount={20}
+            reducedTransparencyFallbackColor="white"
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to view your favorites.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>}
+        </View>
+      </View>}
 
       {filtered.length === 0 ? (
         <EmptyState />
@@ -335,6 +343,12 @@ const FavoritesScreen: React.FC = () => {
               contentContainerStyle={styles.listContainer}
               data={filtered}
               keyExtractor={(i) => i.id}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={["#034833"]}      // Android
+                />}
               renderItem={renderItem}
               ListHeaderComponent={<View style={{ height: 8 }} />}
               ListFooterComponent={<View style={{ height: 24 }} />}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import HeaderBar from '../components/HeaderBar';
@@ -19,6 +19,9 @@ const AllStudiosScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const studiosState = useSelector((state: RootState) => state.studios);
   const [searchText, setSearchText] = useState('');
+
+  // pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -69,6 +72,12 @@ const AllStudiosScreen: React.FC = () => {
     if (!t) return results;
     return results.filter((item: any) => (item?.name || '').toLowerCase().includes(t));
   }, [results, searchText]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await dispatch(studiosSearchThunk({ q: searchText }));
+    setRefreshing(false);
+  }
 
   const renderItem = ({ item }: any) => {
     const name = item?.name || 'Unknown Studio';
@@ -173,6 +182,12 @@ const AllStudiosScreen: React.FC = () => {
             data={filteredResults}
             keyExtractor={(item: any, index: number) => String(item?.id ?? item?._id ?? item?.studio_id ?? item?.studioId ?? index)}
             renderItem={renderItem}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#034833"]}      // Android
+              />}
             contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
             ListEmptyComponent={() => (
               searchText.trim().length > 0 ? (

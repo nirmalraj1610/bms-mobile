@@ -12,6 +12,7 @@ import {
   FlatList,
   ImageSourcePropType,
   Dimensions,
+  SafeAreaView,
 } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -267,7 +268,7 @@ const ProfileScreen: React.FC = () => {
 
 
   return (
-    <>
+    <SafeAreaView style={styles.container}>
       {/* Loading */}
       {loading ?
         <ProfileSkeleton /> :
@@ -600,7 +601,7 @@ const ProfileScreen: React.FC = () => {
         Visible={logoutVisible}
         onClose={onCloseLogoutModal}
         onSubmit={confirmLogout} />
-    </>
+    </SafeAreaView>
   );
 };
 
@@ -832,9 +833,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   profileImage: {
-    width: 115,
-    height: 115,
-    borderRadius: 55,
+    width: 120,
+    height: 120,
+    borderRadius: 100,
   },
   cameraOutline: {
     backgroundColor: '#fff',

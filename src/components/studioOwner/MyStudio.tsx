@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Used for the Add Studio icon and Star icon
 import DashboardFilterPopup from "./DashboardFilter";
 import { useEffect, useState } from "react";
@@ -27,6 +27,10 @@ export const MyStudioComponent = ({
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [studioList, setStudioList] = useState([]);
+
+    // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
+
     const onFilterPress = () => {
         setShowFilter(!showFilter)
     }
@@ -74,8 +78,14 @@ export const MyStudioComponent = ({
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchStudios();
+    }
 
     // --- Render Item Function for FlatList ---
     const renderStudioCard = ({ item }: any) => {
@@ -161,7 +171,14 @@ export const MyStudioComponent = ({
 
     return (
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#034833"]}      // Android
+                />}
+        >
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>

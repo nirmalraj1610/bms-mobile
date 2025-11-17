@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useDispatch } from "react-redux";
@@ -25,6 +25,10 @@ export const ManageEquipmentComponent = () => {
     const [selectedImages, setSelectedImages] = useState([]);
     const [maxImageError, setMaxImageError] = useState('');
     const [showMaxImageError, setShowMaxImageError] = useState(false);
+
+    // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
+
     const filterOptions = [
         { label: "Available", value: true }
     ];
@@ -134,8 +138,14 @@ export const ManageEquipmentComponent = () => {
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchStudiosEquipments();
+    }
 
 
     const onEditEquiPress = (item: any) => {
@@ -418,7 +428,14 @@ export const ManageEquipmentComponent = () => {
                     </Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={ activeTab === "Equipments" ? 
+                                <RefreshControl
+                                    refreshing={refreshing}
+                                    onRefresh={onRefresh}
+                                    colors={["#034833"]}      // Android
+                                /> : null}
+                                >
                 {activeTab === "Equipments" ? <>
 
                     <View style={styles.header}>
@@ -725,7 +742,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginTop: 2,
-        ...typography.semibold        
+        ...typography.semibold
     },
     avaliable: {
         fontSize: 14,

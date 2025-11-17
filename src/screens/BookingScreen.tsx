@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, Modal, Alert, RefreshControl } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -53,6 +53,9 @@ const BookingScreen: React.FC = () => {
   // Login-required modal state
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  // pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
+
   // Local UI state: track check-in/out per booking
   const [checkedInMap, setCheckedInMap] = useState<Record<string, boolean>>({});
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
@@ -90,9 +93,8 @@ const BookingScreen: React.FC = () => {
       } catch { }
     };
 
-    if(isFocused)
-    {
-    checkAuth();
+    if (isFocused) {
+      checkAuth();
     }
 
   }, [dispatch, isFocused]);
@@ -179,7 +181,7 @@ const BookingScreen: React.FC = () => {
       booking.bookingType === selectedBookingType
     );
   }, [query, transformedBookings, selectedBookingType]);
-console.log('filteredBookings:', filteredBookings);
+  console.log('filteredBookings:', filteredBookings);
 
   const filteredPastBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -254,6 +256,12 @@ console.log('filteredBookings:', filteredBookings);
         };
     }
   };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await dispatch(getBookings({}));
+    setRefreshing(false);
+  }
 
   // Equipment selection handler
   const handleSelectEquipment = (booking: any) => {
@@ -695,6 +703,12 @@ console.log('filteredBookings:', filteredBookings);
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.listContainer}
               showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={["#034833"]}      // Android
+                />}
               ListHeaderComponent={
                 filteredBookings.length > 0 ? null : (
                   <View style={styles.emptyState}>
@@ -955,28 +969,28 @@ console.log('filteredBookings:', filteredBookings);
       />
 
       {/* Login Required Modal */}
-      {showLoginModal && <View style={{flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0 , zIndex: 99 }} >
-          <View style={styles.loginBackdrop}>
-            {/* True blur backdrop with light, white-tinted feel */}
-            <BlurView
-              style={StyleSheet.absoluteFill}
-              blurType="light"
-              blurAmount={20}
-              reducedTransparencyFallbackColor="white"
-            />
-            <View style={styles.modalContainer}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Login Required</Text>
-              </View>
-              <Text style={styles.modalLabel}>Please log in to view your bookings.</Text>
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
-                  <Text style={styles.confirmButtonText}>Login</Text>
-                </TouchableOpacity>
-              </View>
+      {showLoginModal && <View style={{ flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0, zIndex: 99 }} >
+        <View style={styles.loginBackdrop}>
+          {/* True blur backdrop with light, white-tinted feel */}
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="light"
+            blurAmount={20}
+            reducedTransparencyFallbackColor="white"
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to view your bookings.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </View>}
+        </View>
+      </View>}
     </SafeAreaView>
   );
 };

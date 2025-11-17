@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../../constants";
@@ -23,6 +23,10 @@ export const ServicesComponent = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedEquipments, setSelectedEquipments] = useState<string[]>([]);
+
+        // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
+
     const [addService, setAddservice] = useState({
         photographyTitle: "",
         basePrice: "",
@@ -65,6 +69,7 @@ export const ServicesComponent = () => {
     }, [activeTab]);
 
     const fetchPhotographerService = async () => {
+        setIsLoading(true);
         const userData = await getUserData();
         const photographerId = userData?.customer?.customer_profiles?.customer_id
 
@@ -82,11 +87,18 @@ export const ServicesComponent = () => {
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
 
     const onAddServicesPress = () => {
         setActiveTab('Add Service')
+    }
+    
+        const onRefresh = async () => {
+        setRefreshing(true);
+            clearStateValues();
+            await fetchPhotographerService();
     }
 
     const clearStateValues = () => {
@@ -259,7 +271,14 @@ export const ServicesComponent = () => {
                     </Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={ activeTab === "Services" ? 
+                                    <RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={onRefresh}
+                                        colors={["#034833"]}      // Android
+                                    /> : null}
+                                    >
                 {activeTab === "Services" ? <>
 
                     {isLoading ? (

@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardFilterPopup from "./DashboardFilter";
 import { useEffect, useState } from "react";
@@ -33,6 +33,9 @@ export const DashboardComponent = () => {
     const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
     const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
     const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
+
+    // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
 
 
     const onFilterPress = () => {
@@ -73,6 +76,7 @@ export const DashboardComponent = () => {
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -80,6 +84,11 @@ export const DashboardComponent = () => {
         setStartdate('');
         setEnddate('');
         fetchStudiosBookings({ from_date: '', to_date: '' }); // force reset
+    }
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchStudios();
     }
 
     const fetchStudiosBookings = async (overrideParams?: any) => {
@@ -282,7 +291,14 @@ export const DashboardComponent = () => {
     };
 
     return (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#034833"]}      // Android
+                />}
+        >
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>

@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, ImageBackground, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardFilterPopup from "./DashboardFilter";
 import { useEffect, useState } from "react";
@@ -25,6 +25,10 @@ export const DashboardComponent = () => {
     const [expandedBookingId, setExpandedBookingId] = useState<string | null>(null);
     const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
     const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
+
+    // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
+
     const onFilterPress = () => {
         setShowFilter(!showFilter)
     }
@@ -62,8 +66,14 @@ export const DashboardComponent = () => {
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchPhotographerBookings();
+    }
 
     const onCloseCancelModal = () => {
         setShowCancelModal({ status: false, selectedBooking: {} })
@@ -191,7 +201,14 @@ export const DashboardComponent = () => {
 
     return (
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#034833"]}      // Android
+                />}
+        >
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>
@@ -388,7 +405,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
         ...typography.semibold,
     },
-        labelText: {
+    labelText: {
         color: '#6C757D',
         fontSize: 15,
         marginBottom: 6,

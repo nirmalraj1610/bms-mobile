@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -19,6 +19,9 @@ const AllPhotographersScreen: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [failedImageIds, setFailedImageIds] = useState<Set<string | number>>(new Set());
 
+  // pull to refresh
+  const [refreshing, setRefreshing] = useState(false);
+
   useEffect(() => {
     dispatch(getphotographersSearch(undefined));
   }, [dispatch]);
@@ -33,6 +36,12 @@ const AllPhotographersScreen: React.FC = () => {
       return displayName.includes(q) || city.includes(q);
     });
   }, [searchText, photographersState?.search?.items]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await dispatch(getphotographersSearch(undefined));
+    setRefreshing(false);
+  }
 
   const renderItem = ({ item }: { item: any }) => {
     const name = item?.full_name || 'Unknown Photographer';
@@ -126,6 +135,12 @@ const AllPhotographersScreen: React.FC = () => {
             data={filteredResults}
             keyExtractor={(item: any, index: number) => String(item?.id ?? item?._id ?? index)}
             renderItem={renderItem}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#034833"]}      // Android
+              />}
             contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
             ListEmptyComponent={() => (
               searchText.trim().length > 0 ? (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, Platform, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DashboardFilterPopup from "./DashboardFilter";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -30,6 +30,10 @@ export const BookingsComponent = () => {
     const [enddate, setEnddate] = useState<string>('');
     const [showCancelModal, setShowCancelModal] = useState({ status: false, selectedBooking: {} });
     const [showAcceptModal, setShowAcceptModal] = useState({ status: false, selectedBooking: {} });
+
+    // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
+
     const onFilterPress = () => {
         setShowFilter(!showFilter)
     }
@@ -78,6 +82,7 @@ export const BookingsComponent = () => {
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -113,6 +118,11 @@ export const BookingsComponent = () => {
 
     const onOpenAcceptModal = (item: any) => {
         setShowAcceptModal({ status: true, selectedBooking: item })
+    }
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchPhotographerBookings();
     }
 
     const renderItem = ({ item }: any) => {
@@ -223,7 +233,14 @@ export const BookingsComponent = () => {
     }
     return (
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView showsVerticalScrollIndicator={false}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={["#034833"]}      // Android
+                />}
+        >
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>

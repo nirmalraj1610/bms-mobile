@@ -15,6 +15,7 @@ import {
   Modal,
   Platform,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { PermissionsAndroid } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
@@ -67,6 +68,7 @@ const HomeScreen: React.FC = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [permissionBlocked, setPermissionBlocked] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
@@ -773,6 +775,31 @@ const HomeScreen: React.FC = () => {
   //   </TouchableOpacity>
   // );
 
+  const onRefresh = async () => {
+  setRefreshing(true);
+
+   await dispatch(studiosSearchThunk({
+      q: '',
+      city: '',
+      types: [],
+      page: 1,
+      limit: 10
+    }));
+
+    // Fetch photographers with basic search parameters
+    await dispatch(getphotographersSearch({
+      query: '',
+      location: '',
+      specialization: '',
+      priceRange: "0-10000",
+      page: 1,
+      limit: 10
+    }));
+    
+      setRefreshing(false);
+    
+};
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
@@ -781,6 +808,13 @@ const HomeScreen: React.FC = () => {
         keyboardShouldPersistTaps="always"
         nestedScrollEnabled
         scrollEnabled={!showOverlay}
+          refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      colors={["#034833"]}      // Android
+    />
+  }
       >
         {/* Header */}
         <View style={styles.headerOutline}>

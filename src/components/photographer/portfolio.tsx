@@ -1,6 +1,6 @@
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { COLORS } from "../../constants";
@@ -20,6 +20,10 @@ export const PortfolioComponent = () => {
     const [editPortfolio, setEditPortfolio] = useState(false);
     const [editPortfolioId, setEditPortfolioId] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // pull to refresh
+    const [refreshing, setRefreshing] = useState(false);
+
     const [addPortfolio, setAddPortfolio] = useState({
         portfolioTitle: "",
         portfoliocategory: "",
@@ -54,12 +58,19 @@ export const PortfolioComponent = () => {
         }
         finally {
             setIsLoading(false);
+            setRefreshing(false);
         }
     };
 
     const onAddPortfolioPress = () => {
         setActiveTab('Add Portfolio')
     };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        clearStateValues();
+        await fetchPhotographerPortfolio();
+    }
 
     const clearStateValues = () => {
 
@@ -232,7 +243,14 @@ export const PortfolioComponent = () => {
                     </Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false}
+                refreshControl={activeTab === "Portfolio" ?
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={["#034833"]}      // Android
+                    /> : null}
+            >
                 {activeTab === "Portfolio" ? <>
                     {/* Studio Cards Grid */}
                     {isLoading ? (
@@ -450,7 +468,7 @@ const styles = StyleSheet.create({
     viewButtonText: {
         fontSize: 12,
         color: '#FFFFFF',
-        ...typography.semibold,        
+        ...typography.semibold,
     },
     actionsContainer: {
         flexDirection: 'row',
