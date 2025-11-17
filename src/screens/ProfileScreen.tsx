@@ -12,8 +12,8 @@ import {
   FlatList,
   ImageSourcePropType,
   Dimensions,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   ScrollView,
   TouchableOpacity,
@@ -17,6 +16,7 @@ import {
   Linking,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PermissionsAndroid } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
@@ -802,7 +802,7 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
+      <StatusBar barStyle="dark-content" translucent={false} backgroundColor={COLORS.surface} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="always"

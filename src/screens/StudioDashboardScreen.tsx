@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   Image,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
 import { DashboardComponent } from '../components/studioOwner/Dashboard';
@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import imagePaths from '../constants/imagePaths';
 
 const StudioDashboardScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const isFocused = useIsFocused();
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
@@ -98,7 +99,7 @@ const StudioDashboardScreen: React.FC = () => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
       {/* HEADER */}
-      <View style={styles.headerOutline}>
+      <View style={[styles.headerOutline, { paddingTop: 16 + insets.top }]}>
         <View style={styles.headerTopRow}>
           {/* Left: Logo + Welcome */}
           <View style={styles.headerLeft}>
