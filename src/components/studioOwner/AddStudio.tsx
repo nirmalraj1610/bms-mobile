@@ -19,6 +19,7 @@ import { useDispatch } from "react-redux";
 import { createStudioThunk, updateStudioThunk } from "../../features/studios/studiosSlice";
 import { Dropdown } from "react-native-element-dropdown";
 import { typography } from "../../constants/typography";
+import { showError, showSuccess } from "../../utils/helperFunctions";
 
 const AddStudioComponent = ({
   editStudio = false,
@@ -409,15 +410,18 @@ const AddStudioComponent = ({
           // UPDATE studio
           formData.append('studio_id', editStudioValues?.id);
           response = await dispatch(updateStudioThunk(formData)).unwrap();
+          showSuccess('Studio updated successfully!...');
           console.log("✅ Studio updated successfully:", response);
         } else {
           // CREATE studio
           console.log('calls from formData create', formData);
           response = await dispatch(createStudioThunk(formData)).unwrap();
+          showSuccess('Studio created successfully!...');
           console.log("✅ Studio created successfully:", response);
         }
         clearAllStates();
       } catch (error) {
+        showError('Something went wrong!...');
         console.error("❌ Error submitting studio:", error);
       }
     }
@@ -429,15 +433,18 @@ const AddStudioComponent = ({
           // UPDATE studio
           const convertedPayload = { ...payload, studio_id: editStudioValues?.id }
           response = await dispatch(updateStudioThunk(convertedPayload)).unwrap();
+          showSuccess('Studio updated successfully!...');
           console.log("✅ Studio updated successfully:", response);
         } else {
           console.log('calls from json update', payload);
           // CREATE studio
           response = await dispatch(createStudioThunk(payload)).unwrap();
+          showSuccess('Studio created successfully!...');
           console.log("✅ Studio created successfully:", response);
         }
         clearAllStates();
       } catch (error) {
+        showError('Something went wrong!...');
         console.error("❌ Error submitting studio:", error);
       }
     }

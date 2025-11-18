@@ -28,6 +28,7 @@ import LinearGradient from "react-native-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
 import ConfirmationModal from "../components/ConfirmationModal";
 import ProfileSkeleton from "../components/skeletonLoaders/ProfileSkeleton";
+import { showError, showInfo, showSuccess } from "../utils/helperFunctions";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -129,6 +130,7 @@ const ProfileScreen: React.FC = () => {
       setLoggedInUser(true);
     } catch (err) {
       setLoggedInUser(false);
+      showInfo('Please login to view your profile!...')
     } finally {
       setLoading(false);
     }
@@ -149,8 +151,10 @@ const ProfileScreen: React.FC = () => {
       await clearToken();
       await clearUserData();
       fetchProfile();
+      showSuccess('User logged out Successfully!...');
     } catch (error) {
       console.log(error);
+      showError('Something went wrong!...');
     }
   };
 
@@ -195,7 +199,9 @@ const ProfileScreen: React.FC = () => {
         bio: profile.description,
       };
       await dispatch(updateProfile(payload));
+      showSuccess('Profile updated successfully!..')
     } catch (err: any) {
+      showError('Something went wrong!...');
     } finally {
       setLoading(false);
       setIsEditing(false)
@@ -239,8 +245,10 @@ const ProfileScreen: React.FC = () => {
 
         // Optional: show success toast
         // Toast.show('Profile updated successfully!');
+        showSuccess('profile image Updated successfully!...');
       } catch (error) {
         console.error('❌ Error updating profile:', error);
+        showError('Something went wrong!...');
       }
     }
   };

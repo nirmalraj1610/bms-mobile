@@ -13,6 +13,7 @@ import { BlurView } from '@react-native-community/blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
 import FavoriteStudiosSkeleton from '../components/skeletonLoaders/FavoriteStudiosSkeleton';
+import { showInfo, showSuccess } from '../utils/helperFunctions';
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -40,6 +41,7 @@ const FavoritesScreen: React.FC = () => {
         try { token = await AsyncStorage.getItem('auth_token'); } catch { }
         if (!token) {
           setShowLoginModal(true);
+          showInfo('Please log in to view your favorites!...');
           return;
         }
         try {
@@ -49,6 +51,7 @@ const FavoritesScreen: React.FC = () => {
             const isExpired = exp * 1000 <= Date.now();
             if (isExpired) {
               setShowLoginModal(true);
+              showInfo('Please log in to view your favorites!...');
               return;
             }
           }
@@ -74,6 +77,7 @@ const FavoritesScreen: React.FC = () => {
     const msg = String(error || '').toLowerCase();
     if (msg.includes('invalid jwt') || msg.includes('unauthorized') || msg.includes('authentication')) {
       setShowLoginModal(true);
+      showInfo('Please log in to view your favorites!...');
     }
   }, [error]);
 
@@ -84,6 +88,7 @@ const FavoritesScreen: React.FC = () => {
     try { token = await AsyncStorage.getItem('auth_token'); } catch { }
     if (!token) {
       setShowLoginModal(true);
+      showInfo('Please log in to view your favorites!...');
       return;
     }
     // Check token expiry via saved user session
@@ -94,6 +99,7 @@ const FavoritesScreen: React.FC = () => {
         const isExpired = exp * 1000 <= Date.now();
         if (isExpired) {
           setShowLoginModal(true);
+          showInfo('Please log in to view your favorites!...');
           return;
         }
       }
@@ -103,11 +109,13 @@ const FavoritesScreen: React.FC = () => {
     const action = isFavorited ? 'remove' : 'add';
     try {
       await dispatch(toggleFavoriteThunk({ studio_id: studioId, action })).unwrap();
+      showSuccess(`Studio ${isFavorited ? 'removed from' : 'added to'} your favorite!...`);
     } catch (err: any) {
       const msg = typeof err === 'string' ? err : err?.message || '';
       const isAuthError = msg?.toLowerCase().includes('invalid jwt') || msg?.toLowerCase().includes('unauthorized') || msg?.toLowerCase().includes('authentication');
       if (isAuthError || err?.status === 401) {
         setShowLoginModal(true);
+        showInfo('Please log in to view your favorites!...');
         return;
       }
       try { console.log('toggleFavorite error:', err); } catch { }
@@ -118,6 +126,7 @@ const FavoritesScreen: React.FC = () => {
   const closeLoginModal = () => setShowLoginModal(false);
   const goToLogin = () => {
     setShowLoginModal(false);
+    showInfo('Please log in to view your favorites!...');
     navigation.navigate('Auth', { screen: 'Login' });
   };
 

@@ -38,6 +38,7 @@ import { getUserData } from '../lib/http';
 import imagePaths from '../constants/imagePaths';
 import RecommendCardSkeleton from '../components/skeletonLoaders/RecommendCardSkeleton';
 import RatedCardSkeleton from '../components/skeletonLoaders/RatedCardSkeleton';
+import { showInfo, showSuccess } from '../utils/helperFunctions';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -427,6 +428,7 @@ const HomeScreen: React.FC = () => {
     // 2) If no token, prompt login immediately
     if (!token) {
       setShowLoginModal(true);
+      showInfo('Please log in to add this studio to your favorites!...');
       return;
     }
 
@@ -438,6 +440,7 @@ const HomeScreen: React.FC = () => {
         const isExpired = exp * 1000 <= Date.now();
         if (isExpired) {
           setShowLoginModal(true);
+          showInfo('Please log in to add this studio to your favorites!...');
           return;
         }
       }
@@ -448,11 +451,13 @@ const HomeScreen: React.FC = () => {
     const action = isFavorited ? 'remove' : 'add';
     try {
       await dispatch(toggleFavoriteThunk({ studio_id: studioId, action })).unwrap();
+      showSuccess(`Studio ${isFavorited ? 'removed from' : 'added to'} your favorite!...`);
     } catch (err: any) {
       const msg = typeof err === 'string' ? err : err?.message || '';
       const isAuthError = msg?.toLowerCase().includes('invalid jwt') || msg?.toLowerCase().includes('unauthorized') || msg?.toLowerCase().includes('authentication');
       if (isAuthError || err?.status === 401) {
         setShowLoginModal(true);
+        showInfo('Please log in to add this studio to your favorites!...');
         return;
       }
       // Swallow other errors silently or log

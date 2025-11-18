@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
 import BookingsListSkeleton from '../components/skeletonLoaders/BookingsListSkeleton';
 import imagePaths from '../constants/imagePaths';
+import { showError, showInfo, showSuccess } from '../utils/helperFunctions';
 
 const BookingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -78,6 +79,7 @@ const BookingScreen: React.FC = () => {
       try { token = await AsyncStorage.getItem('auth_token'); } catch { }
       if (!token) {
         setShowLoginModal(true);
+        showInfo('Please log in to view your bookings!...')
         return;
       }
       try {
@@ -87,6 +89,7 @@ const BookingScreen: React.FC = () => {
           const isExpired = exp * 1000 <= Date.now();
           if (isExpired) {
             setShowLoginModal(true);
+            showInfo('Please log in to view your bookings!...')
             return;
           }
         }
@@ -104,6 +107,7 @@ const BookingScreen: React.FC = () => {
     const msg = String(error || '').toLowerCase();
     if (msg.includes('invalid jwt') || msg.includes('unauthorized') || msg.includes('authentication')) {
       setShowLoginModal(true);
+      showInfo('Please log in to view your bookings!...')
     }
   }, [error]);
 
@@ -349,9 +353,11 @@ const BookingScreen: React.FC = () => {
           new_end_time,
         })
       ).unwrap();
+      showSuccess('Your booking has been rescheduled successfully!...');
       Alert.alert('Rescheduled', 'Your booking has been rescheduled.');
       closeRescheduleModal();
     } catch (err: any) {
+      showError('Unable to reschedule your booking!...');
       Alert.alert('Reschedule failed', err?.message || 'Unable to reschedule.');
       setRescheduleLoading(false);
     }
@@ -364,7 +370,9 @@ const BookingScreen: React.FC = () => {
       setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
       await dispatch(doCheckinBooking({ booking_id: bookingId })).unwrap();
       setCheckedInMap((prev) => ({ ...prev, [bookingId]: true }));
+      showSuccess('Checked in successfully!...');
     } catch (e) {
+      showError('Check-in failed. Please try again!...');
       console.log('❌ Check-in failed:', e);
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
@@ -377,7 +385,9 @@ const BookingScreen: React.FC = () => {
       setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
       await dispatch(doCheckoutBooking({ booking_id: bookingId })).unwrap();
       setCheckedInMap((prev) => ({ ...prev, [bookingId]: false }));
+      showSuccess('Checked out successfully!...');
     } catch (e) {
+      showError('Check-out failed. Please try again!...');
       console.log('❌ Check-out failed:', e);
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
@@ -434,9 +444,11 @@ const BookingScreen: React.FC = () => {
       await dispatch(
         doCancelBooking({ booking_id: selectedBookingForCancel.id, cancellation_reason: cancelReason.trim() })
       ).unwrap();
+      showSuccess('Your booking has been cancelled!...');
       Alert.alert('Cancelled', 'Your booking has been cancelled.');
       closeCancelModal();
     } catch (err: any) {
+      showError('Unable to cancel your booking!...');
       Alert.alert('Cancel failed', err?.message || 'Unable to cancel booking.');
       setCancelLoading(false);
     }
@@ -1231,7 +1243,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ff0000ff',
     paddingVertical: 4,
-    // marginBottom: 10,
+    marginBottom: 10,
     minWidth: '85%',
   },
   cancelButtonText: {

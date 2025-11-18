@@ -14,6 +14,7 @@ import RootNavigator from './src/navigation/RootNavigator';
 import { COLORS } from './src/constants';
 import { Provider } from 'react-redux';
 import { store } from './src/store/store';
+import Toast from "react-native-toast-message";
 
 // Set global default font family to Manrope for Text and TextInput
 if ((Text as any).defaultProps == null) {
@@ -42,6 +43,7 @@ function App(): React.JSX.Element {
           translucent={false}
         />
         <RootNavigator />
+        <Toast position='top'/>
       </SafeAreaProvider>
     </Provider>
   );

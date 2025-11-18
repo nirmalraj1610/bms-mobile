@@ -10,6 +10,7 @@ import imagePaths from "../../constants/imagePaths";
 import { Dropdown } from "react-native-element-dropdown";
 import EquipmentsSkeleton from "../skeletonLoaders/StudioOwner/EquipmentsSkeleton";
 import { typography } from "../../constants/typography";
+import { showError, showSuccess } from "../../utils/helperFunctions";
 
 
 // --- Main Component ---
@@ -296,6 +297,7 @@ export const ManageEquipmentComponent = () => {
 
                 const response = await dispatch(updateStudioEquipThunk(formData)).unwrap();
                 clearStateValues();
+                showSuccess('Equipment updated successfully!...');
                 console.log('✅ Equipment updated successfully:', response);
             } else {
                 formData.append('action', 'add');
@@ -303,9 +305,11 @@ export const ManageEquipmentComponent = () => {
 
                 const response = await dispatch(createStudioEquipThunk(formData)).unwrap();
                 clearStateValues();
+                showSuccess('Equipment created successfully!...');
                 console.log('✅ Equipment created successfully:', response);
             }
         } catch (error) {
+            showError('Something went wrong!...');
             console.error('❌ Error submitting equipment:', error);
         }
     };

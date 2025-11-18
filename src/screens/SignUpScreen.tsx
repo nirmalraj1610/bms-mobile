@@ -19,6 +19,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS } from '../constants';
 import { philosopherTypography, typography } from '../constants/typography';
 import imagePaths from '../constants/imagePaths';
+import { showSuccess } from '../utils/helperFunctions';
 
 const SignUpScreen: React.FC = () => {
   const [name, setName] = useState('');
@@ -52,6 +53,7 @@ const SignUpScreen: React.FC = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
+      showSuccess('Account created successfully!...');
       Alert.alert('Success', 'Account created successfully!', [
         { text: 'OK', onPress: () => navigation.replace('Main') }
       ]);

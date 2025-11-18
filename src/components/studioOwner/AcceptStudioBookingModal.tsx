@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { doAcceptBooking } from "../../features/bookings/bookingsSlice";
 import imagePaths from "../../constants/imagePaths";
 import { typography } from "../../constants/typography";
+import { showError, showSuccess } from "../../utils/helperFunctions";
 
 const AcceptStudioBookingModal = ({ visible = false, onClose = () => { }, booking = {} }) => {
   const dispatch = useDispatch();
@@ -27,8 +28,10 @@ const AcceptStudioBookingModal = ({ visible = false, onClose = () => { }, bookin
     try {
       const response = await dispatch(doAcceptBooking(payload)).unwrap();
       console.log('accept response', response);
+      showSuccess('Booking accepted successfully.');
       onCloseModal();
     } catch (err: any) {
+      showError('Unable to accept booking. Please try again.');
       Alert.alert('accept failed', err?.message || 'Unable to accept booking.');
     }
     finally {

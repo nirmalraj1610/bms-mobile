@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { doCancelBooking } from "../../features/bookings/bookingsSlice";
 import { typography } from "../../constants/typography";
+import { showError, showSuccess } from "../../utils/helperFunctions";
 
 const CancelPhotographerBookingModal = ({ visible = false, onClose = () => { }, booking = {} }) => {
   const dispatch = useDispatch();
@@ -30,9 +31,11 @@ const CancelPhotographerBookingModal = ({ visible = false, onClose = () => { }, 
     
     try {
      const response =  await dispatch(doCancelBooking(payload)).unwrap();
-      console.log('cancel response', response);      
+      console.log('cancel response', response); 
+      showSuccess('Booking cancelled successfully.');     
       onCloseModal();
     } catch (err: any) {
+      showError('Unable to cancel booking. Please try again.');
       Alert.alert('Cancel failed', err?.message || 'Unable to cancel booking.');
     }
     finally{

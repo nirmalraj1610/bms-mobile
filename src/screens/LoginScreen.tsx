@@ -22,6 +22,7 @@ import { authLogin } from '../lib/api';
 import { useDispatch } from 'react-redux';
 import { login } from '../features/auth/authSlice';
 import imagePaths from '../constants/imagePaths';
+import { showError, showSuccess } from '../utils/helperFunctions';
 
 const LoginScreen: React.FC = () => {
   const dispatch = useDispatch();
@@ -47,10 +48,12 @@ const handleLogin = async () => {
     console.log('Login Success:', result);
 
     // Alert.alert('Success', 'Login successful!');
+    showSuccess('User Logged in successfully!...');
     navigation.replace('Main');
   } catch (err: any) {
     console.log('Login Error:', err);
     Alert.alert('Login Failed', err?.message || 'Something went wrong, please try again');
+    showError('Something went wrong, please try again')
   } finally {
     setIsLoading(false);
   }

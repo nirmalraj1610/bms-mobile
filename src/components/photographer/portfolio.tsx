@@ -10,6 +10,7 @@ import { createPhotographerPortfolio, getPhotographerPortfolio } from "../../fea
 import imagePaths from "../../constants/imagePaths";
 import PortfolioSkeleton from "../skeletonLoaders/Photographer/PortfolioSkeleton";
 import { typography } from "../../constants/typography";
+import { showError, showSuccess } from "../../utils/helperFunctions";
 
 
 // --- Main Component ---
@@ -139,17 +140,20 @@ export const PortfolioComponent = () => {
 
             // ✅ Update flow
             if (editPortfolio && editPortfolioId) {
+                showError('Portfolio update feature not implemented');
                 Alert.alert('Update portfolio', 'Portfolio update feature not implemented')
                 clearStateValues();
             }
             // ✅ Create flow
             else {
                 response = await dispatch(createPhotographerPortfolio(formData)).unwrap();
+                showSuccess('Portfolio created Successfully!...');
                 console.log("✅ Portfolio created Successfully:", response);
                 clearStateValues();
             }
 
         } catch (error) {
+            showError('Something went wrong!...');
             console.log("❌ Error creating portfolio:", error);
         }
     };

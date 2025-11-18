@@ -11,6 +11,7 @@ import { createPhotographerServices, getPhotographerServices, updatePhotographer
 import imagePaths from "../../constants/imagePaths";
 import ServicesSkeleton from "../skeletonLoaders/Photographer/ServicesSkeleton";
 import { typography } from "../../constants/typography";
+import { showError, showSuccess } from "../../utils/helperFunctions";
 
 
 // --- Main Component ---
@@ -146,7 +147,7 @@ export const ServicesComponent = () => {
         }
     };
 
-    const createEquipment = async () => {
+    const createOrUpdateService = async () => {
         try {
             // ✅ Base payload (used for both create & update)
             let payload = {
@@ -169,17 +170,20 @@ export const ServicesComponent = () => {
                     service_id: editServiceId,
                 };
                 response = await dispatch(updatePhotographerServices(payload)).unwrap();
+                showSuccess('Service Updated Successfully!...');
                 console.log("✅ Service Updated Successfully:", response);
                 clearStateValues();
             }
             // ✅ Create flow
             else {
                 response = await dispatch(createPhotographerServices(payload)).unwrap();
+                showSuccess('Service Created Successfully!...');
                 console.log("✅ Service Created Successfully:", response);
                 clearStateValues();
             }
 
         } catch (error) {
+            showError('Something went wrong!...')
             console.log("❌ Error creating/updating service:", error);
         }
     };
@@ -439,7 +443,7 @@ export const ServicesComponent = () => {
 
 
                         {/* Save button section  */}
-                        <TouchableOpacity onPress={createEquipment} style={styles.createButton}>
+                        <TouchableOpacity onPress={createOrUpdateService} style={styles.createButton}>
                             <Text style={styles.createButtonText}>{editService ? 'Update service' : "Add service"}</Text>
                         </TouchableOpacity>
 
