@@ -21,9 +21,10 @@ import { BlurView } from '@react-native-community/blur';
 import { getUserData } from '../lib/http';
 import imagePaths from '../constants/imagePaths';
 import { showInfo } from '../utils/helperFunctions';
+import { SlotsManagementComponent } from '../components/photographer/SlotsManagement';
 
 const PhotographerDashboardScreen: React.FC = () => {
- const isFocused = useIsFocused();
+  const isFocused = useIsFocused();
   const navigation = useNavigation();
   const [selectedMenu, setSelectedMenu] = useState('Dashboard');
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -34,14 +35,16 @@ const PhotographerDashboardScreen: React.FC = () => {
     'Dashboard',
     'Bookings',
     'Services',
-    'portfolio',
+    'Portfolio',
+    'Slots Management',
   ];
 
   const iconMap = {
     Dashboard: "space-dashboard",
     Bookings: "calendar-month",
     Services: "handyman",
-    portfolio: "emoji-events",
+    Portfolio: "emoji-events",
+    'Slots Management': "access-time"
   };
 
   useEffect(() => {
@@ -189,31 +192,32 @@ const PhotographerDashboardScreen: React.FC = () => {
         {selectedMenu === "Dashboard" && <DashboardComponent />}
         {selectedMenu === "Bookings" && <BookingsComponent />}
         {selectedMenu === "Services" && <ServicesComponent />}
-        {selectedMenu === "portfolio" && <PortfolioComponent />}
+        {selectedMenu === "Portfolio" && <PortfolioComponent />}
+        {selectedMenu === "Slots Management" && <SlotsManagementComponent />}
       </View>
 
-            {showLoginModal && <View style={{flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0 , zIndex: 99 }} >
-                <View style={styles.loginBackdrop}>
-                  {/* True blur backdrop with light, white-tinted feel */}
-                  <BlurView
-                    style={StyleSheet.absoluteFill}
-                    blurType="light"
-                    blurAmount={20}
-                    reducedTransparencyFallbackColor="white"
-                  />
-                  <View style={styles.modalContainer}>
-                    <View style={styles.modalHeader}>
-                      <Text style={styles.modalTitle}>Login Required</Text>
-                    </View>
-                    <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
-                    <View style={styles.modalActions}>
-                      <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
-                        <Text style={styles.confirmButtonText}>Login</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </View>}
+      {showLoginModal && <View style={{ flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0, zIndex: 99 }} >
+        <View style={styles.loginBackdrop}>
+          {/* True blur backdrop with light, white-tinted feel */}
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            blurType="light"
+            blurAmount={20}
+            reducedTransparencyFallbackColor="white"
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Login Required</Text>
+            </View>
+            <Text style={styles.modalLabel}>Please log in to view your dashboard.</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.confirmButton} onPress={goToLogin}>
+                <Text style={styles.confirmButtonText}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>}
 
       {dropdownVisible ? <TouchableOpacity onPress={() => setDropdownVisible(false)} style={{ backgroundColor: 'rgba(0,0,0,0.1)', height: '100%', width: '100%', position: 'absolute' }} ></TouchableOpacity> : null}
     </SafeAreaView>

@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { photographersState } from './photographers.types';
 import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi, createphotographer, createPhotographerBookingService, getPhotographerBookings } from './photographers.service';
-import { createPhotographerPortfolioApi, getPhotographerProfileApi, postPhotographerService, updatePhotographerServiceApi } from '../../lib/api';
-import { PhotographerPortfolioUploadPayload, PhotographerServicePayload, PhotographerServiceUpdatePayload } from '../../types/api';
+import { createPhotographerPortfolioApi, getPhotographerProfileApi, getPhotographerTimeSlotsApi, postPhotographerService, updatePhotographerServiceApi, updatePhotographerTimeSlots } from '../../lib/api';
+import { PhotographerPortfolioUploadPayload, PhotographerServicePayload, PhotographerServiceUpdatePayload, UpdatePhotographerTimeSlotsPayload } from '../../types/api';
 
 const initialState: photographersState = {
   search: { items: [], total: 0, loading: false, error: null },
@@ -74,6 +74,29 @@ export const createPhotographerPortfolio = createAsyncThunk(
       return await createPhotographerPortfolioApi(payload);
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to create photographer portfolio');
+    }
+  }
+);
+
+export const managePhotographerTimeSlots = createAsyncThunk(
+  'photographers/timeslots/update',
+  async (payload: UpdatePhotographerTimeSlotsPayload, { rejectWithValue }) => {
+    try {
+      return await updatePhotographerTimeSlots(payload);
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to update photographer time slots');
+    }
+  }
+);
+
+export const getPhotographerTimeSlots = createAsyncThunk(
+  'photographers/timeslots',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getPhotographerTimeSlotsApi();
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch photographer time slots');
     }
   }
 );

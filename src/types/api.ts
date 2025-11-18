@@ -202,6 +202,28 @@ export interface StudioCreateResponse {
   message: string;
 }
 
+export type UpdatePhotographerTimeSlotsResponse = {
+  message: string;
+  availability: {
+    id: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    is_available: boolean;
+  }[];
+};
+
+export type PhotographerAvailabilityItem = {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+};
+
+export type UpdatePhotographerTimeSlotsPayload = {
+  availability: PhotographerAvailabilityItem[];
+};
+
 export interface BookingAcceptItem {
   id: string;
   status: string;

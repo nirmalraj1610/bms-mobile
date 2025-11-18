@@ -12,6 +12,7 @@ export interface Studio {
   id: string;
   name: string;
   description: string;
+  studio_size: number;
   location: {
     city: string;
     state: string;
@@ -32,7 +33,7 @@ export interface Studio {
     fullDayRate: number;
   };
   availability: TimeSlot[];
-  rating: number;
+  average_rating: number;
   reviewCount: number;
   verified: boolean;
   owner: {

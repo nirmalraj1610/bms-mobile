@@ -28,6 +28,8 @@ import type {
   PhotographerProfileResponse,
   PhotographerPortfolioUploadResponse,
   PhotographerPortfolioUploadPayload,
+  UpdatePhotographerTimeSlotsResponse,
+  UpdatePhotographerTimeSlotsPayload,
 } from '../types/api';
 import { StudioEquipmentPayload } from '../features/studios/studios.types';
 
@@ -183,13 +185,13 @@ export async function photographerBookings(params: {
   });
 }
 
-export async function createPhotographerBooking(payload: { 
-  photographer_id: string; 
-  service_id: string; 
-  booking_date: string; 
-  start_time: string; 
-  end_time: string; 
-  total_amount: number 
+export async function createPhotographerBooking(payload: {
+  photographer_id: string;
+  service_id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  total_amount: number
 }) {
   return apiFetch<BookingCreateResponse>('/photographer-booking-create', { method: 'POST', body: payload });
 }
@@ -201,8 +203,8 @@ export async function photographerReviewCreate(payload: { booking_id: string; ph
 export async function photographerCreate(payload: {
   name: string;
   description: string;
-  location: object; 
-  pricing: object;  
+  location: object;
+  pricing: object;
   amenities: string[];
 }) {
   return apiFetch<photographerCreateResponse>('/photographer-create', { method: 'POST', body: payload });
@@ -339,6 +341,23 @@ export async function StudioCreate(payload: {
   return apiFetch<StudioCreateResponse>('/studio-create', { method: 'POST', body: payload });
 }
 
+export async function updatePhotographerTimeSlots(payload: UpdatePhotographerTimeSlotsPayload) {
+  return apiFetch<UpdatePhotographerTimeSlotsResponse>(
+    '/photographer-availability-manage',
+    {
+      method: 'POST',
+      body: payload,
+    }
+  );
+}
+
+export async function getPhotographerTimeSlotsApi(): Promise<UpdatePhotographerTimeSlotsResponse> {
+  return apiFetch<UpdatePhotographerTimeSlotsResponse>(
+    '/photographer-availability-manage',
+    { method: 'GET' }
+  );
+}
+
 export async function StudioUpdate(payload: {
   name: string;
   description: string;
@@ -353,7 +372,7 @@ export async function StudioEquipCreate(payload: StudioEquipmentPayload) {
   return apiFetch<StudioCreateResponse>('/studio-equipment-manage', { method: 'POST', body: payload });
 }
 
-export async function StudioEquipUpdate(payload: StudioEquipmentPayload) {  
+export async function StudioEquipUpdate(payload: StudioEquipmentPayload) {
   return apiFetch<StudioCreateResponse>('/studio-equipment-manage', { method: 'PUT', body: payload });
 }
 

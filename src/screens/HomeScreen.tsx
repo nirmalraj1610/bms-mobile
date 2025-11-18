@@ -607,7 +607,7 @@ const HomeScreen: React.FC = () => {
         {/* Rating Badge */}
         <View style={styles.ratingBadge}>
           <Image source={imagePaths.Favorites} resizeMode='contain' tintColor={'#FF7441'} style={styles.locationIcon} />
-          <Text style={styles.ratingBadgeText}>{item.rating}</Text>
+          <Text style={styles.ratingBadgeText}>{item?.average_rating}</Text>
         </View>
 
         {/* Heart Icon */}
@@ -627,10 +627,10 @@ const HomeScreen: React.FC = () => {
               <Image source={imagePaths.Location} resizeMode='contain' style={styles.locationIcon} />
               <Text style={styles.recommendLocation} numberOfLines={1}>{item.location.city}</Text>
             </View>
-            <View style={styles.recommendMeta}>
+            {item?.studio_size ? <View style={styles.recommendMeta}>
               <Image source={imagePaths.SquareFt} resizeMode='contain' style={styles.locationIcon} />
-              <Text style={styles.recommendSqft}>800 sq ft</Text>
-            </View>
+              <Text style={styles.recommendSqft}>{item.studio_size} sq ft</Text>
+            </View> : null}
           </View>
 
           <View style={styles.recommendPriceRow}>
@@ -781,9 +781,9 @@ const HomeScreen: React.FC = () => {
   // );
 
   const onRefresh = async () => {
-  setRefreshing(true);
+    setRefreshing(true);
 
-   await dispatch(studiosSearchThunk({
+    await dispatch(studiosSearchThunk({
       q: '',
       city: '',
       types: [],
@@ -800,10 +800,10 @@ const HomeScreen: React.FC = () => {
       page: 1,
       limit: 10
     }));
-    
-      setRefreshing(false);
-    
-};
+
+    setRefreshing(false);
+
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -813,13 +813,13 @@ const HomeScreen: React.FC = () => {
         keyboardShouldPersistTaps="always"
         nestedScrollEnabled
         scrollEnabled={!showOverlay}
-          refreshControl={
-    <RefreshControl
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      colors={["#034833"]}      // Android
-    />
-  }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#034833"]}      // Android
+          />
+        }
       >
         {/* Header */}
         <View style={styles.headerOutline}>
@@ -1319,7 +1319,7 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 12,
     ...typography.semibold,
-    marginLeft: 2,
+    marginLeft: 4,
   },
   heartIcon: {
     position: 'absolute',

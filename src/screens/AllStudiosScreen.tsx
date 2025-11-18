@@ -134,7 +134,7 @@ const AllStudiosScreen: React.FC = () => {
           </View>
           <View style={styles.metaRow}>
             <Image source={imagePaths.SquareFt} resizeMode='contain' style={styles.metaIcon} />
-            <Text style={styles.sqftText}>800 sq ft</Text>
+            <Text style={styles.sqftText}>{item.studio_size} sq ft</Text>
           </View>
 
           {/* {hourly !== undefined ? (
