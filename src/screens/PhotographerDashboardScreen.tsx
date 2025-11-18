@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from '@react-native-community/blur';
 import { getUserData } from '../lib/http';
 import imagePaths from '../constants/imagePaths';
+import { showInfo } from '../utils/helperFunctions';
 
 const PhotographerDashboardScreen: React.FC = () => {
  const isFocused = useIsFocused();
@@ -49,6 +50,7 @@ const PhotographerDashboardScreen: React.FC = () => {
       try { token = await AsyncStorage.getItem('auth_token'); } catch { }
       if (!token) {
         setShowLoginModal(true);
+        showInfo('Please log in to view your dashboard!...');
         return;
       }
       try {
@@ -58,6 +60,7 @@ const PhotographerDashboardScreen: React.FC = () => {
           const isExpired = exp * 1000 <= Date.now();
           if (isExpired) {
             setShowLoginModal(true);
+            showInfo('Please log in to view your dashboard!...');
             return;
           }
           else {

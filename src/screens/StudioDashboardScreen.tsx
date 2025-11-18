@@ -21,6 +21,7 @@ import { BlurView } from '@react-native-community/blur';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import imagePaths from '../constants/imagePaths';
+import { showInfo } from '../utils/helperFunctions';
 
 const StudioDashboardScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -46,6 +47,7 @@ const StudioDashboardScreen: React.FC = () => {
       try { token = await AsyncStorage.getItem('auth_token'); } catch { }
       if (!token) {
         setShowLoginModal(true);
+        showInfo('Please log in to view your dashboard!...');
         return;
       }
       try {
@@ -55,6 +57,7 @@ const StudioDashboardScreen: React.FC = () => {
           const isExpired = exp * 1000 <= Date.now();
           if (isExpired) {
             setShowLoginModal(true);
+            showInfo('Please log in to view your dashboard!...');
             return;
           }
           else {
