@@ -38,6 +38,7 @@ export async function authSignup(payload: {
   full_name?: string;
   phone?: string;
   user_type?: 'client' | 'photographer' | 'studio_owner';
+  user_metadata?: { full_name?: string; user_type?: 'client' | 'photographer' | 'studio_owner'; phone?: string };
 }): Promise<AuthResponse> {
   const res = await apiFetch<AuthResponse>('/auth-signup', { method: 'POST', body: payload, auth: false });
   if (res?.session?.access_token) await saveToken(res.session.access_token);

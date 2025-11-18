@@ -13,6 +13,7 @@ import {
   Alert,
   Image,
   ImageBackground,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -20,6 +21,8 @@ import { COLORS } from '../constants';
 import { philosopherTypography, typography } from '../constants/typography';
 import imagePaths from '../constants/imagePaths';
 import { showSuccess } from '../utils/helperFunctions';
+import { Dropdown } from 'react-native-element-dropdown';
+import { authSignup } from '../lib/api';
 
 const SignUpScreen: React.FC = () => {
   const [name, setName] = useState('');
@@ -31,6 +34,15 @@ const SignUpScreen: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigation = useNavigation<any>();
+  const [userType, setUserType] = useState<'client' | 'photographer' | 'studio_owner'>('client');
+  const USER_TYPES = [
+    { label: 'Client', value: 'client' },
+    { label: 'Photographer', value: 'photographer' },
+    { label: 'Studio Owner', value: 'studio_owner' },
+  ];
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleSignUp = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -49,15 +61,30 @@ const SignUpScreen: React.FC = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const sanitizedPhone = String(phone || '').replace(/\D/g, '');
+      const res = await authSignup({
+        email,
+        password,
+        full_name: name,
+        phone: sanitizedPhone,
+        user_type: userType,
+        user_metadata: { full_name: name, user_type: userType, phone: sanitizedPhone },
+      });
       setIsLoading(false);
-      showSuccess('Account created successfully!...');
-      Alert.alert('Success', 'Account created successfully!', [
-        { text: 'OK', onPress: () => navigation.replace('Main') }
-      ]);
-    }, 1500);
+      if (res?.session?.access_token) {
+        navigation.replace('Main');
+      } else {
+        setModalTitle('Signup Successful');
+        setModalMessage('Account created. Please check your email for verification.');
+        setModalVisible(true);
+      }
+    } catch (e: any) {
+      setIsLoading(false);
+      setModalTitle('Signup Failed');
+      setModalMessage(e?.message || 'Failed to sign up');
+      setModalVisible(true);
+    }
   };
 
   const navigateToLogin = () => {
@@ -100,6 +127,24 @@ const SignUpScreen: React.FC = () => {
             <View style={styles.titleOutline}>
               <Text style={styles.formTitle}>Sign Up</Text>
               <View style={styles.borderLine} />
+            </View>
+
+            {/* User Type */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>User type</Text>
+              <Dropdown
+                style={styles.dropdown}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                containerStyle={styles.dropdownContainerStyle}
+                data={USER_TYPES}
+                maxHeight={250}
+                labelField="label"
+                valueField="value"
+                placeholder="Select user type"
+                value={userType}
+                onChange={(item: any) => setUserType(item.value)}
+              />
             </View>
 
             {/* Name Input */}
@@ -222,6 +267,28 @@ const SignUpScreen: React.FC = () => {
         </ScrollView>
       </KeyboardAvoidingView>
       </ImageBackground>
+      <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderText}>{modalTitle}</Text>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={styles.modalMessageText}>{modalMessage}</Text>
+            </View>
+            <View style={styles.modalFooter}>
+              <TouchableOpacity style={styles.modalPrimaryBtn} onPress={() => {
+                setModalVisible(false);
+                if (modalTitle === 'Signup Successful') {
+                  navigation.navigate('Auth', { screen: 'Login' });
+                }
+              }}>
+                <Text style={styles.modalPrimaryBtnText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -371,6 +438,77 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#034833',
     ...typography.semibold,
+  },
+  dropdown: {
+    borderWidth: 1,
+    borderColor: '#616161',
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    height: 48,
+    backgroundColor: 'transparent',
+  },
+  placeholderStyle: {
+    fontSize: 14,
+    color: '#616161',
+  },
+  selectedTextStyle: {
+    fontSize: 14,
+    color: '#101010',
+    ...typography.semibold,
+  },
+  dropdownContainerStyle: {
+    borderRadius: 10,
+    elevation: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCard: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 8,
+  },
+  modalHeader: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+    backgroundColor: '#F9F9F9',
+  },
+  modalHeaderText: {
+    fontSize: 18,
+    color: '#101010',
+    ...typography.bold,
+  },
+  modalBody: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalMessageText: {
+    fontSize: 14,
+    color: '#6C757D',
+    textAlign: 'center',
+    ...typography.semibold,
+  },
+  modalFooter: {
+    padding: 15,
+    backgroundColor: '#F9F9F9',
+  },
+  modalPrimaryBtn: {
+    backgroundColor: '#034833',
+    borderRadius: 8,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  modalPrimaryBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    ...typography.bold,
   },
 });
 
