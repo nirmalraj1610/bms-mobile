@@ -268,7 +268,7 @@ export const MyStudioComponent = ({
         {selectedStudio ? (
             <BookingModal
                 visible={showBookingModal}
-                onClose={() => setShowBookingModal(false)}
+                onClose={() => { setShowBookingModal(false); setSelectedStudio(null); }}
                 studio={selectedStudio}
                 disablePayment={true}
             />

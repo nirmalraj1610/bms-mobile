@@ -84,6 +84,20 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
     "July", "August", "September", "October", "November", "December"
   ];
 
+  useEffect(() => {
+    if (visible) {
+      setSelectedDate('');
+      setSelectedTime('');
+      setSelectedSlots([]);
+      setShowTimeSlots(false);
+      setTimeSlots([]);
+      setDayBookings([]);
+      setNoSlotsMessage('');
+      setEquipmentHourlySubtotal(0);
+      setSelectedEquipments([]);
+    }
+  }, [visible, studio?.id]);
+
   // Convert HH:MM:SS to minutes since midnight
   const timeToMinutes = (t: string) => {
     const [h, m] = t.split(':').map((x) => parseInt(x, 10));
