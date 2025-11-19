@@ -7,6 +7,7 @@ export type StudiosState = {
     error: string | null;
     results: StudioSummary[];
     query: string;
+    total?: number;
   };
   detail: {
     loading: boolean;

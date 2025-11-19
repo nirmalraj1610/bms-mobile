@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -19,13 +19,18 @@ const AllStudiosScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const studiosState = useSelector((state: RootState) => state.studios);
   const [searchText, setSearchText] = useState('');
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const LIMIT = 10;
+  const onEndReachedDuringMomentum = useRef(false);
 
   // pull to refresh
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      dispatch(studiosSearchThunk({ q: searchText }));
+      setPage(1);
+      dispatch(studiosSearchThunk({ q: searchText, page: 1, limit: LIMIT }));
     }, 300);
     return () => clearTimeout(t);
   }, [searchText, dispatch]);
@@ -75,9 +80,25 @@ const AllStudiosScreen: React.FC = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await dispatch(studiosSearchThunk({ q: searchText }));
+    setPage(1);
+    await dispatch(studiosSearchThunk({ q: searchText, page: 1, limit: LIMIT }));
     setRefreshing(false);
   }
+
+  const loadMore = async () => {
+    if (loadingMore || studiosState.search.loading) return;
+    const currentLen = (studiosState.search.results?.length || 0);
+    const total = (studiosState.search.total || 0);
+    const hasMoreTotal = total > 0 && currentLen < total;
+    const hasMoreBatch = total === 0 && currentLen % LIMIT === 0; // fallback when total unknown
+    const hasMore = hasMoreTotal || hasMoreBatch;
+    if (!hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    await dispatch(studiosSearchThunk({ q: searchText, page: nextPage, limit: LIMIT }));
+    setPage(nextPage);
+    setLoadingMore(false);
+  };
 
   const renderItem = ({ item }: any) => {
     const name = item?.name || 'Unknown Studio';
@@ -175,26 +196,51 @@ const AllStudiosScreen: React.FC = () => {
           </View>
         </View>
 
-        {studiosState.search.loading ? (
+        {studiosState.search.loading && page === 1 && filteredResults.length === 0 ? (
           <StudioListSkeleton />
         ) : (
-          <FlatList
-            data={filteredResults}
-            keyExtractor={(item: any, index: number) => String(item?.id ?? item?._id ?? item?.studio_id ?? item?.studioId ?? index)}
-            renderItem={renderItem}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={["#034833"]}      // Android
-              />}
-            contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
-            ListEmptyComponent={() => (
-              searchText.trim().length > 0 ? (
-                <Text style={styles.emptyTitle}>No results found</Text>
-              ) : null
-            )}
-          />
+        <FlatList
+          data={filteredResults}
+          keyExtractor={(item: any) => {
+            const key = item?.id ?? item?._id ?? item?.studio_id ?? item?.studioId ?? `${item?.name || 'studio'}-${item?.location?.city || ''}`;
+            return `studio-${String(key)}`;
+          }}
+          renderItem={renderItem}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#034833"]}      // Android
+            />}
+          contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
+          onEndReached={() => {
+            if (!onEndReachedDuringMomentum.current) {
+              loadMore();
+              onEndReachedDuringMomentum.current = true;
+            }
+          }}
+          onEndReachedThreshold={0.1}
+          initialNumToRender={10}
+          removeClippedSubviews={false}
+          onMomentumScrollBegin={() => {
+            onEndReachedDuringMomentum.current = false;
+          }}
+          ListFooterComponent={(loadingMore || (studiosState.search.loading && page > 1)) ? (
+            <ActivityIndicator style={{ marginVertical: 12 }} color={COLORS.bg} />
+          ) : (() => {
+            const currentLen = (studiosState.search.results?.length || 0);
+            const total = (studiosState.search.total || 0);
+            const hasMoreTotal = total > 0 && currentLen < total;
+            const hasMoreBatch = total === 0 && currentLen % LIMIT === 0 && currentLen !== 0;
+            const hasMore = hasMoreTotal || hasMoreBatch;
+            return hasMore ? null : <Text style={styles.footerText}>No more results</Text>;
+          })()}
+          ListEmptyComponent={() => (
+            searchText.trim().length > 0 ? (
+              <Text style={styles.emptyTitle}>No results found</Text>
+            ) : null
+          )}
+        />
         )}
       </View>
     </SafeAreaView>
@@ -421,6 +467,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.text.secondary,
     marginTop: 16,
+  },
+  footerText: {
+    textAlign: 'center',
+    color: COLORS.text.secondary,
+    marginVertical: 12,
   },
 });
 

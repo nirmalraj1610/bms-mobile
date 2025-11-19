@@ -27,7 +27,7 @@ export const getphotographersSearch = createAsyncThunk(
   async (query: Record<string, string | number | boolean> | undefined, { rejectWithValue }) => {
     try {
       const res = await searchphotographers(query);
-      return res;
+      return { photographers: res.photographers || [], total: res.total || 0, append: ((query?.page as number) ?? 1) > 1 };
     } catch (err: any) {
       return rejectWithValue(err?.error || 'Failed to load photographers');
     }
@@ -231,11 +231,13 @@ const photographersSlice = createSlice({
       })
       .addCase(getphotographersSearch.fulfilled, (state, action) => {
         state.search.loading = false;
-        state.search.items = (action.payload.photographers || []).map((p: any) => ({
+        const incoming = (action.payload.photographers || []).map((p: any) => ({
           ...p,
           profile_image_url: p.profile_image_url || '',
           services: p.services || [],
         }));
+        const append = (action.payload as any)?.append;
+        state.search.items = append ? [...state.search.items, ...incoming] : incoming;
         state.search.total = action.payload.total || 0;
       })
       .addCase(getphotographersSearch.rejected, (state, action) => {

@@ -986,7 +986,7 @@ const HomeScreen: React.FC = () => {
             </Text>
           ) : (
             <FlatList
-              data={studiosState.search.results as unknown as Studio[]}
+              data={(Array.isArray(studiosState.search.results) ? (studiosState.search.results as any[]) : []).slice(0, 10)}
               renderItem={renderRecommendCard}
               keyExtractor={(item) => item.id}
               horizontal
@@ -1021,7 +1021,7 @@ const HomeScreen: React.FC = () => {
             </Text>
           ) : (
             <FlatList
-              data={photographersState.search.items}
+              data={(Array.isArray(photographersState.search.items) ? photographersState.search.items : []).slice(0, 10)}
               renderItem={renderRated}
               keyExtractor={(item) => item.id}
               horizontal

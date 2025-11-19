@@ -25,7 +25,7 @@ import {
 } from './studios.service';
 
 const initialState: StudiosState = {
-  search: { loading: false, error: null, results: [], query: '' },
+  search: { loading: false, error: null, results: [], query: '', total: 0 },
   detail: { loading: false, error: null, data: null },
   availability: { loading: false, error: null, booking_slots: [], studio_id: undefined, date: undefined, bookings: [] },
   favorites: { loading: false, error: null, items: [] },
@@ -37,7 +37,7 @@ const initialState: StudiosState = {
 export const studiosSearchThunk = createAsyncThunk('studios/search', async (query: StudiosSearchQuery, { rejectWithValue }) => {
   try {
     const res = await searchStudios(query);
-    return { results: res.studios || [], query: query.q || '' };
+    return { results: res.studios || [], total: res.total || 0, query: query.q || '', append: (query.page ?? 1) > 1 };
   } catch (err: any) {
     return rejectWithValue(err?.error || 'Failed to search studios');
   }
@@ -275,8 +275,11 @@ const studiosSlice = createSlice({
       })
       .addCase(studiosSearchThunk.fulfilled, (state, action) => {
         state.search.loading = false;
-        state.search.results = action.payload.results;
+        const incoming = action.payload.results;
+        const append = (action.payload as any)?.append;
+        state.search.results = append ? [...state.search.results, ...incoming] : incoming;
         state.search.query = action.payload.query;
+        state.search.total = action.payload.total || 0;
       })
       .addCase(studiosSearchThunk.rejected, (state, action) => {
         state.search.loading = false;

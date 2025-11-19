@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ActivityIndicator, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,14 +17,26 @@ const AllPhotographersScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const photographersState = useSelector((state: RootState) => state.photographers);
   const [searchText, setSearchText] = useState('');
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const LIMIT = 10;
+  const onEndReachedDuringMomentum = useRef(false);
   const [failedImageIds, setFailedImageIds] = useState<Set<string | number>>(new Set());
 
   // pull to refresh
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    dispatch(getphotographersSearch(undefined));
+    dispatch(getphotographersSearch({ page: 1, limit: LIMIT }));
   }, [dispatch]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1);
+      dispatch(getphotographersSearch({ q: searchText, page: 1, limit: LIMIT } as any));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchText, dispatch]);
 
   const filteredResults = useMemo(() => {
     const q = searchText.trim().toLowerCase();
@@ -39,9 +51,25 @@ const AllPhotographersScreen: React.FC = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await dispatch(getphotographersSearch(undefined));
+    setPage(1);
+    await dispatch(getphotographersSearch({ page: 1, limit: LIMIT }));
     setRefreshing(false);
   }
+
+  const loadMore = async () => {
+    if (loadingMore || photographersState.search.loading) return;
+    const currentLen = (photographersState.search.items?.length || 0);
+    const total = (photographersState.search.total || 0);
+    const hasMoreTotal = total > 0 && currentLen < total;
+    const hasMoreBatch = total === 0 && currentLen % LIMIT === 0; // fallback when total unknown
+    const hasMore = hasMoreTotal || hasMoreBatch;
+    if (!hasMore) return;
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    await dispatch(getphotographersSearch({ q: searchText, page: nextPage, limit: LIMIT } as any));
+    setPage(nextPage);
+    setLoadingMore(false);
+  };
 
   const renderItem = ({ item }: { item: any }) => {
     const name = item?.full_name || 'Unknown Photographer';
@@ -128,27 +156,48 @@ const AllPhotographersScreen: React.FC = () => {
           </View>
         </View>
 
-        {photographersState?.search?.loading ? (
-          <PhotographerListSkeleton />
-        ) : (
-          <FlatList
-            data={filteredResults}
-            keyExtractor={(item: any, index: number) => String(item?.id ?? item?._id ?? index)}
-            renderItem={renderItem}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={["#034833"]}      // Android
-              />}
-            contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
-            ListEmptyComponent={() => (
-              searchText.trim().length > 0 ? (
-                <Text style={styles.emptyTitle}>No results found</Text>
-              ) : null
-            )}
-          />
-        )}
+        <FlatList
+          data={filteredResults}
+          keyExtractor={(item: any, index: number) => {
+            const key = item?.id ?? item?._id ?? `${item?.full_name || item?.name || 'photographer'}-${index}`;
+            return `photographer-${String(key)}`;
+          }}
+          renderItem={renderItem}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#034833"]}      // Android
+            />}
+          contentContainerStyle={filteredResults.length === 0 ? styles.emptyScreen : styles.listContainer}
+          onEndReached={() => {
+            if (!onEndReachedDuringMomentum.current) {
+              loadMore();
+              onEndReachedDuringMomentum.current = true;
+            }
+          }}
+          onEndReachedThreshold={0.1}
+          initialNumToRender={10}
+          removeClippedSubviews={false}
+          onMomentumScrollBegin={() => {
+            onEndReachedDuringMomentum.current = false;
+          }}
+          ListFooterComponent={(loadingMore || (photographersState?.search?.loading && page > 1)) ? (
+            <ActivityIndicator style={{ marginVertical: 12 }} color={COLORS.bg} />
+          ) : (() => {
+            const currentLen = (photographersState.search.items?.length || 0);
+            const total = (photographersState.search.total || 0);
+            const hasMoreTotal = total > 0 && currentLen < total;
+            const hasMoreBatch = total === 0 && currentLen % LIMIT === 0 && currentLen !== 0;
+            const hasMore = hasMoreTotal || hasMoreBatch;
+            return hasMore ? null : <Text style={styles.footerText}>No more results</Text>;
+          })()}
+          ListEmptyComponent={() => (
+            searchText.trim().length > 0 ? (
+              <Text style={styles.emptyTitle}>No results found</Text>
+            ) : null
+          )}
+        />
       </View>
     </SafeAreaView>
   );
@@ -282,6 +331,11 @@ const styles = StyleSheet.create({
   fromText: { fontSize: 12, color: COLORS.text.secondary },
   priceText: { fontSize: 16, ...typography.bold, color: '#FF6B35' },
   perSessionText: { fontSize: 12, color: COLORS.text.secondary },
+  footerText: {
+    textAlign: 'center',
+    color: COLORS.text.secondary,
+    marginVertical: 12,
+  },
 });
 
 export default AllPhotographersScreen;
