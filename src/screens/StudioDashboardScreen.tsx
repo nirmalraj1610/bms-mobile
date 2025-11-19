@@ -23,28 +23,47 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import imagePaths from '../constants/imagePaths';
 import { showInfo } from '../utils/helperFunctions';
 
+/**
+ * Minimal user type that matches fields used in this screen.
+ * You can expand this with the real shape from your API.
+ */
+type Customer = {
+  full_name?: string;
+  customer_profiles?: {
+    address?: {
+      city?: string;
+    };
+  };
+  // any other fields you use
+};
+
 const StudioDashboardScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const isFocused = useIsFocused();
-  const [selectedMenu, setSelectedMenu] = useState('Dashboard');
-  const [editStudio, setEditStudio] = useState(false);
-  const [editStudioValues, setEditStudioValues] = useState({});
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const [selectedMenu, setSelectedMenu] = useState<string>('Dashboard');
+  const [editStudio, setEditStudio] = useState<boolean>(false);
+  const [editStudioValues, setEditStudioValues] = useState<Record<string, any>>({});
+  const [currentUser, setCurrentUser] = useState<Customer | null>(null); // <-- fixed type
+  const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
+  const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (selectedMenu !== 'Add Studio') {
       setEditStudio(false);
-      setEditStudioValues({})
+      setEditStudioValues({});
     }
-  }, [selectedMenu])
+  }, [selectedMenu]);
 
   useEffect(() => {
     const checkAuth = async () => {
       let token: string | null = null;
-      try { token = await AsyncStorage.getItem('auth_token'); } catch { }
+      try {
+        token = await AsyncStorage.getItem('auth_token');
+      } catch {
+        // ignore
+      }
       if (!token) {
         setShowLoginModal(true);
         showInfo('Please log in to view your dashboard!...');
@@ -59,14 +78,21 @@ const StudioDashboardScreen: React.FC = () => {
             setShowLoginModal(true);
             showInfo('Please log in to view your dashboard!...');
             return;
-          }
-          else {
+          } else {
             const user = userData?.customer;
+            // cast/assign safely
+            setCurrentUser((user as Customer) ?? null);
             console.log('userData:', user);
-            setCurrentUser(user);
           }
+        } else {
+          // If no session expiry in response, still try to set customer if provided
+          const user = userData?.customer;
+          if (user) setCurrentUser(user as Customer);
         }
-      } catch { }
+      } catch (err) {
+        // optionally log
+        console.warn('getUserData error', err);
+      }
     };
 
     if (isFocused) {
@@ -89,13 +115,22 @@ const StudioDashboardScreen: React.FC = () => {
     'Manage Equipments',
   ];
 
-  const iconMap = {
-    Dashboard: "space-dashboard",
-    "My Studios": "photo-camera",
-    Bookings: "calendar-month",
-    "Add Studio": "add-business",
-    "Manage Equipments": "handyman", // default/fallback example
+  const iconMap: Record<string, string> = {
+    Dashboard: 'space-dashboard',
+    'My Studios': 'photo-camera',
+    Bookings: 'calendar-month',
+    'Add Studio': 'add-business',
+    'Manage Equipments': 'handyman',
   };
+
+  // safe-first-name extraction
+  const firstName =
+    typeof currentUser?.full_name === 'string' && currentUser.full_name.length > 0
+      ? currentUser.full_name.split(' ')[0]
+      : 'User';
+
+  const city =
+    currentUser?.customer_profiles?.address?.city ?? 'Unknown';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -112,21 +147,21 @@ const StudioDashboardScreen: React.FC = () => {
               resizeMode="contain"
             />
             <Text style={styles.welcomeText}>
-              Hello<Text style={styles.userName}> {currentUser?.full_name?.split(' ')[0] || 'User'} !</Text>
+              Hello<Text style={styles.userName}> {firstName} !</Text>
             </Text>
           </View>
 
           {/* Right: Notifications + Location */}
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.notificationIconOutline}>
-              <Image source={imagePaths.NotificationNew} resizeMode='contain' style={styles.notificationIcon} />
+              <Image source={imagePaths.NotificationNew} resizeMode="contain" style={styles.notificationIcon} />
             </TouchableOpacity>
 
             <View style={styles.locationContainer}>
               <Text style={styles.locationLabel}>Current Location</Text>
               <View style={styles.locationRow}>
-                <Image source={imagePaths.LocationNew} resizeMode='contain' style={{ height: 14, width: 14 }} />
-                <Text style={styles.locationText}>{currentUser?.customer_profiles?.address?.city}</Text>
+                <Image source={imagePaths.LocationNew} resizeMode="contain" style={{ height: 14, width: 14 }} />
+                <Text style={styles.locationText}>{city}</Text>
               </View>
             </View>
           </View>
@@ -150,14 +185,14 @@ const StudioDashboardScreen: React.FC = () => {
               activeOpacity={0.8}
             >
               <Icon
-                name={iconMap[selectedMenu] || "menu"}
+                name={iconMap[selectedMenu] || 'menu'}
                 size={20}
                 color="#fff"
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.dropdownHeaderText}>{selectedMenu}</Text>
               <Icon
-                name={dropdownVisible ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                name={dropdownVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
                 size={22}
                 color="#fff"
               />
@@ -180,9 +215,9 @@ const StudioDashboardScreen: React.FC = () => {
                       }}
                     >
                       <Icon
-                        name={iconMap[menu] || "menu"}
+                        name={iconMap[menu] || 'menu'}
                         size={18}
-                        color={selectedMenu === menu ? "#FFFFFF" : "#034833"}
+                        color={selectedMenu === menu ? '#FFFFFF' : '#034833'}
                         style={{ marginRight: 8 }}
                       />
                       <Text
@@ -200,17 +235,30 @@ const StudioDashboardScreen: React.FC = () => {
             )}
           </View>
         </View>
-        {selectedMenu === "Dashboard" && <DashboardComponent />}
-        {selectedMenu === "My Studios" && <MyStudioComponent onPressAddStudio={(i) => setSelectedMenu(i)} editStudio={(i) => setEditStudio(i)} editStudioValues={(values) => setEditStudioValues(values)} />}
-        {selectedMenu === "Bookings" && <BookingsComponent />}
-        {selectedMenu === "Manage Equipments" && <ManageEquipmentComponent />}
-        {selectedMenu === "Add Studio" && <AddStudioComponent onPressSelectmenu={(i) => setSelectedMenu(i)} editStudio={editStudio} editStudioValues={editStudioValues} />}
+
+        {selectedMenu === 'Dashboard' && <DashboardComponent />}
+        {selectedMenu === 'My Studios' && (
+          <MyStudioComponent
+            onPressAddStudio={(i) => setSelectedMenu(i)}
+            editStudio={(i) => setEditStudio(Boolean(i))}
+            editStudioValues={(values) => setEditStudioValues(values)}
+          />
+        )}
+        {selectedMenu === 'Bookings' && <BookingsComponent />}
+        {selectedMenu === 'Manage Equipments' && <ManageEquipmentComponent />}
+        {selectedMenu === 'Add Studio' && (
+          <AddStudioComponent
+            onPressSelectmenu={(i) => setSelectedMenu(i)}
+            editStudio={editStudio}
+            editStudioValues={editStudioValues}
+          />
+        )}
       </View>
 
       {/* Login Required Modal */}
-      {showLoginModal && <View style={{flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0 , zIndex: 99 }} >
+      {showLoginModal && (
+        <View style={{ flex: 1, height: '100%', width: '100%', position: 'absolute', margin: 0, zIndex: 99 }}>
           <View style={styles.loginBackdrop}>
-            {/* True blur backdrop with light, white-tinted feel */}
             <BlurView
               style={StyleSheet.absoluteFill}
               blurType="light"
@@ -229,15 +277,19 @@ const StudioDashboardScreen: React.FC = () => {
               </View>
             </View>
           </View>
-        </View>}
+        </View>
+      )}
 
-      {dropdownVisible ? <TouchableOpacity onPress={() => setDropdownVisible(false)} style={{ backgroundColor: 'rgba(0,0,0,0.1)', height: '100%', width: '100%', position: 'absolute' }} ></TouchableOpacity> : null}
+      {dropdownVisible ? (
+        <TouchableOpacity onPress={() => setDropdownVisible(false)} style={{ backgroundColor: 'rgba(0,0,0,0.1)', height: '100%', width: '100%', position: 'absolute' }} />
+      ) : null}
     </SafeAreaView>
   );
 };
 
 export default StudioDashboardScreen;
 
+// styles unchanged (kept as in your original file)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -282,7 +334,7 @@ const styles = StyleSheet.create({
     borderColor: '#034833',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10
+    marginBottom: 10,
   },
   notificationIcon: {
     height: 22,
@@ -308,7 +360,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
-  /* MENU SECTION */
   bottomContainer: {
     padding: 20,
   },
@@ -320,12 +371,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#034833',
     paddingLeft: 12,
-    marginBottom: 10
+    marginBottom: 10,
   },
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 5
+    marginRight: 5,
   },
   menuLabel: {
     fontSize: 14,
@@ -349,17 +400,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     elevation: 3,
   },
-
   dropdownHeaderText: {
     flex: 1,
     fontSize: 16,
     color: '#fff',
     ...typography.semibold,
   },
-
   dropdownOverlay: {
     position: 'absolute',
-    top: 50, // below header
+    top: 50,
     left: 0,
     right: 0,
     borderRadius: 15,
@@ -367,7 +416,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.1)',
     zIndex: 999,
   },
-
   dropdownList: {
     backgroundColor: '#FFFFFF',
     borderRadius: 15,
@@ -375,7 +423,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     elevation: 8,
   },
-
   dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -383,18 +430,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 10,
   },
-
   dropdownItemActive: {
     backgroundColor: '#034833',
-    marginHorizontal: 5
+    marginHorizontal: 5,
   },
-
   dropdownItemText: {
     fontSize: 14,
     color: '#034833',
     ...typography.semibold,
   },
-
   dropdownItemTextActive: {
     color: '#FFFFFF',
     ...typography.bold,

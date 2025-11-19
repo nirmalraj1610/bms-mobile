@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginHorizontal: 4,
     position: 'relative',
+    marginBottom: 20,
   },
   searchInput: {
     flexDirection: 'row',

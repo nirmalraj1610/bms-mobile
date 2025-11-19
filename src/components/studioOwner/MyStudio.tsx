@@ -8,6 +8,9 @@ import { useNavigation } from "@react-navigation/native";
 import imagePaths from "../../constants/imagePaths";
 import MyStudiosSkeleton from "../skeletonLoaders/StudioOwner/MyStudiosSkeleton";
 import { typography } from "../../constants/typography";
+import BookingModal from "../BookingModal";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserData } from "../../lib/http";
 
 
 // --- Main Component ---
@@ -27,6 +30,8 @@ export const MyStudioComponent = ({
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [studioList, setStudioList] = useState([]);
+    const [showBookingModal, setShowBookingModal] = useState(false);
+    const [selectedStudio, setSelectedStudio] = useState<any>(null);
 
     // pull to refresh
     const [refreshing, setRefreshing] = useState(false);
@@ -54,6 +59,13 @@ export const MyStudioComponent = ({
             });
         }
     };
+
+    const handlePressBookCard = (studios: any) => {
+        const studioId = studios?.id;
+        if (!studioId) return;
+        setSelectedStudio(studios);
+        setShowBookingModal(true);
+    }
 
     useEffect(() => {
 
@@ -110,7 +122,7 @@ export const MyStudioComponent = ({
             : imagePaths.StudioPlaceHolderImage;
 
         return (
-            <View style={styles.cardContainer}>
+            <TouchableOpacity style={styles.cardContainer} onPress={() => onOpenViewStudio(item)} activeOpacity={0.8}>
                 <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                     <Text style={[styles.statusText, { color: statusTextColor }]}>{statusText}</Text>
                 </View>
@@ -157,20 +169,20 @@ export const MyStudioComponent = ({
                                     <Text style={styles.editButtonText}>Edit</Text>
                                 </TouchableOpacity> : null}
 
-                                {/* View Button (Bordered) */}
-                                <TouchableOpacity onPress={() => onOpenViewStudio(item)} style={[styles.actionButton, styles.viewButton]}>
-                                    <Text style={styles.viewButtonText}>{item.status === 'active' ? 'View' : 'View studio'}</Text>
+                                {/* Book Button (Bordered) */}
+                                <TouchableOpacity  style={[styles.actionButton, styles.viewButton]} onPress={() => handlePressBookCard(item)}>
+                                    <Text style={styles.viewButtonText}>{item.status === 'active' ? 'Book' : 'Book now'}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </View>
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     }
 
     return (
-
+        <>
         <ScrollView showsVerticalScrollIndicator={false}
             refreshControl={
                 <RefreshControl
@@ -253,6 +265,15 @@ export const MyStudioComponent = ({
                 onClose={() => setShowFilter(false)}
             />
         </ScrollView>
+        {selectedStudio ? (
+            <BookingModal
+                visible={showBookingModal}
+                onClose={() => setShowBookingModal(false)}
+                studio={selectedStudio}
+                disablePayment={true}
+            />
+        ) : null}
+        </>
     )
 };
 

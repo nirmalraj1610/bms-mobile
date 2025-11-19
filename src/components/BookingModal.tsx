@@ -26,6 +26,7 @@ interface BookingModalProps {
   visible: boolean;
   onClose: () => void;
   studio: any;
+  disablePayment?: boolean;
 }
 
 interface TimeSlot {
@@ -44,7 +45,7 @@ interface CalendarDay {
 
 const { width } = Dimensions.get('window');
 
-const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio }) => {
+const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, disablePayment = false }) => {
   // console.log('BookingModal - Received studio prop:', studio);
   // console.log('BookingModal - Studio ID:', studio?.id);
   // console.log('BookingModal - Studio type:', typeof studio?.id);
@@ -386,7 +387,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
 
   // Slots come directly from API; no duration-based recalculation needed
 
-  // Handle Razorpay payment and booking creation
+  // Handle booking creation; optional payment
   const handleBookNow = async () => {
     if (!selectedDate || selectedSlots.length === 0) {
       Alert.alert('Error', 'Please select a date and time slot');
@@ -398,11 +399,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
       return;
     }
 
-    if (!ENV.RAZORPAY_KEY_ID) {
-      Alert.alert('Error', 'Payment configuration is missing');
-      return;
-    }
-
     if (totalAmount <= 0) {
       Alert.alert('Error', 'Invalid booking amount');
       return;
@@ -411,53 +407,39 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
     setIsBooking(true);
 
     try {
-      // Validate RazorpayCheckout is available
-      if (!RazorpayCheckout || typeof RazorpayCheckout.open !== 'function') {
-        throw new Error('Payment service is not available');
-      }
-
-      // Prepare Razorpay options
-      const options = {
-        description: `Studio Booking - ${studio?.name}`,
-        image: 'https://i.imgur.com/3g7nmJC.png', // Your app logo
-        currency: 'INR',
-        key: ENV.RAZORPAY_KEY_ID,
-        amount: totalAmount * 100, // Amount in paise
-        name: 'BookMyShoot',
-        order_id: '', // Will be generated from backend if needed
-        prefill: {
-          email: 'user@example.com', // You can get this from user profile
-          contact: '9999999999', // You can get this from user profile
-          name: 'User Name' // You can get this from user profile
-        },
-        theme: {
-          color: COLORS.primary
-        }
+      const sorted = [...selectedSlots].sort((a,b) => a.start_time.localeCompare(b.start_time));
+      const bookingPayload = {
+        studio_id: String(studio.id),
+        booking_date: selectedDate,
+        start_time: sorted[0].start_time,
+        end_time: sorted[sorted.length - 1].end_time,
+        total_amount: totalAmount,
       };
 
-      console.log('Initializing payment with options:', options);
-
-      // Open Razorpay checkout
-      RazorpayCheckout.open(options)
-        .then(async (data: any) => {
-          // Payment successful, now create booking
-          console.log('Payment successful:', data);
-
-          try {
-            const sorted = [...selectedSlots].sort((a,b) => a.start_time.localeCompare(b.start_time));
-            const bookingPayload = {
-              studio_id: String(studio.id),
-              booking_date: selectedDate,
-              start_time: sorted[0].start_time,
-              end_time: sorted[sorted.length - 1].end_time,
-              total_amount: totalAmount,
-            };
-
+      if (!disablePayment) {
+        if (!ENV.RAZORPAY_KEY_ID) {
+          Alert.alert('Error', 'Payment configuration is missing');
+          return;
+        }
+        if (!RazorpayCheckout || typeof RazorpayCheckout.open !== 'function') {
+          throw new Error('Payment service is not available');
+        }
+        const options = {
+          description: `Studio Booking - ${studio?.name}`,
+          image: 'https://i.imgur.com/3g7nmJC.png',
+          currency: 'INR',
+          key: ENV.RAZORPAY_KEY_ID,
+          amount: totalAmount * 100,
+          name: 'BookMyShoot',
+          order_id: '',
+          prefill: { email: 'user@example.com', contact: '9999999999', name: 'User Name' },
+          theme: { color: COLORS.primary }
+        };
+        RazorpayCheckout.open(options)
+          .then(async (data: any) => {
             const result = await dispatch(doCreateBooking(bookingPayload));
-            console.log('Booking creation result:', result);
-
             if (doCreateBooking.fulfilled.match(result)) {
-              // After booking is successfully created, optionally add equipment
+              // Attach equipment
               try {
                 const booking = result.payload as any;
                 const key = `selected_equipment_${studio.id}`;
@@ -466,72 +448,69 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                   const parsed = JSON.parse(stored || '{}');
                   const items = parsed?.equipment_items || parsed?.items || [];
                   if (Array.isArray(items) && items.length > 0) {
-                    // Normalize payload shape
-                    const equipment_items = items.map((it: any) => ({
-                      equipment_id: String(it?.equipment_id ?? it?.id),
-                      quantity: Number(it?.quantity ?? 0)
-                    })).filter((x: any) => x.quantity > 0);
+                    const equipment_items = items.map((it: any) => ({ equipment_id: String(it?.equipment_id ?? it?.id), quantity: Number(it?.quantity ?? 0) })).filter((x: any) => x.quantity > 0);
                     if (equipment_items.length > 0) {
-                      const payload = { booking_id: String(booking.id), equipment_items };
-                      console.log('Calling bookingAddEquipment with:', payload);
-                      try {
-                        const equipResponse = await bookingAddEquipment(payload);
-                        console.log('bookingAddEquipment success');
-                        console.log('bookingAddEquipment response:', equipResponse);
-                        // Clear local storage immediately after successful API call
-                        await AsyncStorage.removeItem(key);
-                        console.log('Cleared equipment selection from storage:', key);
-                      } catch (equipErr) {
-                        console.log('bookingAddEquipment error:', equipErr);
-                      }
+                      await bookingAddEquipment({ booking_id: String(booking.id), equipment_items });
+                      await AsyncStorage.removeItem(key);
                     }
                   }
                 }
-              } catch (postErr) {
-                console.log('Post-booking equipment attach error:', postErr);
-              } finally {
-                // Clear stored equipment for this studio regardless
-                try { await AsyncStorage.removeItem(`selected_equipment_${studio.id}`); } catch { }
-              }
-              // Show cool UI success modal instead of native alert
-              const rangeStart = sorted[0].start_time;
-              const rangeEnd = sorted[sorted.length - 1].end_time;
+              } catch {}
+              // Success
               setSuccessInfo({
                 dateText: formatDateForDisplay(selectedDate),
-                timeRange: `${formatTime(rangeStart)} to ${formatTime(rangeEnd)}`,
+                timeRange: `${formatTime(sorted[0].start_time)} to ${formatTime(sorted[sorted.length - 1].end_time)}`,
                 paymentId: data.razorpay_payment_id,
-                totalAmount: totalAmount,
+                totalAmount,
               });
               setShowSuccessModal(true);
             } else {
-              Alert.alert(
-                'Booking Failed',
-                'Payment was successful but booking creation failed. Please contact support with Razorpay payment ID: ' + data.razorpay_payment_id
-              );
+              Alert.alert('Booking Failed', 'Payment was successful but booking creation failed.');
             }
-          } catch (bookingError) {
-            console.error('Booking creation error:', bookingError);
-            Alert.alert(
-              'Booking Failed',
-              'Payment was successful but booking creation failed. Please contact support with payment ID: ' + data.razorpay_payment_id
-            );
-          }
-        })
-        .catch((error: any) => {
-          // Payment failed or cancelled
-          console.log('Payment failed or cancelled:', error);
-
-          if (error.code === 'payment_cancelled') {
-            Alert.alert('Payment Cancelled', 'You cancelled the payment process.');
-          } else if (error.code === 'payment_failed') {
-            Alert.alert('Payment Failed', error.description || 'Payment could not be processed. Please try again.');
-          } else {
-            Alert.alert('Payment Error', 'An error occurred during payment. Please try again.');
-          }
-        });
+          })
+          .catch((error: any) => {
+            if (error.code === 'payment_cancelled') {
+              Alert.alert('Payment Cancelled', 'You cancelled the payment process.');
+            } else if (error.code === 'payment_failed') {
+              Alert.alert('Payment Failed', error.description || 'Payment could not be processed. Please try again.');
+            } else {
+              Alert.alert('Payment Error', 'An error occurred during payment. Please try again.');
+            }
+          });
+      } else {
+        // No payment: directly create booking
+        const result = await dispatch(doCreateBooking(bookingPayload));
+        if (doCreateBooking.fulfilled.match(result)) {
+          try {
+            const booking = result.payload as any;
+            const key = `selected_equipment_${studio.id}`;
+            const stored = await AsyncStorage.getItem(key);
+            if (stored) {
+              const parsed = JSON.parse(stored || '{}');
+              const items = parsed?.equipment_items || parsed?.items || [];
+              if (Array.isArray(items) && items.length > 0) {
+                const equipment_items = items.map((it: any) => ({ equipment_id: String(it?.equipment_id ?? it?.id), quantity: Number(it?.quantity ?? 0) })).filter((x: any) => x.quantity > 0);
+                if (equipment_items.length > 0) {
+                  await bookingAddEquipment({ booking_id: String(booking.id), equipment_items });
+                  await AsyncStorage.removeItem(key);
+                }
+              }
+            }
+          } catch {}
+          setSuccessInfo({
+            dateText: formatDateForDisplay(selectedDate),
+            timeRange: `${formatTime(sorted[0].start_time)} to ${formatTime(sorted[sorted.length - 1].end_time)}`,
+            paymentId: '',
+            totalAmount,
+          });
+          setShowSuccessModal(true);
+        } else {
+          Alert.alert('Booking Failed', 'Unable to create booking');
+        }
+      }
     } catch (error) {
       console.error('Payment initialization error:', error);
-      Alert.alert('Error', 'Unable to initialize payment. Please try again.');
+      Alert.alert('Error', 'Unable to process booking. Please try again.');
     } finally {
       setIsBooking(false);
     }
@@ -775,7 +754,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio })
                     </View>
                   ) : (
                     <Text style={styles.bookButtonText}>
-                      Pay & Book - ₹{totalAmount.toLocaleString()}
+                      {disablePayment ? 'Book' : 'Pay & Book'} - ₹{totalAmount.toLocaleString()}
                     </Text>
                   )}
                 </TouchableOpacity>
