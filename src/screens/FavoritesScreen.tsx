@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserData } from '../lib/http';
 import FavoriteStudiosSkeleton from '../components/skeletonLoaders/FavoriteStudiosSkeleton';
 import { showInfo, showSuccess } from '../utils/helperFunctions';
+import HeaderBar from '../components/HeaderBar';
 
 const FavoritesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -306,15 +307,7 @@ const FavoritesScreen: React.FC = () => {
         <EmptyState />
       ) : (
         <View style={styles.content}>
-          <View style={styles.topRow}>
-            <TouchableOpacity
-              onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home'))}
-              style={styles.backBtn}
-            >
-              <Image source={imagePaths.backArrow} style={{ width: 22, height: 22, tintColor: COLORS.text.primary }} />
-            </TouchableOpacity>
-            <View style={{ flex: 1 }} />
-          </View>
+          <HeaderBar onBack={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home'))} />
           <View style={styles.headerBlock}>
             <Text style={styles.screenTitle}>My Favorite Studios</Text>
             <Text style={styles.screenSubtitle}>Studios you've saved for future bookings</Text>

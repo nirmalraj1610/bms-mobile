@@ -142,7 +142,7 @@ const iconMap: Record<string, string> = {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
 
       {/* HEADER */}
-      <View style={[styles.headerOutline, { paddingTop: 16 + insets.top }]}>
+      <View style={styles.headerOutline}>
         <View style={styles.headerTopRow}>
           {/* Left: Logo + Welcome */}
           <View style={styles.headerLeft}>
