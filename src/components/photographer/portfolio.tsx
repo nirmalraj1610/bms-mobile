@@ -187,14 +187,14 @@ export const PortfolioComponent = () => {
                         <Text style={styles.avaliable}>Category : <Text style={{ ...styles.avaliable, ...typography.semibold, }}> {item.category}</Text></Text>
 
                         {/* Edit Button (Bordered)  */}
-                        <View style={styles.actionsContainer}>
+                        {/* <View style={styles.actionsContainer}>
                             <TouchableOpacity onPress={() => onEditPortfolioPress(item)} style={styles.viewButton}>
                                 <Text style={styles.viewButtonText}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => onDeletePortfolioPress(item)} style={{ ...styles.viewButton, backgroundColor: '#DC3545' }}>
                                 <Text style={styles.viewButtonText}>Delete</Text>
                             </TouchableOpacity>
-                        </View>
+                        </View> */}
 
                     </View>
                 </View>
