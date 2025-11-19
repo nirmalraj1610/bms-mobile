@@ -86,10 +86,17 @@ const MainTabNavigator: React.FC = () => {
         component={BookingScreen}
         options={{ title: 'Bookings' }}
       />
-      {validUser && currentUser !== 'client' ?
+      {/* {validUser && currentUser !== 'client' ?
         <Tab.Screen
           name="Dashboard"
           component={currentUser === 'studio_owner' ? StudioDashboardScreen : PhotographerDashboardScreen}
+          options={{ title: 'Dashboard' }}
+        /> : null
+      } */}
+      {validUser && currentUser == 'studio_owner' ?
+        <Tab.Screen
+          name="Dashboard"
+          component={StudioDashboardScreen}
           options={{ title: 'Dashboard' }}
         /> : null
       }

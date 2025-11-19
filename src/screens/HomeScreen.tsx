@@ -998,7 +998,7 @@ const HomeScreen: React.FC = () => {
         </View>
 
         {/* Browse Photographers */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Rated Photographers</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AllPhotographers' as never)} accessibilityRole="button" accessibilityLabel={'Show all photographers'}>
@@ -1029,7 +1029,7 @@ const HomeScreen: React.FC = () => {
               contentContainerStyle={styles.studioList}
             />
           )}
-        </View>
+        </View> */}
 
         {/* Why Choose Book My Shoot? */}
         <View style={styles.section}>

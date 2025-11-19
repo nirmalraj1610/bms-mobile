@@ -259,8 +259,11 @@ const ProfileScreen: React.FC = () => {
             case 'studio_owner':
               userType = 'Studio owner';
               break;
+            // case 'photographer':
+            //   userType = 'Photographer';
+            //   break;
             case 'photographer':
-              userType = 'Photographer';
+              userType = 'User';
               break;
 
             case 'client':

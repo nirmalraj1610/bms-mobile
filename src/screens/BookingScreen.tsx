@@ -645,7 +645,7 @@ const BookingScreen: React.FC = () => {
         </View>
 
         {/* Booking Type Toggle */}
-        <View style={styles.toggleContainer}>
+        {/* <View style={styles.toggleContainer}>
           <TouchableOpacity
             style={[
               styles.toggleButton,
@@ -685,7 +685,7 @@ const BookingScreen: React.FC = () => {
               Photographer
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Error State (hidden when login modal is shown) */}
         {error && !showLoginModal && (
