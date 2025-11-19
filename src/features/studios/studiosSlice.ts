@@ -23,6 +23,8 @@ import {
   updateStudioEquip,
   createStudioEquip,
 } from './studios.service';
+import { TimeSlotQuery, UpdateTimeSlotsPayload } from '../../types/api';
+import { getStudioTimeSlotsApi, updateTimeSlots } from '../../lib/api';
 
 const initialState: StudiosState = {
   search: { loading: false, error: null, results: [], query: '', total: 0 },
@@ -98,6 +100,29 @@ export const toggleFavoriteThunk = createAsyncThunk('studios/toggleFavorite', as
     return rejectWithValue(err?.error || 'Failed to toggle favorite');
   }
 });
+
+export const manageStudioTimeSlots = createAsyncThunk(
+  'studio/timeslots/update',
+  async (payload: UpdateTimeSlotsPayload, { rejectWithValue }) => {
+    try {
+      return await updateTimeSlots(payload);
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to update studio time slots');
+    }
+  }
+);
+
+export const getStudioTimeSlots = createAsyncThunk(
+  'studio/timeslots',
+  async (query: TimeSlotQuery, { rejectWithValue }) => {
+    try {
+      const response = await getStudioTimeSlotsApi(query);
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch studio time slots');
+    }
+  }
+);
 
 export const loadFavoritesThunk = createAsyncThunk('studios/loadFavorites', async (_, { rejectWithValue }) => {
   try {

@@ -249,7 +249,6 @@ export const SlotsManagementComponent = () => {
                             >
                                 <Text style={styles.timeLabel}>Open Time</Text>
                                 <Text style={styles.timeValue}>
-                                    {/* {item.openTime ? item.openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '09:00'} */}
                                     {formatTime(item.openTime, "09:00")}
                                 </Text>
                             </TouchableOpacity>
@@ -260,8 +259,7 @@ export const SlotsManagementComponent = () => {
                             >
                                 <Text style={styles.timeLabel}>Close Time</Text>
                                 <Text style={styles.timeValue}>
-                                    {formatTime(item.closeTime, "09:00")}
-                                    {/* {item.closeTime ? item.closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '21:00'} */}
+                                    {formatTime(item.closeTime, "21:00")}
                                 </Text>
                             </TouchableOpacity>
                         </View>

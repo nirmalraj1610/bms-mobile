@@ -28,8 +28,9 @@ import type {
   PhotographerProfileResponse,
   PhotographerPortfolioUploadResponse,
   PhotographerPortfolioUploadPayload,
-  UpdatePhotographerTimeSlotsResponse,
-  UpdatePhotographerTimeSlotsPayload,
+  UpdateTimeSlotsResponse,
+  UpdateTimeSlotsPayload,
+  TimeSlotQuery,
 } from '../types/api';
 import { StudioEquipmentPayload } from '../features/studios/studios.types';
 
@@ -341,20 +342,27 @@ export async function StudioCreate(payload: {
   return apiFetch<StudioCreateResponse>('/studio-create', { method: 'POST', body: payload });
 }
 
-export async function updatePhotographerTimeSlots(payload: UpdatePhotographerTimeSlotsPayload) {
-  return apiFetch<UpdatePhotographerTimeSlotsResponse>(
+export async function updateTimeSlots(payload: UpdateTimeSlotsPayload) {
+  return apiFetch<UpdateTimeSlotsResponse>(
     '/photographer-availability-manage',
     {
-      method: 'POST',
+      method: 'PUT',
       body: payload,
     }
   );
 }
 
-export async function getPhotographerTimeSlotsApi(): Promise<UpdatePhotographerTimeSlotsResponse> {
-  return apiFetch<UpdatePhotographerTimeSlotsResponse>(
+export async function getPhotographerTimeSlotsApi(): Promise<UpdateTimeSlotsResponse> {
+  return apiFetch<UpdateTimeSlotsResponse>(
     '/photographer-availability-manage',
     { method: 'GET' }
+  );
+}
+
+export async function getStudioTimeSlotsApi( query: TimeSlotQuery): Promise<UpdateTimeSlotsResponse> {
+  return apiFetch<UpdateTimeSlotsResponse>(
+    '/photographer-availability-manage',
+    { method: 'GET', query }
   );
 }
 

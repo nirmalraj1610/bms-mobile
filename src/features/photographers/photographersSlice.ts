@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { photographersState } from './photographers.types';
 import { searchphotographers, fetchphotographerDetail, fetchPhotographerServices, fetchPhotographerAvailability, createReview as createReviewApi, createphotographer, createPhotographerBookingService, getPhotographerBookings } from './photographers.service';
-import { createPhotographerPortfolioApi, getPhotographerProfileApi, getPhotographerTimeSlotsApi, postPhotographerService, updatePhotographerServiceApi, updatePhotographerTimeSlots } from '../../lib/api';
-import { PhotographerPortfolioUploadPayload, PhotographerServicePayload, PhotographerServiceUpdatePayload, UpdatePhotographerTimeSlotsPayload } from '../../types/api';
+import { createPhotographerPortfolioApi, getPhotographerProfileApi, getPhotographerTimeSlotsApi, postPhotographerService, updatePhotographerServiceApi, updateTimeSlots } from '../../lib/api';
+import { PhotographerPortfolioUploadPayload, PhotographerServicePayload, PhotographerServiceUpdatePayload, UpdateTimeSlotsPayload } from '../../types/api';
 
 const initialState: photographersState = {
   search: { items: [], total: 0, loading: false, error: null },
@@ -80,9 +80,9 @@ export const createPhotographerPortfolio = createAsyncThunk(
 
 export const managePhotographerTimeSlots = createAsyncThunk(
   'photographers/timeslots/update',
-  async (payload: UpdatePhotographerTimeSlotsPayload, { rejectWithValue }) => {
+  async (payload: UpdateTimeSlotsPayload, { rejectWithValue }) => {
     try {
-      return await updatePhotographerTimeSlots(payload);
+      return await updateTimeSlots(payload);
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to update photographer time slots');
     }

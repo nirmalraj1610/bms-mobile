@@ -44,15 +44,15 @@ const StudioDashboardScreen: React.FC = () => {
 
   const [selectedMenu, setSelectedMenu] = useState<string>('Dashboard');
   const [editStudio, setEditStudio] = useState<boolean>(false);
-  const [editStudioValues, setEditStudioValues] = useState<Record<string, any>>({});
+  const [editStudioId, setEditStudioId] = useState('');
   const [currentUser, setCurrentUser] = useState<Customer | null>(null); // <-- fixed type
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
 
   useEffect(() => {
-    if (selectedMenu !== 'Add Studio') {
+    if (selectedMenu !== 'Add Studio' && selectedMenu !== 'Edit Studio') {
       setEditStudio(false);
-      setEditStudioValues({});
+      setEditStudioId('');
     }
   }, [selectedMenu]);
 
@@ -111,17 +111,22 @@ const StudioDashboardScreen: React.FC = () => {
     'Dashboard',
     'My Studios',
     'Bookings',
-    'Add Studio',
+    editStudio ? 'Edit Studio' : 'Add Studio',
     'Manage Equipments',
   ];
 
-  const iconMap: Record<string, string> = {
-    Dashboard: 'space-dashboard',
-    'My Studios': 'photo-camera',
-    Bookings: 'calendar-month',
-    'Add Studio': 'add-business',
-    'Manage Equipments': 'handyman',
+
+const iconMap: Record<string, string> = {
+    Dashboard: "space-dashboard",
+    "My Studios": "photo-camera",
+    Bookings: "calendar-month",
+    "Add Studio": "add-business",
+    "Edit Studio": "edit",
+    "Manage Equipments": "handyman", // default/fallback example
   };
+
+  const activeMenuLabel =
+    selectedMenu === "Add Studio" && editStudio ? "Edit Studio" : selectedMenu;
 
   // safe-first-name extraction
   const firstName =
@@ -185,12 +190,12 @@ const StudioDashboardScreen: React.FC = () => {
               activeOpacity={0.8}
             >
               <Icon
-                name={iconMap[selectedMenu] || 'menu'}
+                name={iconMap[activeMenuLabel] || "menu"}
                 size={20}
                 color="#fff"
                 style={{ marginRight: 8 }}
               />
-              <Text style={styles.dropdownHeaderText}>{selectedMenu}</Text>
+              <Text style={styles.dropdownHeaderText}>{activeMenuLabel}</Text>
               <Icon
                 name={dropdownVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
                 size={22}
@@ -207,7 +212,7 @@ const StudioDashboardScreen: React.FC = () => {
                       key={index}
                       style={[
                         styles.dropdownItem,
-                        selectedMenu === menu && styles.dropdownItemActive,
+                        activeMenuLabel === menu && styles.dropdownItemActive,
                       ]}
                       onPress={() => {
                         setSelectedMenu(menu);
@@ -217,13 +222,13 @@ const StudioDashboardScreen: React.FC = () => {
                       <Icon
                         name={iconMap[menu] || 'menu'}
                         size={18}
-                        color={selectedMenu === menu ? '#FFFFFF' : '#034833'}
+                        color={activeMenuLabel === menu ? "#FFFFFF" : "#034833"}
                         style={{ marginRight: 8 }}
                       />
                       <Text
                         style={[
                           styles.dropdownItemText,
-                          selectedMenu === menu && styles.dropdownItemTextActive,
+                          activeMenuLabel === menu && styles.dropdownItemTextActive,
                         ]}
                       >
                         {menu}
@@ -236,21 +241,15 @@ const StudioDashboardScreen: React.FC = () => {
           </View>
         </View>
 
-        {selectedMenu === 'Dashboard' && <DashboardComponent />}
-        {selectedMenu === 'My Studios' && (
-          <MyStudioComponent
-            onPressAddStudio={(i) => setSelectedMenu(i)}
-            editStudio={(i) => setEditStudio(Boolean(i))}
-            editStudioValues={(values) => setEditStudioValues(values)}
-          />
-        )}
-        {selectedMenu === 'Bookings' && <BookingsComponent />}
-        {selectedMenu === 'Manage Equipments' && <ManageEquipmentComponent />}
-        {selectedMenu === 'Add Studio' && (
+        {activeMenuLabel === "Dashboard" && <DashboardComponent />}
+        {activeMenuLabel === "My Studios" && <MyStudioComponent onPressAddStudio={(i) => setSelectedMenu(i)} editStudio={(i) => setEditStudio(i)} editStudioId={(id) => setEditStudioId(id)} />}
+        {activeMenuLabel === "Bookings" && <BookingsComponent />}
+        {activeMenuLabel === "Manage Equipments" && <ManageEquipmentComponent />}
+        {(activeMenuLabel === "Add Studio" || activeMenuLabel === "Edit Studio") && (
           <AddStudioComponent
             onPressSelectmenu={(i) => setSelectedMenu(i)}
             editStudio={editStudio}
-            editStudioValues={editStudioValues}
+            editStudioId={editStudioId}
           />
         )}
       </View>

@@ -202,7 +202,7 @@ export interface StudioCreateResponse {
   message: string;
 }
 
-export type UpdatePhotographerTimeSlotsResponse = {
+export type UpdateTimeSlotsResponse = {
   message: string;
   availability: {
     id: string;
@@ -213,15 +213,20 @@ export type UpdatePhotographerTimeSlotsResponse = {
   }[];
 };
 
-export type PhotographerAvailabilityItem = {
+export type TimeSlotQuery = {
+  studio_id: string;
+};
+
+export type AvailabilityItem = {
   day_of_week: number;
   start_time: string;
   end_time: string;
   is_available: boolean;
 };
 
-export type UpdatePhotographerTimeSlotsPayload = {
-  availability: PhotographerAvailabilityItem[];
+export type UpdateTimeSlotsPayload = {
+  studio_id?: string;
+  availability: AvailabilityItem[];
 };
 
 export interface BookingAcceptItem {

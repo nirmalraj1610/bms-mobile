@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Used for the Add Studio icon and Star icon
 import DashboardFilterPopup from "./DashboardFilter";
 import { useEffect, useState } from "react";
@@ -9,15 +9,13 @@ import imagePaths from "../../constants/imagePaths";
 import MyStudiosSkeleton from "../skeletonLoaders/StudioOwner/MyStudiosSkeleton";
 import { typography } from "../../constants/typography";
 import BookingModal from "../BookingModal";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserData } from "../../lib/http";
 
 
 // --- Main Component ---
 export const MyStudioComponent = ({
     onPressAddStudio = (i: any) => { },
     editStudio = (i: boolean) => { },
-    editStudioValues = (i: any) => { },
+    editStudioId = (i: string) => { },
 }) => {
     const dispatch = useDispatch();
     const navigation = useNavigation<any>();
@@ -44,8 +42,8 @@ export const MyStudioComponent = ({
         onPressAddStudio('Add Studio')
     }
 
-    const onEditStudio = (item: any) => {
-        editStudioValues(item)
+    const onEditStudio = (id: string) => {
+        editStudioId(id)
         editStudio(true)
         onPressAddStudio('Add Studio')
     }
@@ -165,12 +163,12 @@ export const MyStudioComponent = ({
                             {/* Action Buttons */}
                             <View style={styles.actionsContainer}>
                                 {/* Edit Button (Bordered)  */}
-                                {item.status === 'active' ? <TouchableOpacity onPress={() => onEditStudio(item)} style={[styles.actionButton, styles.editButton]}>
+                                {item.status === 'active' ? <TouchableOpacity onPress={() => onEditStudio(item?.id)} style={[styles.actionButton, styles.editButton]}>
                                     <Text style={styles.editButtonText}>Edit</Text>
                                 </TouchableOpacity> : null}
 
                                 {/* Book Button (Bordered) */}
-                                <TouchableOpacity  style={[styles.actionButton, styles.viewButton]} onPress={() => handlePressBookCard(item)}>
+                                <TouchableOpacity style={[styles.actionButton, styles.viewButton]} onPress={() => handlePressBookCard(item)}>
                                     <Text style={styles.viewButtonText}>{item.status === 'active' ? 'Book' : 'Book now'}</Text>
                                 </TouchableOpacity>
                             </View>
@@ -183,96 +181,96 @@ export const MyStudioComponent = ({
 
     return (
         <>
-        <ScrollView showsVerticalScrollIndicator={false}
-            refreshControl={
-                <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    colors={["#034833"]}      // Android
-                />}
-        >
-            {/* Dashboard views one */}
-            <View style={styles.statusViewsOutline}>
-                <View style={styles.bgImageCard}>
-                    <Icon name="storefront" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>3</Text>
-                        <Text style={styles.bgText}>Active Studios</Text>
-                    </View>
-                </View>
-                <View style={styles.bgImageCard}>
-                    <Icon name="pending-actions" size={32} color="#2F2F2F" />
-                    <View>
-                        <Text style={styles.bgCountText}>7</Text>
-                        <Text style={styles.bgText}>Pending Approval</Text>
-                    </View>
-                </View>
-            </View>
-
-            {/* Header: Title and Add Studio Button */}
-            <View style={styles.header}>
-                <Text style={styles.title}>My Studios</Text>
-                <TouchableOpacity onPress={onAddStudioPress} style={styles.addButton}>
-                    <Icon name="add-circle-outline" size={24} color="#1B4332" />
-                    <Text style={styles.addButtonText}>Add Studio</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
-                    <Icon name="filter-list" size={24} color="#1B4332" />
-                    <Text style={styles.addButtonText}>Filter</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Studio Cards Grid */}
-            {isLoading ? (
-                <FlatList
-                    data={[1, 2, 3, 4]}
-                    keyExtractor={(item) => item.toString()}
-                    renderItem={() => <MyStudiosSkeleton />}
-                    contentContainerStyle={{ paddingBottom: 80 }}
-                />
-            ) : (
-                <FlatList
-                    data={studioList}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderStudioCard}
-                    ListEmptyComponent={
-                        <View style={styles.noStudioOutline}>
-                            <Icon name="storefront" size={60} color="#ccc" style={{ marginBottom: 10 }} />
-                            <Text style={styles.noStudioText}>
-                                No studios found
-                            </Text>
-                            <Text style={styles.addStudioDesc}>
-                                Add your first studio to get started!
-                            </Text>
-                            <TouchableOpacity onPress={onAddStudioPress} style={styles.addStudioBtn}>
-                                <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
-                                <Text style={styles.addStudioText}>Add Studio</Text>
-                            </TouchableOpacity>
+            <ScrollView showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={["#034833"]}      // Android
+                    />}
+            >
+                {/* Dashboard views one */}
+                <View style={styles.statusViewsOutline}>
+                    <View style={styles.bgImageCard}>
+                        <Icon name="storefront" size={32} color="#2F2F2F" />
+                        <View>
+                            <Text style={styles.bgCountText}>3</Text>
+                            <Text style={styles.bgText}>Active Studios</Text>
                         </View>
-                    }
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.listContent}
-                />
-            )}
+                    </View>
+                    <View style={styles.bgImageCard}>
+                        <Icon name="pending-actions" size={32} color="#2F2F2F" />
+                        <View>
+                            <Text style={styles.bgCountText}>7</Text>
+                            <Text style={styles.bgText}>Pending Approval</Text>
+                        </View>
+                    </View>
+                </View>
 
-            <DashboardFilterPopup
-                visible={showFilter}
-                options={studioStatusOptions}
-                selectedValue={selectedFilter}
-                onSelect={(val) => setSelectedFilter(val)}
-                onApply={(val) => setSelectedFilter(val)}
-                onClear={() => setSelectedFilter(null)}
-                onClose={() => setShowFilter(false)}
-            />
-        </ScrollView>
-        {selectedStudio ? (
-            <BookingModal
-                visible={showBookingModal}
-                onClose={() => { setShowBookingModal(false); setSelectedStudio(null); }}
-                studio={selectedStudio}
-                disablePayment={true}
-            />
-        ) : null}
+                {/* Header: Title and Add Studio Button */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>My Studios</Text>
+                    <TouchableOpacity onPress={onAddStudioPress} style={styles.addButton}>
+                        <Icon name="add-circle-outline" size={24} color="#1B4332" />
+                        <Text style={styles.addButtonText}>Add Studio</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onFilterPress} style={styles.addButton}>
+                        <Icon name="filter-list" size={24} color="#1B4332" />
+                        <Text style={styles.addButtonText}>Filter</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Studio Cards Grid */}
+                {isLoading ? (
+                    <FlatList
+                        data={[1, 2, 3, 4]}
+                        keyExtractor={(item) => item.toString()}
+                        renderItem={() => <MyStudiosSkeleton />}
+                        contentContainerStyle={{ paddingBottom: 80 }}
+                    />
+                ) : (
+                    <FlatList
+                        data={studioList}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderStudioCard}
+                        ListEmptyComponent={
+                            <View style={styles.noStudioOutline}>
+                                <Icon name="storefront" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                                <Text style={styles.noStudioText}>
+                                    No studios found
+                                </Text>
+                                <Text style={styles.addStudioDesc}>
+                                    Add your first studio to get started!
+                                </Text>
+                                <TouchableOpacity onPress={onAddStudioPress} style={styles.addStudioBtn}>
+                                    <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
+                                    <Text style={styles.addStudioText}>Add Studio</Text>
+                                </TouchableOpacity>
+                            </View>
+                        }
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.listContent}
+                    />
+                )}
+
+                <DashboardFilterPopup
+                    visible={showFilter}
+                    options={studioStatusOptions}
+                    selectedValue={selectedFilter}
+                    onSelect={(val) => setSelectedFilter(val)}
+                    onApply={(val) => setSelectedFilter(val)}
+                    onClear={() => setSelectedFilter(null)}
+                    onClose={() => setShowFilter(false)}
+                />
+            </ScrollView>
+            {selectedStudio ? (
+                <BookingModal
+                    visible={showBookingModal}
+                    onClose={() => { setShowBookingModal(false); setSelectedStudio(null); }}
+                    studio={selectedStudio}
+                    disablePayment={true}
+                />
+            ) : null}
         </>
     )
 };

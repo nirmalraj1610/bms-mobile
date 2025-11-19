@@ -3,7 +3,6 @@ import {
   Alert,
   FlatList,
   Image,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,19 +11,18 @@ import {
   View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import imagePaths from '../../constants/imagePaths';
 import { launchImageLibrary } from "react-native-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useDispatch } from "react-redux";
-import { createStudioThunk, updateStudioThunk } from "../../features/studios/studiosSlice";
+import { createStudioThunk, getStudioTimeSlots, manageStudioTimeSlots, studioDetailsThunk, updateStudioThunk } from "../../features/studios/studiosSlice";
 import { Dropdown } from "react-native-element-dropdown";
 import { typography } from "../../constants/typography";
 import { showError, showSuccess } from "../../utils/helperFunctions";
-
+import EditStudioSkeleton from "../skeletonLoaders/StudioOwner/EditStudioSkeleton";
 const AddStudioComponent = ({
   editStudio = false,
   onPressSelectmenu = (i: any) => { },
-  editStudioValues = {},
+  editStudioId = '',
 }) => {
   const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState(1);
@@ -34,8 +32,11 @@ const AddStudioComponent = ({
   const [showMaxImageError, setShowMaxImageError] = useState(false);
   const [termsSelected, setTermsSelected] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickerType, setPickerType] = useState<"open" | "close" | null>(null);
   const [selectedDayId, setSelectedDayId] = useState<number | null>(null);
+
 
   const [days, setDays] = useState([
     { id: 1, name: "Monday", selected: true, openTime: null, closeTime: null },
@@ -112,19 +113,106 @@ const AddStudioComponent = ({
   ]);
 
   useEffect(() => {
-    if (editStudio && editStudioValues) {
-      setStudioValues();
-      console.log(editStudio, editStudioValues);
+    if (editStudio && editStudioId) {
+      getStudioDetails();
+      getTimeSlots();
+      console.log(editStudio, editStudioId);
 
     }
-  }, [editStudio])
+  }, [editStudio, editStudioId]);
 
-  const setStudioValues = () => {
+  const getStudioDetails = async () => {
+    setIsLoading(true);
+    try {
+      const studioData = await dispatch(studioDetailsThunk(editStudioId)).unwrap();
+      setStudioValues(studioData || {});
+      console.log(studioData, 'responseresponseresponseresponseresponseresponse');
+    }
+    catch (err: any) {
+      console.log(err, 'errerrerrerrerrerrerrerrerrerrerrerrerrerrerrerrerr');
+    }
+
+  }
+
+  const getTimeSlots = async () => {
+    let query = {studio_id: editStudioId}
+
+    const backendToUI = {
+      0: 7, // Sunday
+      1: 1, // Monday
+      2: 2, // Tuesday
+      3: 3, // Wednesday
+      4: 4, // Thursday
+      5: 5, // Friday
+      6: 6, // Saturday
+    };
+
+    await dispatch(getStudioTimeSlots(query))
+      .unwrap()
+      .then((res) => {
+        if (!res?.availability) return;
+
+        console.log(res, 'ddddddddddddddddddddddd');
+
+
+
+        setDays((prevDays) =>
+          prevDays.map((day) => {
+            const match = res.availability.find(
+              (a) => backendToUI[a.day_of_week] === day.id
+            );
+
+            if (match) {
+              return {
+                ...day,
+                selected: match.is_available,
+                openTime: match.start_time?.substring(0, 5) || null,
+                closeTime: match.end_time?.substring(0, 5) || null,
+              };
+            }
+
+            return day;
+          })
+        );
+
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setIsLoading(false);
+        showError('Failed to load availability time slots!...');
+        console.log("Failed to load availability", err);
+      });
+  };
+
+  const formatTime = (value: any, fallback: any) => {
+    if (!value) return fallback;
+
+    // If Date object
+    if (value instanceof Date) {
+      return value.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    }
+
+    // If string "09:00"
+    if (typeof value === "string") return value;
+
+    return fallback;
+  };
+
+  const getStudioTypeValue = (label: string) => {
+    const match = studioTypes.find((item) => item.value === label);
+    return match ? match.value : "";
+  };
+
+  const setStudioValues = (editStudioValues: any) => {
 
     // 🧭 Set Basic Info
     setBasicInfo({
       studioName: editStudioValues?.name?.trim() || '',
-      studioType: editStudioValues?.studio_type || '',
+      studioType: getStudioTypeValue(editStudioValues?.studio_type) || '',
       studioDesc: editStudioValues?.description?.trim() || '',
       studioAddress: editStudioValues?.location?.address?.trim() || '',
       state: editStudioValues?.location?.state?.trim() || '',
@@ -168,7 +256,7 @@ const AddStudioComponent = ({
         ? String(editStudioValues.security_deposit)
         : '',
       contactPhone: editStudioValues?.contact_phone?.trim() || '',
-      alternatePhone: '',
+      alternatePhone: editStudioValues?.alternate_phone?.trim() || '',
     });
 
 
@@ -196,20 +284,17 @@ const AddStudioComponent = ({
   }
 
   const clearAllStates = () => {
-    // clear edit statevalues
-    editStudio = false,
-      editStudioValues = {},
 
-      // clear days value
-      setDays([
-        { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
-        { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
-        { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
-        { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
-        { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
-        { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
-        { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
-      ]);
+    // clear days value
+    setDays([
+      { id: 1, name: "Monday", selected: false, openTime: null, closeTime: null },
+      { id: 2, name: "Tuesday", selected: false, openTime: null, closeTime: null },
+      { id: 3, name: "Wednesday", selected: false, openTime: null, closeTime: null },
+      { id: 4, name: "Thursday", selected: false, openTime: null, closeTime: null },
+      { id: 5, name: "Friday", selected: false, openTime: null, closeTime: null },
+      { id: 6, name: "Saturday", selected: false, openTime: null, closeTime: null },
+      { id: 7, name: "Sunday", selected: false, openTime: null, closeTime: null },
+    ]);
 
     // clear basic info
     setBasicInfo({
@@ -259,7 +344,7 @@ const AddStudioComponent = ({
     // clear selected images values
     setSelectedImages([]);
 
-    onPressSelectmenu('Dashboard')
+    onPressSelectmenu('My Studios')
   }
 
   const [images, setImages] = useState({
@@ -297,18 +382,6 @@ const AddStudioComponent = ({
     { label: "24 Hours", value: "24" },
   ];
 
-  const cancellationPolicy = [
-    { label: "Free cancellation up to 24 hours", value: "Free cancellation up to 24 hours" },
-    { label: "Free cancellation up to 48 hours", value: "Free cancellation up to 48 hours" },
-    { label: "Free cancellation up to 72 hours", value: "Free cancellation up to 72 hours" },
-    { label: "Strict - No cancellation", value: "Strict - No cancellation" },
-  ];
-
-  const paymentPolicy = [
-    { label: "50% advance payment required", value: "50% advance payment required" },
-    { label: "100% advance payment required", value: "100% advance payment required" },
-    { label: "Flexible payment terms", value: "Flexible payment terms" },
-  ];
 
   const tabs = [
     { id: 1, name: "Basic Info" },
@@ -319,13 +392,20 @@ const AddStudioComponent = ({
   ];
 
   const onSubmitPress = async () => {
+    setIsSubmitting(true);
 
+    // Terms validation
     if (!termsSelected) {
-      Alert.alert("To proceed", "you need to confirm your agreement to the Terms and Conditions.");
+      Alert.alert(
+        "To proceed",
+        "You need to confirm your agreement to the Terms and Conditions."
+      );
+      setIsSubmitting(false); // ❗ FIXED: prevent stuck submit button
       return;
     }
 
-    const payload = {
+    // Build base payload
+    let payload = {
       name: basicInfo?.studioName?.trim() || "",
       description: basicInfo?.studioDesc?.trim() || "",
       location: {
@@ -334,7 +414,7 @@ const AddStudioComponent = ({
         state: basicInfo?.state?.trim() || "",
         pincode: Number(basicInfo?.pinCode) || 0,
         coordinates: {
-          latitude: Number(basicInfo?.latitude) || 0, // TODO: replace with actual coordinates if available
+          latitude: Number(basicInfo?.latitude) || 0,
           longitude: Number(basicInfo?.longitude) || 0
         }
       },
@@ -351,111 +431,116 @@ const AddStudioComponent = ({
       max_booking_hours: Number(details?.maxBookingHours) || 0,
       security_deposit: Number(details?.securityDeposit) || 0,
       contact_phone: details?.contactPhone?.trim() || "",
-      details: {
-        alternate_phone: details?.alternatePhone?.trim() || ""
-      },
+      alternate_phone: details?.alternatePhone?.trim() || "",
       policies: {
         cancellation: images?.cancellationPolicy?.trim() || "",
         payment: images?.paymentPolicy?.trim() || "",
         rules: images?.additionalRules?.trim() || ""
-      },
-      availability_slots: buildOperatingHoursPayload(days, details)
+      }
     };
 
-    // 🧠 Create FormData
-    const formData = new FormData();
+    const timeSlotPayload = {
+      studio_id: editStudioId,
+      availability_slots: buildTimeSlotsPayload(days)
+    };
 
-    // Basic Info
-    formData.append('name', payload.name);
-    formData.append('description', payload.description);
-    formData.append('studio_type', payload.studio_type);
+    try {
+      let response;
 
-    // Numbers
-    formData.append('studio_size', String(payload.studio_size));
-    formData.append('max_capacity', String(payload.max_capacity));
-    formData.append('max_booking_hours', String(payload.max_booking_hours));
-    formData.append('security_deposit', String(payload.security_deposit));
-    formData.append('contact_phone', payload.contact_phone);
+      // If images exist → use FormData
+      if (selectedImages?.length > 0) {
+        const formData = new FormData();
 
-    // Nested objects → convert to JSON strings
-    formData.append('location', JSON.stringify(payload.location));
-    formData.append('pricing', JSON.stringify(payload.pricing));
-    formData.append('details', JSON.stringify(payload.details));
-    formData.append('policies', JSON.stringify(payload.policies));
-    formData.append('availability_slots', JSON.stringify(payload.availability_slots));
+        // Basic fields
+        formData.append("name", payload.name);
+        formData.append("description", payload.description);
+        formData.append("studio_type", payload.studio_type);
 
-    // Arrays
-    formData.append('amenities', JSON.stringify(payload.amenities));
+        formData.append("studio_size", String(payload.studio_size));
+        formData.append("max_capacity", String(payload.max_capacity));
+        formData.append("max_booking_hours", String(payload.max_booking_hours));
+        formData.append("security_deposit", String(payload.security_deposit));
+        formData.append("contact_phone", payload.contact_phone);
 
+        // JSON objects
+        formData.append("location", JSON.stringify(payload.location));
+        formData.append("pricing", JSON.stringify(payload.pricing));
+        formData.append("details", JSON.stringify(payload.details));
+        formData.append("policies", JSON.stringify(payload.policies));
+        formData.append("amenities", JSON.stringify(payload.amenities));
 
-    // 🖼️ Append all selected images
-    if (selectedImages?.length > 0) {
-      selectedImages.forEach((image, index) => {
-        formData.append('images', {
-          uri: image.uri,
-          type: image.type || 'image/jpeg',
-          name: image.fileName || `studio_image_${index}.jpg`,
+        // Images
+        selectedImages.forEach((image, index) => {
+          formData.append("images", {
+            uri: image.uri,
+            type: image.type || "image/jpeg",
+            name: image.fileName || `studio_image_${index}.jpg`
+          });
         });
-      });
-    }
 
-    console.log("📦 Final FormData payload ready to send");
-
-    if (selectedImages?.length > 0) {
-      try {
-        let response;
         if (editStudio) {
-          console.log('calls from formData update', formData);
-
           // UPDATE studio
-          formData.append('studio_id', editStudioValues?.id);
+          formData.append("studio_id", editStudioId);
           response = await dispatch(updateStudioThunk(formData)).unwrap();
-          showSuccess('Studio updated successfully!...');
-          console.log("✅ Studio updated successfully:", response);
+          await dispatch(manageStudioTimeSlots(timeSlotPayload)).unwrap();
+          showSuccess("Studio updated successfully!...");
         } else {
           // CREATE studio
-          console.log('calls from formData create', formData);
+          const slots = buildTimeSlotsPayload(days);
+          formData.append("availability_slots", JSON.stringify(slots));
+
           response = await dispatch(createStudioThunk(formData)).unwrap();
-          showSuccess('Studio created successfully!...');
-          console.log("✅ Studio created successfully:", response);
+          showSuccess("Studio created successfully!...");
         }
-        clearAllStates();
-      } catch (error) {
-        showError('Something went wrong!...');
-        console.error("❌ Error submitting studio:", error);
       }
-    }
-    else {
-      try {
-        let response;
+      // No images → direct JSON payload
+      else {
         if (editStudio) {
-          console.log('calls from json update', payload);
-          // UPDATE studio
-          const convertedPayload = { ...payload, studio_id: editStudioValues?.id }
+          const convertedPayload = {
+            ...payload,
+            studio_id: editStudioId
+          };
+
           response = await dispatch(updateStudioThunk(convertedPayload)).unwrap();
-          showSuccess('Studio updated successfully!...');
-          console.log("✅ Studio updated successfully:", response);
+          await dispatch(manageStudioTimeSlots(timeSlotPayload)).unwrap();
+          showSuccess("Studio updated successfully!...");
         } else {
-          console.log('calls from json update', payload);
-          // CREATE studio
+          payload = {
+            ...payload,
+            availability_slots: buildTimeSlotsPayload(days)
+          };
+
           response = await dispatch(createStudioThunk(payload)).unwrap();
-          showSuccess('Studio created successfully!...');
-          console.log("✅ Studio created successfully:", response);
+          showSuccess("Studio created successfully!...");
         }
-        clearAllStates();
-      } catch (error) {
-        showError('Something went wrong!...');
-        console.error("❌ Error submitting studio:", error);
       }
+
+      clearAllStates();
+    } catch (error) {
+      showError("Something went wrong!...");
+      console.error("❌ Error submitting studio:", error);
+    } finally {
+      setIsSubmitting(false); // always reset
     }
   };
 
-
-
-  const buildOperatingHoursPayload = (days: any[], details: any) => {
+  const buildTimeSlotsPayload = (days: any[]) => {
     return days.map((day) => {
-      // Convert name → day_of_week number
-      const dayOfWeekMap: Record<string, number> = {
+      const format = (value: any, fallback: any) => {
+        if (!value) return fallback;
+
+        if (value instanceof Date) {
+          return value.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+        }
+
+        return value; // already a string like "09:00"
+      };
+
+      const dayOfWeekMap = {
         Sunday: 0,
         Monday: 1,
         Tuesday: 2,
@@ -467,8 +552,8 @@ const AddStudioComponent = ({
 
       return {
         day_of_week: dayOfWeekMap[day.name],
-        start_time: day.openTime ? day.openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "09:00",
-        end_time: day.closeTime ? day.closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '21:00',
+        start_time: format(day.openTime, "09:00"),
+        end_time: format(day.closeTime, "21:00"),
         is_available: day.selected,
         hourly_rate: details?.basePrice || 0,
       };
@@ -675,7 +760,7 @@ const AddStudioComponent = ({
               >
                 <Text style={styles.timeLabel}>Open Time</Text>
                 <Text style={styles.timeValue}>
-                  {item.openTime ? item.openTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '09:00'}
+                  {formatTime(item.openTime, "09:00")}
                 </Text>
               </TouchableOpacity>
 
@@ -685,7 +770,7 @@ const AddStudioComponent = ({
               >
                 <Text style={styles.timeLabel}>Close Time</Text>
                 <Text style={styles.timeValue}>
-                  {item.closeTime ? item.closeTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '21:00'}
+                  {formatTime(item.closeTime, "21:00")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -761,410 +846,412 @@ const AddStudioComponent = ({
   );
 
   return (
-    <View>
-      {/* Render tabs */}
-      <FlatList
-        ref={flatListRef}
-        data={tabs}
-        horizontal
-        keyExtractor={(item) => String(item.id)}
-        renderItem={rendertabs}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ marginVertical: 10 }}
-        getItemLayout={(_, index) => ({
-          length: 150, // approximate width of tab
-          offset: 150 * index,
-          index,
-        })}
-      />
-      <ScrollView showsVerticalScrollIndicator={false}>
-
-        {/* Render form section 1 */}
-
-        {selectedTab == 1 ? <View>
-          <Text style={styles.title}>Basic Studio Information</Text>
-          <Text style={styles.labelText} >Studio Name<Text style={styles.required}> *</Text></Text>
-
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: basicInfoError.studioName ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            placeholder="e.g., Elite Photography Studio"
-            value={basicInfo.studioName}
-            onChangeText={(text) => {
-              setBasicInfo({ ...basicInfo, studioName: text });
-              setBasicInfoError({ ...basicInfoError, studioName: false });
-            }}
-          />
-          {basicInfoError.studioName && (
-            <Text style={styles.errorText}>Studio name is required</Text>
-          )}
-          <Text style={styles.labelText} >Studio Type<Text style={styles.required}> *</Text></Text>
-          <Dropdown
-            style={[styles.dropdown, { borderColor: basicInfoError.studioType ? "#DC3545" : "#BABABA" }]}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            containerStyle={styles.dropdownContainerStyle}
-            data={studioTypes}
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select studio type"
-            value={basicInfo.studioType}
-            onChange={(item) => {
-              setBasicInfo({ ...basicInfo, studioType: item.value })
-              setBasicInfoError({ ...basicInfoError, studioType: false });
-            }}
-          />
-          {basicInfoError.studioType && (
-            <Text style={styles.errorText}>Studio Type is required</Text>
-          )}
-          <Text style={styles.labelText} >Description<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={{ ...styles.input, ...styles.textArea, borderColor: basicInfoError.studioDesc ? "#DC3545" : "#BABABA" }}
-            placeholderTextColor={'#898787'}
-            multiline
-            placeholder="Describe your studio , its unique features and what make it special..."
-            value={basicInfo.studioDesc}
-            onChangeText={(text) => {
-              setBasicInfo({ ...basicInfo, studioDesc: text });
-              setBasicInfoError({ ...basicInfoError, studioDesc: false });
-            }}
-          />
-          {basicInfoError.studioDesc && (
-            <Text style={styles.errorText}>Studio Description is required</Text>
-          )}
-          <Text style={styles.labelText} >Full Address<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={{ ...styles.input, ...styles.textArea, borderColor: basicInfoError.studioAddress ? "#DC3545" : "#BABABA" }}
-            placeholderTextColor={'#898787'}
-            placeholder="Enter the complete studio adress..."
-            multiline
-            value={basicInfo.studioAddress}
-            onChangeText={(text) => {
-              setBasicInfo({ ...basicInfo, studioAddress: text });
-              setBasicInfoError({ ...basicInfoError, studioAddress: false });
-            }}
-          />
-          {basicInfoError.studioAddress && (
-            <Text style={styles.errorText}>Studio Address is required</Text>
-          )}
-          <Text style={styles.labelText} >State<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: basicInfoError.state ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            placeholder="Enter the state"
-            value={basicInfo.state}
-            onChangeText={(text) => {
-              setBasicInfo({ ...basicInfo, state: text });
-              setBasicInfoError({ ...basicInfoError, state: false });
-            }}
-          />
-          {basicInfoError.state && (
-            <Text style={styles.errorText}>State is required</Text>
-          )}
-          <Text style={styles.labelText} >City<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: basicInfoError.city ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            placeholder="Enter the city"
-            value={basicInfo.city}
-            onChangeText={(text) => {
-              setBasicInfo({ ...basicInfo, city: text });
-              setBasicInfoError({ ...basicInfoError, city: false });
-            }}
-          />
-          {basicInfoError.city && (
-            <Text style={styles.errorText}>City is required</Text>
-          )}
-          <Text style={styles.labelText} >Pin Code<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: basicInfoError.pinCode ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="number-pad"
-            placeholder="Enter the pincode"
-            value={basicInfo.pinCode}
-            onChangeText={(text) => {
-              setBasicInfo({ ...basicInfo, pinCode: text });
-              setBasicInfoError({ ...basicInfoError, pinCode: false });
-            }}
-          />
-          {basicInfoError.pinCode && (
-            <Text style={styles.errorText}>Pin Code is required</Text>
-          )}
-          <Text style={styles.labelText} >Landmark</Text>
-          <TextInput
-            style={styles.input}
-            placeholderTextColor={'#898787'}
-            placeholder="Near famous landmark"
-            value={basicInfo.landMark}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, landMark: text })
-            }
-          />
-          <Text style={styles.labelText} >Latitude</Text>
-          <TextInput
-            style={styles.input}
-            placeholderTextColor={'#898787'}
-            placeholder="e.g., 19.1136"
-            keyboardType="number-pad"
-            value={basicInfo.latitude}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, latitude: text })
-            }
-          />
-          <Text style={styles.labelText} >Longitude</Text>
-          <TextInput
-            style={styles.input}
-            placeholderTextColor={'#898787'}
-            placeholder="e.g., 72.8697"
-            keyboardType="number-pad"
-            value={basicInfo.longitude}
-            onChangeText={(text) =>
-              setBasicInfo({ ...basicInfo, longitude: text })
-            }
-          />
-        </View> : selectedTab == 2 ? <View>
-          <Text style={styles.title}>Studio Details & Pricing</Text>
-          <Text style={styles.labelText} >Studio size (sq ft)<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: detailsError.studioSize ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="number-pad"
-            placeholder="e.g., 1200"
-            value={details.studioSize}
-            onChangeText={(text) => {
-              setDetails({ ...details, studioSize: text });
-              setDetailsError({ ...detailsError, studioSize: false });
-            }}
-          />
-          {detailsError.studioSize && (
-            <Text style={styles.errorText}>Studio size is required</Text>
-          )}
-          <Text style={styles.labelText} >Maximum People<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: detailsError.maximumPeople ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="number-pad"
-            placeholder="e.g., 2"
-            value={details.maximumPeople}
-            onChangeText={(text) => {
-              setDetails({ ...details, maximumPeople: text });
-              setDetailsError({ ...detailsError, maximumPeople: false });
-            }}
-          />
-          {detailsError.maximumPeople && (
-            <Text style={styles.errorText}>Maximum People is required</Text>
-          )}
-          <Text style={styles.labelText} >Min Booking Hours<Text style={styles.required}> *</Text></Text>
-          <Dropdown
-            style={[styles.dropdown, { borderColor: detailsError.minBookingHours ? "#DC3545" : "#BABABA" }]}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            containerStyle={styles.dropdownContainerStyle}
-            data={minBookingHours}
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select min hours"
-            value={details.minBookingHours}
-            onChange={(item) => {
-              setDetails({ ...details, minBookingHours: item.value });
-              setDetailsError({ ...detailsError, minBookingHours: false });
-            }}
-          />
-          {detailsError.minBookingHours && (
-            <Text style={styles.errorText}>Min Booking Hours is required</Text>
-          )}
-          <Text style={styles.labelText} >Max Booking Hours<Text style={styles.required}> *</Text></Text>
-          <Dropdown
-            style={[styles.dropdown, { borderColor: detailsError.maxBookingHours ? "#DC3545" : "#BABABA" }]}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            containerStyle={styles.dropdownContainerStyle}
-            data={maxBookingHours}
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select max hours"
-            value={details.maxBookingHours}
-            onChange={(item) => {
-              setDetails({ ...details, maxBookingHours: item.value });
-              setDetailsError({ ...detailsError, maxBookingHours: false });
-            }}
-          />
-          {detailsError.maxBookingHours && (
-            <Text style={styles.errorText}>Max Booking Hours is required</Text>
-          )}
-          <Text style={styles.labelText} >Base Price (per Hour)<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: detailsError.basePrice ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="number-pad"
-            placeholder="e.g., 2500"
-            value={details.basePrice}
-            onChangeText={(text) => {
-              setDetails({ ...details, basePrice: text });
-              setDetailsError({ ...detailsError, basePrice: false });
-            }}
-          />
-          {detailsError.basePrice && (
-            <Text style={styles.errorText}>Base Price is required</Text>
-          )}
-          <Text style={styles.labelText} >Weekend Price (per hour)<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: detailsError.weekendPrice ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="number-pad"
-            placeholder="e.g., 1200"
-            value={details.weekendPrice}
-            onChangeText={(text) => {
-              setDetails({ ...details, weekendPrice: text });
-              setDetailsError({ ...detailsError, weekendPrice: false });
-            }}
-          />
-          {detailsError.weekendPrice && (
-            <Text style={styles.errorText}>Weekend Price is required</Text>
-          )}
-          <Text style={styles.labelText} >Overtime Price (per hour)<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: detailsError.overtimePrice ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="number-pad"
-            placeholder="e.g., 3000"
-            value={details.overtimePrice}
-            onChangeText={(text) => {
-              setDetails({ ...details, overtimePrice: text })
-              setDetailsError({ ...detailsError, overtimePrice: false });
-            }}
-          />
-          {detailsError.overtimePrice && (
-            <Text style={styles.errorText}>Overtime Price is required</Text>
-          )}
-          <Text style={styles.labelText} >Security Deposit<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: detailsError.securityDeposit ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="number-pad"
-            placeholder="e.g., 5000"
-            value={details.securityDeposit}
-            onChangeText={(text) => {
-              setDetails({ ...details, securityDeposit: text })
-              setDetailsError({ ...detailsError, securityDeposit: false });
-            }}
-          />
-          {detailsError.securityDeposit && (
-            <Text style={styles.errorText}>Security Deposit is required</Text>
-          )}
-          <Text style={styles.labelText} >Contact Phone<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={[
-              styles.input,
-              { borderColor: detailsError.contactPhone ? "#DC3545" : "#BABABA" }
-            ]}
-            placeholderTextColor={'#898787'}
-            keyboardType="phone-pad"
-            placeholder="e.g., +91 9876543210"
-            value={details.contactPhone}
-            onChangeText={(text) => {
-              setDetails({ ...details, contactPhone: text })
-              setDetailsError({ ...detailsError, contactPhone: false });
-            }}
-          />
-          {detailsError.contactPhone && (
-            <Text style={styles.errorText}>Contact Phone is required</Text>
-          )}
-          <Text style={styles.labelText} >Alternate Phone</Text>
-          <TextInput
-            style={styles.input}
-            placeholderTextColor={'#898787'}
-            keyboardType="phone-pad"
-            placeholder="e.g., +91 9876543210"
-            value={details.alternatePhone}
-            onChangeText={(text) =>
-              setDetails({ ...details, alternatePhone: text })
-            }
-          />
-        </View> : selectedTab === 3 ? <View>
-          <Text style={styles.title}>Available Amenities</Text>
-
+    <>
+      {isLoading && editStudio && editStudioId ? <EditStudioSkeleton /> :
+        <View>
+          {/* Render tabs */}
           <FlatList
-            data={amenities}
-            renderItem={renderAmenity}
-            numColumns={2}
-            keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContainer}
+            ref={flatListRef}
+            data={tabs}
+            horizontal
+            keyExtractor={(item) => String(item.id)}
+            renderItem={rendertabs}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ marginVertical: 10 }}
+            getItemLayout={(_, index) => ({
+              length: 150, // approximate width of tab
+              offset: 150 * index,
+              index,
+            })}
           />
+          <ScrollView showsVerticalScrollIndicator={false}>
 
-          <Text style={styles.title}>Operating Hours Only (9:00 to 21:00)</Text>
+            {/* Render form section 1 */}
 
-          <FlatList
-            data={days}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderDayList}
-          />
+            {selectedTab == 1 ? <View>
+              <Text style={styles.title}>Basic Studio Information</Text>
+              <Text style={styles.labelText} >Studio Name<Text style={styles.required}> *</Text></Text>
 
-        </View> : selectedTab === 4 ? <View>
-          <Text style={styles.title}>Studio Images</Text>
-          <Text style={styles.labelText} >Upload high-quality images of your studio. First image will be used as cover photo.</Text>
-          {selectedImages.length > 0 ? (
-            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-              <FlatList
-                data={selectedImages}
-                renderItem={renderImages}
-                numColumns={2}
-                keyExtractor={(item) => item.fileName}
-                showsVerticalScrollIndicator={false}
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: basicInfoError.studioName ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                placeholder="e.g., Elite Photography Studio"
+                value={basicInfo.studioName}
+                onChangeText={(text) => {
+                  setBasicInfo({ ...basicInfo, studioName: text });
+                  setBasicInfoError({ ...basicInfoError, studioName: false });
+                }}
               />
-              {showMaxImageError && <Text style={{ ...styles.uploadText, ...styles.required }}>{maxImageError}</Text>}
+              {basicInfoError.studioName && (
+                <Text style={styles.errorText}>Studio name is required</Text>
+              )}
+              <Text style={styles.labelText} >Studio Type<Text style={styles.required}> *</Text></Text>
+              <Dropdown
+                style={[styles.dropdown, { borderColor: basicInfoError.studioType ? "#DC3545" : "#BABABA" }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                containerStyle={styles.dropdownContainerStyle}
+                data={studioTypes}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select studio type"
+                value={basicInfo.studioType}
+                onChange={(item) => {
+                  setBasicInfo({ ...basicInfo, studioType: item.value })
+                  setBasicInfoError({ ...basicInfoError, studioType: false });
+                }}
+              />
+              {basicInfoError.studioType && (
+                <Text style={styles.errorText}>Studio Type is required</Text>
+              )}
+              <Text style={styles.labelText} >Description<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={{ ...styles.input, ...styles.textArea, borderColor: basicInfoError.studioDesc ? "#DC3545" : "#BABABA" }}
+                placeholderTextColor={'#898787'}
+                multiline
+                placeholder="Describe your studio , its unique features and what make it special..."
+                value={basicInfo.studioDesc}
+                onChangeText={(text) => {
+                  setBasicInfo({ ...basicInfo, studioDesc: text });
+                  setBasicInfoError({ ...basicInfoError, studioDesc: false });
+                }}
+              />
+              {basicInfoError.studioDesc && (
+                <Text style={styles.errorText}>Studio Description is required</Text>
+              )}
+              <Text style={styles.labelText} >Full Address<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={{ ...styles.input, ...styles.textArea, borderColor: basicInfoError.studioAddress ? "#DC3545" : "#BABABA" }}
+                placeholderTextColor={'#898787'}
+                placeholder="Enter the complete studio adress..."
+                multiline
+                value={basicInfo.studioAddress}
+                onChangeText={(text) => {
+                  setBasicInfo({ ...basicInfo, studioAddress: text });
+                  setBasicInfoError({ ...basicInfoError, studioAddress: false });
+                }}
+              />
+              {basicInfoError.studioAddress && (
+                <Text style={styles.errorText}>Studio Address is required</Text>
+              )}
+              <Text style={styles.labelText} >State<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: basicInfoError.state ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                placeholder="Enter the state"
+                value={basicInfo.state}
+                onChangeText={(text) => {
+                  setBasicInfo({ ...basicInfo, state: text });
+                  setBasicInfoError({ ...basicInfoError, state: false });
+                }}
+              />
+              {basicInfoError.state && (
+                <Text style={styles.errorText}>State is required</Text>
+              )}
+              <Text style={styles.labelText} >City<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: basicInfoError.city ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                placeholder="Enter the city"
+                value={basicInfo.city}
+                onChangeText={(text) => {
+                  setBasicInfo({ ...basicInfo, city: text });
+                  setBasicInfoError({ ...basicInfoError, city: false });
+                }}
+              />
+              {basicInfoError.city && (
+                <Text style={styles.errorText}>City is required</Text>
+              )}
+              <Text style={styles.labelText} >Pin Code<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: basicInfoError.pinCode ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="number-pad"
+                placeholder="Enter the pincode"
+                value={basicInfo.pinCode}
+                onChangeText={(text) => {
+                  setBasicInfo({ ...basicInfo, pinCode: text });
+                  setBasicInfoError({ ...basicInfoError, pinCode: false });
+                }}
+              />
+              {basicInfoError.pinCode && (
+                <Text style={styles.errorText}>Pin Code is required</Text>
+              )}
+              <Text style={styles.labelText} >Landmark</Text>
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={'#898787'}
+                placeholder="Near famous landmark"
+                value={basicInfo.landMark}
+                onChangeText={(text) =>
+                  setBasicInfo({ ...basicInfo, landMark: text })
+                }
+              />
+              <Text style={styles.labelText} >Latitude</Text>
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={'#898787'}
+                placeholder="e.g., 19.1136"
+                keyboardType="number-pad"
+                value={basicInfo.latitude}
+                onChangeText={(text) =>
+                  setBasicInfo({ ...basicInfo, latitude: text })
+                }
+              />
+              <Text style={styles.labelText} >Longitude</Text>
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={'#898787'}
+                placeholder="e.g., 72.8697"
+                keyboardType="number-pad"
+                value={basicInfo.longitude}
+                onChangeText={(text) =>
+                  setBasicInfo({ ...basicInfo, longitude: text })
+                }
+              />
+            </View> : selectedTab == 2 ? <View>
+              <Text style={styles.title}>Studio Details & Pricing</Text>
+              <Text style={styles.labelText} >Studio size (sq ft)<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: detailsError.studioSize ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="number-pad"
+                placeholder="e.g., 1200"
+                value={details.studioSize}
+                onChangeText={(text) => {
+                  setDetails({ ...details, studioSize: text });
+                  setDetailsError({ ...detailsError, studioSize: false });
+                }}
+              />
+              {detailsError.studioSize && (
+                <Text style={styles.errorText}>Studio size is required</Text>
+              )}
+              <Text style={styles.labelText} >Maximum People<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: detailsError.maximumPeople ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="number-pad"
+                placeholder="e.g., 2"
+                value={details.maximumPeople}
+                onChangeText={(text) => {
+                  setDetails({ ...details, maximumPeople: text });
+                  setDetailsError({ ...detailsError, maximumPeople: false });
+                }}
+              />
+              {detailsError.maximumPeople && (
+                <Text style={styles.errorText}>Maximum People is required</Text>
+              )}
+              <Text style={styles.labelText} >Min Booking Hours<Text style={styles.required}> *</Text></Text>
+              <Dropdown
+                style={[styles.dropdown, { borderColor: detailsError.minBookingHours ? "#DC3545" : "#BABABA" }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                containerStyle={styles.dropdownContainerStyle}
+                data={minBookingHours}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select min hours"
+                value={details.minBookingHours}
+                onChange={(item) => {
+                  setDetails({ ...details, minBookingHours: item.value });
+                  setDetailsError({ ...detailsError, minBookingHours: false });
+                }}
+              />
+              {detailsError.minBookingHours && (
+                <Text style={styles.errorText}>Min Booking Hours is required</Text>
+              )}
+              <Text style={styles.labelText} >Max Booking Hours<Text style={styles.required}> *</Text></Text>
+              <Dropdown
+                style={[styles.dropdown, { borderColor: detailsError.maxBookingHours ? "#DC3545" : "#BABABA" }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                inputSearchStyle={styles.inputSearchStyle}
+                containerStyle={styles.dropdownContainerStyle}
+                data={maxBookingHours}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select max hours"
+                value={details.maxBookingHours}
+                onChange={(item) => {
+                  setDetails({ ...details, maxBookingHours: item.value });
+                  setDetailsError({ ...detailsError, maxBookingHours: false });
+                }}
+              />
+              {detailsError.maxBookingHours && (
+                <Text style={styles.errorText}>Max Booking Hours is required</Text>
+              )}
+              <Text style={styles.labelText} >Base Price (per Hour)<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: detailsError.basePrice ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="number-pad"
+                placeholder="e.g., 2500"
+                value={details.basePrice}
+                onChangeText={(text) => {
+                  setDetails({ ...details, basePrice: text });
+                  setDetailsError({ ...detailsError, basePrice: false });
+                }}
+              />
+              {detailsError.basePrice && (
+                <Text style={styles.errorText}>Base Price is required</Text>
+              )}
+              <Text style={styles.labelText} >Weekend Price (per hour)<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: detailsError.weekendPrice ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="number-pad"
+                placeholder="e.g., 1200"
+                value={details.weekendPrice}
+                onChangeText={(text) => {
+                  setDetails({ ...details, weekendPrice: text });
+                  setDetailsError({ ...detailsError, weekendPrice: false });
+                }}
+              />
+              {detailsError.weekendPrice && (
+                <Text style={styles.errorText}>Weekend Price is required</Text>
+              )}
+              <Text style={styles.labelText} >Overtime Price (per hour)<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: detailsError.overtimePrice ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="number-pad"
+                placeholder="e.g., 3000"
+                value={details.overtimePrice}
+                onChangeText={(text) => {
+                  setDetails({ ...details, overtimePrice: text })
+                  setDetailsError({ ...detailsError, overtimePrice: false });
+                }}
+              />
+              {detailsError.overtimePrice && (
+                <Text style={styles.errorText}>Overtime Price is required</Text>
+              )}
+              <Text style={styles.labelText} >Security Deposit<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: detailsError.securityDeposit ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="number-pad"
+                placeholder="e.g., 5000"
+                value={details.securityDeposit}
+                onChangeText={(text) => {
+                  setDetails({ ...details, securityDeposit: text })
+                  setDetailsError({ ...detailsError, securityDeposit: false });
+                }}
+              />
+              {detailsError.securityDeposit && (
+                <Text style={styles.errorText}>Security Deposit is required</Text>
+              )}
+              <Text style={styles.labelText} >Contact Phone<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { borderColor: detailsError.contactPhone ? "#DC3545" : "#BABABA" }
+                ]}
+                placeholderTextColor={'#898787'}
+                keyboardType="phone-pad"
+                placeholder="e.g., +91 9876543210"
+                value={details.contactPhone}
+                onChangeText={(text) => {
+                  setDetails({ ...details, contactPhone: text })
+                  setDetailsError({ ...detailsError, contactPhone: false });
+                }}
+              />
+              {detailsError.contactPhone && (
+                <Text style={styles.errorText}>Contact Phone is required</Text>
+              )}
+              <Text style={styles.labelText} >Alternate Phone</Text>
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={'#898787'}
+                keyboardType="phone-pad"
+                placeholder="e.g., +91 9876543210"
+                value={details.alternatePhone}
+                onChangeText={(text) =>
+                  setDetails({ ...details, alternatePhone: text })
+                }
+              />
+            </View> : selectedTab === 3 ? <View>
+              <Text style={styles.title}>Available Amenities</Text>
 
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
-              <Icon name="cloud-upload" size={28} color="#034833" />
-              <Text style={styles.uploadTextHeader}>Upload Studio Images</Text>
-              <Text style={styles.uploadTextDesc}>Click to browse your images</Text>
-              <Text style={styles.supportedFilesText}>
-                Supported formats: JPG, PNG, WebP. Max size: 5MB per image. Max 10 images.
-              </Text>
-              <Text style={styles.chooseFilesText}>Choose Files</Text>
-            </TouchableOpacity>
-          )}
-          <Text style={styles.labelText} >Cancellation Policy<Text style={styles.required}> *</Text></Text>
-          {/* <Dropdown
+              <FlatList
+                data={amenities}
+                renderItem={renderAmenity}
+                numColumns={2}
+                keyExtractor={(item) => item.id.toString()}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContainer}
+              />
+
+              <Text style={styles.title}>Operating Hours Only (9:00 to 21:00)</Text>
+
+              <FlatList
+                data={days}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderDayList}
+              />
+
+            </View> : selectedTab === 4 ? <View>
+              <Text style={styles.title}>Studio Images</Text>
+              <Text style={styles.labelText} >Upload high-quality images of your studio. First image will be used as cover photo.</Text>
+              {selectedImages.length > 0 ? (
+                <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                  <FlatList
+                    data={selectedImages}
+                    renderItem={renderImages}
+                    numColumns={2}
+                    keyExtractor={(item) => item.fileName}
+                    showsVerticalScrollIndicator={false}
+                  />
+                  {showMaxImageError && <Text style={{ ...styles.uploadText, ...styles.required }}>{maxImageError}</Text>}
+
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                  <Icon name="cloud-upload" size={28} color="#034833" />
+                  <Text style={styles.uploadTextHeader}>Upload Studio Images</Text>
+                  <Text style={styles.uploadTextDesc}>Click to browse your images</Text>
+                  <Text style={styles.supportedFilesText}>
+                    Supported formats: JPG, PNG, WebP. Max size: 5MB per image. Max 10 images.
+                  </Text>
+                  <Text style={styles.chooseFilesText}>Choose Files</Text>
+                </TouchableOpacity>
+              )}
+              <Text style={styles.labelText} >Cancellation Policy<Text style={styles.required}> *</Text></Text>
+              {/* <Dropdown
             style={[styles.dropdown, { borderColor: imagesError.cancellationPolicy ? "#DC3545" : "#BABABA" }]}
             placeholderStyle={styles.placeholderStyle}
             selectedTextStyle={styles.selectedTextStyle}
@@ -1181,23 +1268,23 @@ const AddStudioComponent = ({
               setImagesError({ ...imagesError, cancellationPolicy: false });
             }}
           /> */}
-          <TextInput
-            style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.cancellationPolicy ? "#DC3545" : "#BABABA" }}
-            placeholderTextColor={'#898787'}
-            multiline
-            placeholder="Write your cancellation rules here..."
-            value={images.cancellationPolicy}
-            onChangeText={(text) => {
-              setImages({ ...images, cancellationPolicy: text });
-              setImagesError({ ...imagesError, cancellationPolicy: false });
-            }}
-          />
-          {imagesError.cancellationPolicy && (
-            <Text style={styles.errorText}>Cancellation Policy is required</Text>
-          )}
-          <Text style={styles.labelText} >Payment Policy<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.cancellationPolicy ? "#DC3545" : "#BABABA" }}
+                placeholderTextColor={'#898787'}
+                multiline
+                placeholder="Write your cancellation rules here..."
+                value={images.cancellationPolicy}
+                onChangeText={(text) => {
+                  setImages({ ...images, cancellationPolicy: text });
+                  setImagesError({ ...imagesError, cancellationPolicy: false });
+                }}
+              />
+              {imagesError.cancellationPolicy && (
+                <Text style={styles.errorText}>Cancellation Policy is required</Text>
+              )}
+              <Text style={styles.labelText} >Payment Policy<Text style={styles.required}> *</Text></Text>
 
-          {/* <Dropdown
+              {/* <Dropdown
             style={[styles.dropdown, { borderColor: imagesError.paymentPolicy ? "#DC3545" : "#BABABA" }]}
             placeholderStyle={styles.placeholderStyle}
             selectedTextStyle={styles.selectedTextStyle}
@@ -1214,226 +1301,231 @@ const AddStudioComponent = ({
               setImagesError({ ...imagesError, paymentPolicy: false });
             }}
           /> */}
-          <TextInput
-            style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.paymentPolicy ? "#DC3545" : "#BABABA" }}
-            placeholderTextColor={'#898787'}
-            multiline
-            placeholder="Write your payment rules here...."
-            value={images.paymentPolicy}
-            onChangeText={(text) => {
-              setImages({ ...images, paymentPolicy: text });
-              setImagesError({ ...imagesError, paymentPolicy: false });
-            }}
-          />
-          {imagesError.paymentPolicy && (
-            <Text style={styles.errorText}>Payment Policy is required</Text>
-          )}
-          <Text style={styles.labelText} >Additional Rules & Policies<Text style={styles.required}> *</Text></Text>
-          <TextInput
-            style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.additionalRules ? "#DC3545" : "#BABABA" }}
-            placeholderTextColor={'#898787'}
-            multiline
-            placeholder="e.g., Full refund before 24 hours, 50% refund within 24 hours, no refund for last-minute cancellations"
-            value={images.additionalRules}
-            onChangeText={(text) => {
-              setImages({ ...images, additionalRules: text });
-              setImagesError({ ...imagesError, additionalRules: false });
-            }}
-          />
-          {imagesError.additionalRules && (
-            <Text style={styles.errorText}>Additional Rules & Policies is required</Text>
-          )}
+              <TextInput
+                style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.paymentPolicy ? "#DC3545" : "#BABABA" }}
+                placeholderTextColor={'#898787'}
+                multiline
+                placeholder="Write your payment rules here...."
+                value={images.paymentPolicy}
+                onChangeText={(text) => {
+                  setImages({ ...images, paymentPolicy: text });
+                  setImagesError({ ...imagesError, paymentPolicy: false });
+                }}
+              />
+              {imagesError.paymentPolicy && (
+                <Text style={styles.errorText}>Payment Policy is required</Text>
+              )}
+              <Text style={styles.labelText} >Additional Rules & Policies<Text style={styles.required}> *</Text></Text>
+              <TextInput
+                style={{ ...styles.input, ...styles.textArea, borderColor: imagesError.additionalRules ? "#DC3545" : "#BABABA" }}
+                placeholderTextColor={'#898787'}
+                multiline
+                placeholder="e.g., Full refund before 24 hours, 50% refund within 24 hours, no refund for last-minute cancellations"
+                value={images.additionalRules}
+                onChangeText={(text) => {
+                  setImages({ ...images, additionalRules: text });
+                  setImagesError({ ...imagesError, additionalRules: false });
+                }}
+              />
+              {imagesError.additionalRules && (
+                <Text style={styles.errorText}>Additional Rules & Policies is required</Text>
+              )}
 
-        </View> :
-          <View>
-            {/* basic info list view */}
-            <Text style={styles.title}>Basic Information</Text>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Name</Text>
-              <Text style={styles.listInformation} >{' : '} {basicInfo.studioName}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Type</Text>
-              <Text style={styles.listInformation} >{' : '} {basicInfo.studioType}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >State</Text>
-              <Text style={styles.listInformation} >{' : '} {basicInfo.state}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >City</Text>
-              <Text style={styles.listInformation} >{' : '} {basicInfo.city}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Size</Text>
-              <Text style={styles.listInformation} >{' : '} {details.studioSize} sq ft</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Capacity</Text>
-              <Text style={styles.listInformation} >{' : '} {details.maximumPeople} Peoples</Text>
-            </View>
-
-            {/* price and details view */}
-            <Text style={styles.title}>Pricing and Booking</Text>
-            {details.basePrice ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Base Price (per Hour)
-                </Text>
-                <Text style={styles.listInformation}>{' : '} ₹{details.basePrice}</Text>
-              </View>
-            ) : null}
-
-            {details.weekendPrice ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Weekend Price (per Hour)
-                </Text>
-                <Text style={styles.listInformation}>{' : '} ₹{details.weekendPrice}</Text>
-              </View>
-            ) : null}
-
-            {details.securityDeposit ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Security Deposit
-                </Text>
-                <Text style={styles.listInformation}>{' : '} ₹{details.securityDeposit}</Text>
-              </View>
-            ) : null}
-
-            {details.overtimePrice ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Overtime Price (per Hour)
-                </Text>
-                <Text style={styles.listInformation}>{' : '} ₹{details.overtimePrice}</Text>
-              </View>
-            ) : null}
-
-            {details.minBookingHours ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Min Booking Hours
-                </Text>
-                <Text style={styles.listInformation}>
-                  {' : '} {details.minBookingHours} hours
-                </Text>
-              </View>
-            ) : null}
-
-            {details.maxBookingHours ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Max Booking Hours
-                </Text>
-                <Text style={styles.listInformation}>
-                  {' : '} {details.maxBookingHours} hours
-                </Text>
-              </View>
-            ) : null}
-
-            {details.contactPhone ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Contact Phone
-                </Text>
-                <Text style={styles.listInformation}>
-                  {' : '} +91 {details.contactPhone}
-                </Text>
-              </View>
-            ) : null}
-
-            {details.alternatePhone ? (
-              <View style={styles.row}>
-                <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
-                  Alternate Phone
-                </Text>
-                <Text style={styles.listInformation}>
-                  {' : '} +91 {details.alternatePhone}
-                </Text>
-              </View>
-            ) : null}
-
-
-            {/* amenities view */}
-            <Text style={styles.title}>
-              Selected Amenities ({selectedAmenities.length})
-            </Text>
-
-            {selectedAmenities.length > 0 ? (
+            </View> :
               <View>
-                {selectedAmenities.map(item => (
-                  <Text key={item.id} style={styles.listInformation}>
-                    • {item.name}
-                  </Text>
-                ))}
-              </View>
-            ) : (
-              <Text style={{ ...styles.listInformation, fontSize: 12 }}>No amenities selected</Text>
-            )}
+                {/* basic info list view */}
+                <Text style={styles.title}>Basic Information</Text>
+                <View style={styles.row}>
+                  <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Name</Text>
+                  <Text style={styles.listInformation} >{' : '} {basicInfo.studioName}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Type</Text>
+                  <Text style={styles.listInformation} >{' : '} {basicInfo.studioType}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >State</Text>
+                  <Text style={styles.listInformation} >{' : '} {basicInfo.state}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >City</Text>
+                  <Text style={styles.listInformation} >{' : '} {basicInfo.city}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Studio Size</Text>
+                  <Text style={styles.listInformation} >{' : '} {details.studioSize} sq ft</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={{ ...styles.listInformation, minWidth: '30%', ...typography.semibold }} >Capacity</Text>
+                  <Text style={styles.listInformation} >{' : '} {details.maximumPeople} Peoples</Text>
+                </View>
 
-            <View style={styles.noteTextOutline}>
-              <Icon
-                name={"info"}
-                size={24}
-                color={'#101010'}
-              />
-              <Text style={styles.noteText}>Your studio listing will be reviewed by our team before going live. You'll receive an email notification once approved.</Text>
+                {/* price and details view */}
+                <Text style={styles.title}>Pricing and Booking</Text>
+                {details.basePrice ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Base Price (per Hour)
+                    </Text>
+                    <Text style={styles.listInformation}>{' : '} ₹{details.basePrice}</Text>
+                  </View>
+                ) : null}
+
+                {details.weekendPrice ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Weekend Price (per Hour)
+                    </Text>
+                    <Text style={styles.listInformation}>{' : '} ₹{details.weekendPrice}</Text>
+                  </View>
+                ) : null}
+
+                {details.securityDeposit ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Security Deposit
+                    </Text>
+                    <Text style={styles.listInformation}>{' : '} ₹{details.securityDeposit}</Text>
+                  </View>
+                ) : null}
+
+                {details.overtimePrice ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Overtime Price (per Hour)
+                    </Text>
+                    <Text style={styles.listInformation}>{' : '} ₹{details.overtimePrice}</Text>
+                  </View>
+                ) : null}
+
+                {details.minBookingHours ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Min Booking Hours
+                    </Text>
+                    <Text style={styles.listInformation}>
+                      {' : '} {details.minBookingHours} hours
+                    </Text>
+                  </View>
+                ) : null}
+
+                {details.maxBookingHours ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Max Booking Hours
+                    </Text>
+                    <Text style={styles.listInformation}>
+                      {' : '} {details.maxBookingHours} hours
+                    </Text>
+                  </View>
+                ) : null}
+
+                {details.contactPhone ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Contact Phone
+                    </Text>
+                    <Text style={styles.listInformation}>
+                      {' : '} +91 {details.contactPhone}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {details.alternatePhone ? (
+                  <View style={styles.row}>
+                    <Text style={{ ...styles.listInformation, minWidth: '60%', ...typography.semibold }}>
+                      Alternate Phone
+                    </Text>
+                    <Text style={styles.listInformation}>
+                      {' : '} +91 {details.alternatePhone}
+                    </Text>
+                  </View>
+                ) : null}
+
+
+                {/* amenities view */}
+                <Text style={styles.title}>
+                  Selected Amenities ({selectedAmenities.length})
+                </Text>
+
+                {selectedAmenities.length > 0 ? (
+                  <View>
+                    {selectedAmenities.map(item => (
+                      <Text key={item.id} style={styles.listInformation}>
+                        • {item.name}
+                      </Text>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={{ ...styles.listInformation, fontSize: 12 }}>No amenities selected</Text>
+                )}
+
+                <View style={styles.noteTextOutline}>
+                  <Icon
+                    name={"info"}
+                    size={24}
+                    color={'#101010'}
+                  />
+                  <Text style={styles.noteText}>Your studio listing will be reviewed by our team before going live. You'll receive an email notification once approved.</Text>
+                </View>
+                <View style={styles.termsOutline}>
+                  <Icon
+                    onPress={() => setTermsSelected(!termsSelected)}
+                    name={termsSelected ? "check-box" : "check-box-outline-blank"}
+                    size={24}
+                    color={termsSelected ? "#1B4332" : "#444"}
+                  />
+                  <Text style={{ ...styles.listInformation, fontSize: 12, marginLeft: 5 }}>I agree to the Terms & Conditions and confirm that all information provided is accurate.</Text>
+                </View>
+              </View>}
+
+
+
+            {/* Render bottom section */}
+
+            <View style={styles.actionButtonOutline}>
+              {selectedTab !== 1 ? (
+                <TouchableOpacity onPress={onpressPrevious} style={styles.previousButton}>
+                  <Icon name={"arrow-back-ios"} size={16} color="#FFFFFF" />
+                  <Text style={styles.previousText}>Previous</Text>
+                </TouchableOpacity>
+              ) : (
+                <View />
+              )}
+
+              {selectedTab !== tabs.length &&
+                <TouchableOpacity onPress={onpressNext} style={styles.nextButton}>
+                  <Text style={styles.nextText}>Next</Text>
+                  <Icon name={"arrow-forward-ios"} size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+              }
+
+              {selectedTab == tabs.length &&
+                <TouchableOpacity disabled={isSubmitting} onPress={onSubmitPress} style={styles.previousButton}>
+                  <Icon name={"check"} size={16} color="#FFFFFF" />
+                  <Text style={[styles.previousText, { marginLeft: 5 }]}>{
+                    isSubmitting
+                      ? (editStudio ? "Updating studio" : "Submitting for review")
+                      : (editStudio ? "Update studio" : "Submit for review")
+                  }</Text>
+                </TouchableOpacity>
+              }
             </View>
-            <View style={styles.termsOutline}>
-              <Icon
-                onPress={() => setTermsSelected(!termsSelected)}
-                name={termsSelected ? "check-box" : "check-box-outline-blank"}
-                size={24}
-                color={termsSelected ? "#1B4332" : "#444"}
-              />
-              <Text style={{ ...styles.listInformation, fontSize: 12, marginLeft: 5 }}>I agree to the Terms & Conditions and confirm that all information provided is accurate.</Text>
-            </View>
-          </View>}
+          </ScrollView>
 
-
-
-        {/* Render bottom section */}
-
-        <View style={styles.actionButtonOutline}>
-          {selectedTab !== 1 ? (
-            <TouchableOpacity onPress={onpressPrevious} style={styles.previousButton}>
-              <Icon name={"arrow-back-ios"} size={16} color="#FFFFFF" />
-              <Text style={styles.previousText}>Previous</Text>
-            </TouchableOpacity>
-          ) : (
-            <View />
+          {/* ✅ Show native time picker */}
+          {showPicker && (
+            <DateTimePicker
+              mode="time"
+              value={new Date("1970-01-01T09:00:00")}
+              is24Hour={true}
+              display="default"
+              onChange={onTimeChange}
+            />
           )}
 
-          {selectedTab !== tabs.length &&
-            <TouchableOpacity onPress={onpressNext} style={styles.nextButton}>
-              <Text style={styles.nextText}>Next</Text>
-              <Icon name={"arrow-forward-ios"} size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-          }
-
-          {selectedTab == tabs.length &&
-            <TouchableOpacity onPress={onSubmitPress} style={styles.previousButton}>
-              <Icon name={"check"} size={16} color="#FFFFFF" />
-              <Text style={[styles.previousText, { marginLeft: 5 }]}>{editStudio ? 'Update studio' : 'Submit for review'}</Text>
-            </TouchableOpacity>
-          }
-        </View>
-      </ScrollView>
-
-      {/* ✅ Show native time picker */}
-      {showPicker && (
-        <DateTimePicker
-          mode="time"
-          value={new Date("1970-01-01T09:00:00")}
-          is24Hour={true}
-          display="default"
-          onChange={onTimeChange}
-        />
-      )}
-
-    </View>
+        </View>}
+    </>
   );
 };
 
