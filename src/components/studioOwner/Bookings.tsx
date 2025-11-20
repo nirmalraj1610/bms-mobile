@@ -23,7 +23,9 @@ export const BookingsComponent = () => {
     const [showFilter, setShowFilter] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
     const [studioList, setStudioList] = useState([{ label: '', value: '' }]);
+    const [studiosStats, setStudiosStats] = useState({ activeStudios_count: 0, total_Bookings: 0, total_Earnings: 0, pending_Approvals: 0 });
     const [studioBookingList, setStudioBookingList] = useState([]);
+    const [studiosData, setStudioSData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showStartPicker, setShowStartPicker] = useState(false);
     const [showEndPicker, setShowEndPicker] = useState(false);
@@ -59,17 +61,18 @@ export const BookingsComponent = () => {
         //     params = { ...params, status: selectedFilter, }
         // }
         try {
-            const studios = await dispatch(loadMyStudioThunk({ status: "active" })).unwrap(); // ✅ unwrap to get actual data
+            const studios = await dispatch(loadMyStudioThunk({ status: "active", include_stats: true })).unwrap(); // ✅ unwrap to get actual data
             console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
             const studiosList = studios
-                .map(studio => ({
+                .map((studio: any) => ({
                     label: studio.name,
                     value: studio.id,
                 }));
 
             setStudioList(studiosList || []);
+            setStudioSData(studios || []);
         } catch (error) {
             console.log('❌ Failed to load studios:', error);
         }
@@ -94,6 +97,7 @@ export const BookingsComponent = () => {
         //   limit?: number;
         //   offset?: number;
         // }
+
         let params = { studio_id: selectedStudio }
         if (selectedFilter) {
             params = { ...params, status: selectedFilter, }
@@ -111,6 +115,30 @@ export const BookingsComponent = () => {
 
             // response looks like { studiosBookings: [ ... ], total: 16 }
             setStudioBookingList(studiosBookings || []);
+
+                    // 1. Count active studios (if still needed globally)
+        const activeStudiosCount = studiosData.length;
+
+        // 2. Find ONLY the selected studio
+        const selected = studiosData.find(studio => studio.id === selectedStudio);
+
+        // 3. If not found, avoid crash
+        if (!selected) {
+            setStudiosStats({activeStudios_count: 0, total_Bookings: 0, total_Earnings: 0, pending_Approvals: 0 });
+            return;
+        }
+
+        // 4. Build stats ONLY for this studio
+        const studioStats = {
+            activeStudios_count: activeStudiosCount || 0,
+            total_Bookings: selected?.stats?.total_bookings || 0,
+            total_Earnings: selected?.stats?.total_revenue || 0,
+            pending_Approvals: selected?.stats?.pending_bookings || 0,
+        };
+
+        // 5. Update state
+        setStudiosStats(studioStats);
+        
         } catch (error) {
             console.log('❌ Failed to load studios bookings:', error);
         }
@@ -304,16 +332,16 @@ export const BookingsComponent = () => {
                 <View style={styles.bgImageCard}>
                     <Icon name="storefront" size={32} color="#2F2F2F" />
                     <View>
-                        <Text style={styles.bgCountText}>5</Text>
-                        <Text style={styles.bgText}>Total Bookings</Text>
+                        <Text style={styles.bgCountText}>{studiosStats?.activeStudios_count}</Text>
+                        <Text style={styles.bgText}>Active Studios</Text>
                     </View>
                 </View>
 
                 <View style={styles.bgImageCard}>
                     <Icon name="camera-alt" size={32} color="#2F2F2F" />
                     <View>
-                        <Text style={styles.bgCountText}>2</Text>
-                        <Text style={styles.bgText}>Pending Approval</Text>
+                        <Text style={styles.bgCountText}>{studiosStats?.total_Bookings}</Text>
+                        <Text style={styles.bgText}>Total Bookings</Text>
                     </View>
                 </View>
             </View>
@@ -322,7 +350,7 @@ export const BookingsComponent = () => {
                 <View style={styles.bgImageCard}>
                     <Icon name="currency-rupee" size={32} color="#2F2F2F" />
                     <View>
-                        <Text style={styles.bgCountText}>₹30,000</Text>
+                        <Text style={styles.bgCountText}>₹{studiosStats?.total_Earnings}</Text>
                         <Text style={styles.bgText}>Total Earnings</Text>
                     </View>
                 </View>
@@ -330,8 +358,8 @@ export const BookingsComponent = () => {
                 <View style={styles.bgImageCard}>
                     <Icon name="pending-actions" size={32} color="#2F2F2F" />
                     <View>
-                        <Text style={styles.bgCountText}>3</Text>
-                        <Text style={styles.bgText}>Pending Payments</Text>
+                        <Text style={styles.bgCountText}>{studiosStats?.pending_Approvals}</Text>
+                        <Text style={styles.bgText}>Pending Requests</Text>
                     </View>
                 </View>
             </View>

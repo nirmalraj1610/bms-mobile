@@ -23,7 +23,8 @@ export const MyStudioComponent = ({
         { label: "Pending Approvals", value: "pending_approval" },
         { label: "Active Studios", value: "active" },
         { label: "Inactive Studios", value: "inactive" },
-    ];;
+    ];
+    const [studiosStats, setStudiosStats] = useState({ activeStudios_count: 0, pending_Approval: 0 });
     const [showFilter, setShowFilter] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
@@ -83,6 +84,22 @@ export const MyStudioComponent = ({
 
             // response looks like { studios: [ ... ], total: 16 }
             setStudioList(studios || []);
+
+            // Count of active studios
+            const activeStudiosCount = studios.filter(i => i.status === "active").length;
+
+            // Find the selected studio
+            const pendingStudiosCount = studios.filter(i => i.status === "pending_approval").length;
+
+            // Build stats (only 2 values)
+            const studioStats = {
+                activeStudios_count: activeStudiosCount || 0,
+                pending_Approval: pendingStudiosCount || 0
+            };
+
+            // Update state
+            setStudiosStats(studioStats);
+
         } catch (error) {
             console.log('❌ Failed to load studios:', error);
         }
@@ -194,15 +211,15 @@ export const MyStudioComponent = ({
                     <View style={styles.bgImageCard}>
                         <Icon name="storefront" size={32} color="#2F2F2F" />
                         <View>
-                            <Text style={styles.bgCountText}>3</Text>
+                            <Text style={styles.bgCountText}>{studiosStats?.activeStudios_count}</Text>
                             <Text style={styles.bgText}>Active Studios</Text>
                         </View>
                     </View>
                     <View style={styles.bgImageCard}>
                         <Icon name="pending-actions" size={32} color="#2F2F2F" />
                         <View>
-                            <Text style={styles.bgCountText}>7</Text>
-                            <Text style={styles.bgText}>Pending Approval</Text>
+                            <Text style={styles.bgCountText}>{studiosStats?.pending_Approval}</Text>
+                            <Text style={styles.bgText}>Pending Approvals</Text>
                         </View>
                     </View>
                 </View>
