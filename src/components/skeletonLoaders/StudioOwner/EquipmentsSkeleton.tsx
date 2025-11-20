@@ -1,27 +1,21 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated } from "react-native";
+import React, { useRef, useEffect } from "react";
+import { View, StyleSheet, Animated, ScrollView, Dimensions } from "react-native";
 
-const EquipmentsSkeleton = () => {
+const { width } = Dimensions.get("window");
+
+const MyStudiosSkeleton = () => {
     const shimmerAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         const loop = Animated.loop(
             Animated.sequence([
-                Animated.timing(shimmerAnim, {
-                    toValue: 1,
-                    duration: 1000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(shimmerAnim, {
-                    toValue: 0,
-                    duration: 1000,
-                    useNativeDriver: true,
-                }),
+                Animated.timing(shimmerAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+                Animated.timing(shimmerAnim, { toValue: 0, duration: 1000, useNativeDriver: true }),
             ])
         );
         loop.start();
         return () => loop.stop();
-    }, [shimmerAnim]);
+    }, []);
 
     const opacity = shimmerAnim.interpolate({
         inputRange: [0, 1],
@@ -30,27 +24,39 @@ const EquipmentsSkeleton = () => {
 
     return (
         <View style={styles.cardContainer}>
+            {/* Status Badge */}
+            <Animated.View style={[styles.statusBadge, { opacity }]} />
+
             <View style={styles.card}>
-                {/* Image Placeholder */}
+                {/* Studio Image */}
                 <Animated.View style={[styles.imagePlaceholder, { opacity }]} />
 
-                {/* Status Badge Placeholder */}
-                <Animated.View
-                    style={[styles.statusBadge, { opacity }]}
-                />
-
-                {/* Text Info Placeholder */}
+                {/* Info Section */}
                 <View style={styles.infoContainer}>
-                    <Animated.View style={[styles.line, { width: "80%", opacity }]} />
-                    <Animated.View style={[styles.line, { width: "50%", opacity }]} />
-                    <Animated.View style={[styles.line, { width: "60%", opacity }]} />
-                    <Animated.View style={[styles.line, { width: "40%", opacity }]} />
-                    <Animated.View style={[styles.line, { width: "55%", opacity }]} />
-                    <Animated.View style={[styles.line, { width: "45%", opacity }]} />
-                </View>
+                    <Animated.View style={[styles.titleLine, { opacity }]} />
+                    <Animated.View style={[styles.smallLine, { width: "80%", opacity }]} />
 
-                {/* Button Placeholder */}
-                <Animated.View style={[styles.buttonPlaceholder, { opacity }]} />
+                    {/* Location & Pricing Section */}
+                    <View style={styles.row}>
+                        <View style={{ width: "48%" }}>
+                            <Animated.View style={[styles.smallLine, { width: "70%", opacity }]} />
+                            <Animated.View style={[styles.smallLine, { width: "60%", opacity }]} />
+                        </View>
+                        <View style={{ width: "48%" }}>
+                            <Animated.View style={[styles.smallLine, { width: "80%", opacity }]} />
+                            <Animated.View style={[styles.smallLine, { width: "70%", opacity }]} />
+                        </View>
+                    </View>
+
+                    {/* Stats Row */}
+                    <View style={styles.row}>
+                        <View style={{ width: "50%" }}>
+                        </View>
+                        <View style={[styles.actionsContainer]}>
+                            <Animated.View style={[styles.actionBtn, { opacity }]} />
+                        </View>
+                    </View>
+                </View>
             </View>
         </View>
     );
@@ -58,47 +64,67 @@ const EquipmentsSkeleton = () => {
 
 const styles = StyleSheet.create({
     cardContainer: {
-        width: "48%",
-        marginBottom: 15,
+        marginVertical: 10,
     },
     card: {
         backgroundColor: "#fff",
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: "hidden",
         borderWidth: 1,
-        borderColor: "#00000026",
-        position: "relative",
+        borderColor: "#00000020",
+        paddingBottom: 10,
+        padding: 10
     },
     imagePlaceholder: {
         width: "100%",
-        height: 120,
+        height: 140,
         backgroundColor: "#E0E0E0",
+        borderRadius: 12
     },
     statusBadge: {
-        position: "absolute",
-        top: 10,
-        right: 10,
-        width: 60,
-        height: 20,
+        width: 80,
+        height: 24,
+        right: 20,
+        backgroundColor: "#E0E0E0",
+        borderRadius: 4,
+        alignSelf: "flex-end",
+        marginBottom: -5,
+        zIndex: 5,
+    },
+    infoContainer: {
+        paddingTop: 12,
+    },
+    titleLine: {
+        width: "60%",
+        height: 14,
+        borderRadius: 6,
+        backgroundColor: "#E0E0E0",
+        marginBottom: 8,
+    },
+    smallLine: {
+        height: 10,
+        backgroundColor: "#E0E0E0",
+        borderRadius: 6,
+        marginVertical: 4,
+    },
+    row: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 6,
+    },
+    actionsContainer: {
+        marginTop: 5,
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        width: "50%",
+    },
+    actionBtn: {
+        width: '100%',
+        height: 30,
         backgroundColor: "#E0E0E0",
         borderRadius: 6,
     },
-    infoContainer: {
-        padding: 10,
-    },
-    line: {
-        height: 10,
-        backgroundColor: "#E0E0E0",
-        borderRadius: 5,
-        marginVertical: 5,
-    },
-    buttonPlaceholder: {
-        height: 30,
-        marginHorizontal: 10,
-        marginBottom: 10,
-        backgroundColor: "#E0E0E0",
-        borderRadius: 8,
-    },
 });
 
-export default EquipmentsSkeleton;
+export default MyStudiosSkeleton;

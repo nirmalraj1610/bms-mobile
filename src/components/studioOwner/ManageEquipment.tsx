@@ -26,6 +26,7 @@ export const ManageEquipmentComponent = () => {
     const [selectedImages, setSelectedImages] = useState([]);
     const [maxImageError, setMaxImageError] = useState('');
     const [showMaxImageError, setShowMaxImageError] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // pull to refresh
     const [refreshing, setRefreshing] = useState(false);
@@ -34,7 +35,7 @@ export const ManageEquipmentComponent = () => {
         { label: "Available", value: true }
     ];
     const [showFilter, setShowFilter] = useState(false);
-    const [addStudio, setaddStudio] = useState({
+    const [addEquipment, setaddEquipment] = useState({
         studioId: "",
         studioName: "",
         equipmentName: "",
@@ -47,6 +48,19 @@ export const ManageEquipmentComponent = () => {
         dailyRate: "",
         Condition: ""
     });
+
+    const [addEquipmentError, setaddEquipmentError] = useState({
+        studioId: false,
+        studioName: false,
+        equipmentName: false,
+        equipmentType: false,
+        equipmentDesc: false,
+        availableQuantity: false,
+        hourlyRate: false,
+        dailyRate: false,
+        Condition: false
+    });
+
     const [activeTab, setActiveTab] = useState("Equipments"); // 'Equipments' or 'Add Equipment'
 
     const equipmentList = [
@@ -162,7 +176,7 @@ export const ManageEquipmentComponent = () => {
         const itemStudioId = item?.id || selectedStudio || '';
 
 
-        setaddStudio({
+        setaddEquipment({
             studioId: itemStudioId,
             studioName: selectedStudioName ? selectedStudioName : '',
             equipmentName: item?.item_name ? item?.item_name : '',
@@ -211,7 +225,7 @@ export const ManageEquipmentComponent = () => {
     const clearStateValues = () => {
 
         // set initial state value
-        setaddStudio({
+        setaddEquipment({
             studioId: "",
             studioName: "",
             equipmentName: "",
@@ -236,32 +250,52 @@ export const ManageEquipmentComponent = () => {
     }
 
     const createOrEditEquipment = async () => {
+        setIsSubmitting(true);
         let studio_id = selectedStudio || ''
         try {
 
             if (!editEquip && !editEquipId) {
-                if (addStudio?.studioId) {
-                    studio_id = addStudio?.studioId
+                if (addEquipment?.studioId) {
+                    studio_id = addEquipment?.studioId
 
                 }
-                else {
-                    Alert.alert('Please selecte a studio to add equipment')
-                }
-
             }
+
+            // 🧩 Validate Tab 4 — Images/Policies
+            const newErrors = {
+                studioId: !studio_id,
+                studioName: !addEquipment?.studioName,
+                equipmentName: !addEquipment?.equipmentName,
+                equipmentType: !addEquipment?.equipmentType,
+                equipmentDesc: !addEquipment?.equipmentDesc,
+                availableQuantity: !addEquipment?.availableQuantity,
+                hourlyRate: !addEquipment?.hourlyRate,
+                dailyRate: !addEquipment?.dailyRate,
+                Condition: !addEquipment?.Condition
+            };
+
+            setaddEquipmentError(newErrors);
+
+            // ❌ If any value is empty → show alert and stop
+            if (Object.values(newErrors).includes(true)) {
+                showError('Please fill all the required fields!...');
+                setIsSubmitting(false);
+                return;
+            }
+
             // 🧱 Build your base payload
             const payload = {
                 studio_id: studio_id,
-                item_name: addStudio.equipmentName,
-                item_type: addStudio.equipmentType,
-                description: addStudio.equipmentDesc,
-                quantity_available: addStudio.availableQuantity,
-                rental_price_hourly: addStudio.hourlyRate,
-                rental_price_daily: addStudio.dailyRate,
-                condition: addStudio.Condition,
+                item_name: addEquipment.equipmentName,
+                item_type: addEquipment.equipmentType,
+                description: addEquipment.equipmentDesc,
+                quantity_available: addEquipment.availableQuantity,
+                rental_price_hourly: addEquipment.hourlyRate,
+                rental_price_daily: addEquipment.dailyRate,
+                condition: addEquipment.Condition,
                 specifications: {
-                    resolution: addStudio.resolution,
-                    video: addStudio.video,
+                    resolution: addEquipment.resolution,
+                    video: addEquipment.video,
                 },
             };
 
@@ -312,6 +346,9 @@ export const ManageEquipmentComponent = () => {
             showError('Something went wrong!...');
             console.error('❌ Error submitting equipment:', error);
         }
+        finally {
+            setIsSubmitting(false);
+        }
     };
 
 
@@ -352,6 +389,10 @@ export const ManageEquipmentComponent = () => {
 
         return (
             <View style={styles.cardContainer}>
+                {/* Status Badge */}
+                <View style={[styles.statusBadge, { backgroundColor: statusBgColor }]}>
+                    <Text style={styles.statusText}>{statusText}</Text>
+                </View>
                 <View style={styles.card}>
                     {/* Studio Image */}
                     <Image
@@ -360,26 +401,32 @@ export const ManageEquipmentComponent = () => {
                         resizeMode="cover"
                         style={styles.cardImage}
                     />
-                    {/* Status Badge */}
-                    <View style={[styles.statusBadge, { backgroundColor: statusBgColor }]}>
-                        <Text style={styles.statusText}>{statusText}</Text>
-                    </View>
 
                     {/* Text Info */}
                     <View style={styles.infoContainer}>
                         <Text style={styles.studioName}>{item.item_name} <Text style={styles.equipmentType}>({item.item_type})</Text></Text>
-                        <Text numberOfLines={2} style={styles.studioDesc}>{item.description}</Text>
-                        <Text style={styles.avaliable}>Price range:</Text>
-                        <Text style={styles.avaliable}>Per hour: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_hourly}</Text></Text>
-                        <Text style={styles.avaliable}>Per Day: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_daily}</Text></Text>
-                        <Text style={styles.avaliable}>Avaliable: <Text style={styles.price}>{item.quantity_available} pieces</Text></Text>
-                        <Text style={styles.avaliable}>Condition: <Text style={styles.price}>{item.condition}</Text></Text>
+                        <Text numberOfLines={3} style={styles.studioDesc}>{item.description}</Text>
+                        <View style={styles.infoContainerRow}>
+                            <View style={{ alignItems: 'flex-start', width: '50%' }}>
+                                <Text style={styles.avaliable}>Per hour: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_hourly}</Text></Text>
+                                <Text style={styles.avaliable}>Per Day: <Text style={{ ...styles.price, color: '#FF7441' }}>₹ {item.rental_price_daily}</Text></Text>
+                            </View>
+                            <View style={{ alignItems: 'flex-start', width: '50%' }}>
+                                <Text style={styles.avaliable}>Avaliable: <Text style={styles.price}>{item.quantity_available} pieces</Text></Text>
+                                <Text style={styles.avaliable}>Condition: <Text style={styles.price}>{item.condition}</Text></Text>
+                            </View>
+                        </View>
+                        <View style={styles.infoContainerRow}>
+                            <View style={{ alignItems: 'flex-start', width: '50%' }}>
+                            </View>
+                            <View style={{ alignItems: 'flex-start', width: '50%' }}>
+                                {/* Edit Button (Bordered)  */}
+                                <TouchableOpacity onPress={() => onEditEquiPress(item)} style={styles.viewButton}>
+                                    <Text style={styles.viewButtonText}>Edit equipment</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
-
-                    {/* Edit Button (Bordered)  */}
-                    <TouchableOpacity onPress={() => onEditEquiPress(item)} style={styles.viewButton}>
-                        <Text style={styles.viewButtonText}>Edit</Text>
-                    </TouchableOpacity>
 
                 </View>
             </View>
@@ -433,13 +480,13 @@ export const ManageEquipmentComponent = () => {
                 </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}
-            refreshControl={ activeTab === "Equipments" ? 
-                                <RefreshControl
-                                    refreshing={refreshing}
-                                    onRefresh={onRefresh}
-                                    colors={["#034833"]}      // Android
-                                /> : null}
-                                >
+                refreshControl={activeTab === "Equipments" ?
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        colors={["#034833"]}      // Android
+                    /> : null}
+            >
                 {activeTab === "Equipments" ? <>
 
                     <View style={styles.header}>
@@ -471,11 +518,9 @@ export const ManageEquipmentComponent = () => {
                     {/* Studio Cards Grid */}
                     {isLoading ? (
                         <FlatList
-                            data={[1, 2, 3, 4]}
-                            numColumns={2}
+                            data={[1, 2, 3, 4, 5]}
                             keyExtractor={(item) => item.toString()}
                             renderItem={() => <EquipmentsSkeleton />}
-                            columnWrapperStyle={{ justifyContent: "space-between" }}
                             contentContainerStyle={{ paddingBottom: 80 }}
                         />
                     ) : (
@@ -489,17 +534,15 @@ export const ManageEquipmentComponent = () => {
                                     <Text style={styles.noStudioText}>
                                         No equipments found
                                     </Text>
-                                    <Text style={styles.addStudioDesc}>
+                                    <Text style={styles.addEquipmentDesc}>
                                         Add new equipments to show
                                     </Text>
-                                    <TouchableOpacity onPress={onAddEquiPress} style={styles.addStudioBtn}>
+                                    <TouchableOpacity onPress={onAddEquiPress} style={styles.addEquipmentBtn}>
                                         <Icon name="add-circle-outline" size={24} color="#FFFFFF" />
-                                        <Text style={styles.addStudioText}>Add equipment</Text>
+                                        <Text style={styles.addEquipmentText}>Add equipment</Text>
                                     </TouchableOpacity>
                                 </View>
                             }
-                            numColumns={2} // Two columns for the grid layout
-                            columnWrapperStyle={styles.row} // Style for the row wrapper
                             showsVerticalScrollIndicator={false}
                             contentContainerStyle={styles.listContent}
                         />
@@ -507,14 +550,14 @@ export const ManageEquipmentComponent = () => {
                 </> :
                     <>
                         <Text style={styles.labelText} >Select a Studio<Text style={styles.required}> *</Text></Text>
-                        {addStudio?.studioName && editEquip ?
+                        {addEquipment?.studioName && editEquip ?
                             <View style={styles.pickerWrapper}>
                                 <View style={styles.infoRow}>
-                                    <Text style={styles.infoLabel}>{addStudio?.studioName || '-'}</Text>
+                                    <Text style={styles.infoLabel}>{addEquipment?.studioName || '-'}</Text>
                                 </View>
                             </View> :
                             <Dropdown
-                                style={styles.dropdown}
+                                style={[styles.dropdown, { borderColor: addEquipmentError.studioName ? "#DC3545" : "#BABABA" }]}
                                 placeholderStyle={styles.placeholderStyle}
                                 selectedTextStyle={styles.selectedTextStyle}
                                 inputSearchStyle={styles.inputSearchStyle}
@@ -526,18 +569,22 @@ export const ManageEquipmentComponent = () => {
                                 valueField="value"
                                 placeholder="Select a studio"
                                 searchPlaceholder="Search studio..."
-                                value={addStudio.studioId}
+                                value={addEquipment.studioId}
                                 onChange={(item) => {
                                     const selectedStudioObj = studioList.find(studio => studio.value === item.value);
-                                    setaddStudio({
-                                        ...addStudio,
+                                    setaddEquipment({
+                                        ...addEquipment,
                                         studioId: item.value,
                                         studioName: selectedStudioObj?.label || "",
                                     });
+                                    setaddEquipmentError({ ...addEquipmentError, studioName: false, studioId: false });
                                 }}
                             />
                         }
-                        <Text style={styles.labelText} >Equipment Image<Text style={styles.required}> *</Text></Text>
+                        {addEquipmentError.studioName && (
+                            <Text style={styles.errorText}>Studio Name is required</Text>
+                        )}
+                        <Text style={styles.labelText} >Equipment Image</Text>
 
                         {selectedImages.length > 0 ? (
                             <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
@@ -566,17 +613,24 @@ export const ManageEquipmentComponent = () => {
                         <Text style={styles.labelText} >Equipment Name<Text style={styles.required}> *</Text></Text>
 
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                { borderColor: addEquipmentError.equipmentName ? "#DC3545" : "#BABABA" }
+                            ]}
                             placeholderTextColor={'#898787'}
                             placeholder="e.g., Camera"
-                            value={addStudio.equipmentName}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, equipmentName: text })
-                            }
+                            value={addEquipment.equipmentName}
+                            onChangeText={(text) => {
+                                setaddEquipment({ ...addEquipment, equipmentName: text });
+                                setaddEquipmentError({ ...addEquipmentError, equipmentName: false });
+                            }}
                         />
+                        {addEquipmentError.equipmentName && (
+                            <Text style={styles.errorText}>Equipment Name is required</Text>
+                        )}
                         <Text style={styles.labelText} >Equipment Type<Text style={styles.required}> *</Text></Text>
                         <Dropdown
-                            style={styles.dropdown}
+                            style={[styles.dropdown, { borderColor: addEquipmentError.equipmentType ? "#DC3545" : "#BABABA" }]}
                             placeholderStyle={styles.placeholderStyle}
                             selectedTextStyle={styles.selectedTextStyle}
                             inputSearchStyle={styles.inputSearchStyle}
@@ -586,23 +640,31 @@ export const ManageEquipmentComponent = () => {
                             labelField="label"
                             valueField="value"
                             placeholder="Select a equipment type"
-                            value={addStudio.equipmentType}
+                            value={addEquipment.equipmentType}
                             onChange={(item) => {
-                                setaddStudio({ ...addStudio, equipmentType: item.value });
+                                setaddEquipment({ ...addEquipment, equipmentType: item.value });
+                                setaddEquipmentError({ ...addEquipmentError, equipmentType: false });
                             }}
                         />
-                        <Text style={styles.labelText} >Description</Text>
+                        {addEquipmentError.equipmentType && (
+                            <Text style={styles.errorText}>Equipment Type is required</Text>
+                        )}
+                        <Text style={styles.labelText} >Equipment description<Text style={styles.required}> *</Text></Text>
 
                         <TextInput
-                            style={[styles.input, styles.textArea]}
+                            style={{ ...styles.input, ...styles.textArea, borderColor: addEquipmentError.equipmentDesc ? "#DC3545" : "#BABABA" }}
                             placeholderTextColor={'#898787'}
                             placeholder="e.g., DSLR Camera with f1.8 pro and ect..."
                             multiline
-                            value={addStudio.equipmentDesc}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, equipmentDesc: text })
-                            }
+                            value={addEquipment.equipmentDesc}
+                            onChangeText={(text) => {
+                                setaddEquipment({ ...addEquipment, equipmentDesc: text });
+                                setaddEquipmentError({ ...addEquipmentError, equipmentDesc: false });
+                            }}
                         />
+                        {addEquipmentError.equipmentDesc && (
+                            <Text style={styles.errorText}>Equipment description is required</Text>
+                        )}
                         <Text style={styles.labelText} >Resolution</Text>
 
                         <TextInput
@@ -610,9 +672,9 @@ export const ManageEquipmentComponent = () => {
                             placeholderTextColor={'#898787'}
                             placeholder="e.g., 45MP"
                             multiline
-                            value={addStudio.resolution}
+                            value={addEquipment.resolution}
                             onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, resolution: text })
+                                setaddEquipment({ ...addEquipment, resolution: text })
                             }
                         />
                         <Text style={styles.labelText} >Video</Text>
@@ -622,51 +684,72 @@ export const ManageEquipmentComponent = () => {
                             placeholderTextColor={'#898787'}
                             placeholder="e.g., 8K @ 30fps"
                             multiline
-                            value={addStudio.video}
+                            value={addEquipment.video}
                             onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, video: text })
+                                setaddEquipment({ ...addEquipment, video: text })
                             }
                         />
                         <Text style={styles.labelText} >Quantity Available<Text style={styles.required}> *</Text></Text>
 
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                { borderColor: addEquipmentError.availableQuantity ? "#DC3545" : "#BABABA" }
+                            ]}
                             placeholderTextColor={'#898787'}
                             keyboardType="number-pad"
                             placeholder="e.g., 6"
-                            value={addStudio.availableQuantity}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, availableQuantity: text })
-                            }
+                            value={addEquipment.availableQuantity}
+                            onChangeText={(text) => {
+                                setaddEquipment({ ...addEquipment, availableQuantity: text });
+                                setaddEquipmentError({ ...addEquipmentError, availableQuantity: false });
+                            }}
                         />
+                        {addEquipmentError.availableQuantity && (
+                            <Text style={styles.errorText}>Quantity Available is required</Text>
+                        )}
                         <Text style={styles.labelText} >Hourly Rate (₹)<Text style={styles.required}> *</Text></Text>
 
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                { borderColor: addEquipmentError.hourlyRate ? "#DC3545" : "#BABABA" }
+                            ]}
                             placeholderTextColor={'#898787'}
                             keyboardType="number-pad"
                             placeholder="e.g., 300"
-                            value={addStudio.hourlyRate}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, hourlyRate: text })
-                            }
+                            value={addEquipment.hourlyRate}
+                            onChangeText={(text) => {
+                                setaddEquipment({ ...addEquipment, hourlyRate: text });
+                                setaddEquipmentError({ ...addEquipmentError, hourlyRate: false });
+                            }}
                         />
+                        {addEquipmentError.hourlyRate && (
+                            <Text style={styles.errorText}>Hourly Rate is required</Text>
+                        )}
                         <Text style={styles.labelText} >Daily Rate (₹)<Text style={styles.required}> *</Text></Text>
 
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                { borderColor: addEquipmentError.dailyRate ? "#DC3545" : "#BABABA" }
+                            ]}
                             placeholderTextColor={'#898787'}
                             keyboardType="number-pad"
                             placeholder="e.g., 5000"
-                            value={addStudio.dailyRate}
-                            onChangeText={(text) =>
-                                setaddStudio({ ...addStudio, dailyRate: text })
-                            }
+                            value={addEquipment.dailyRate}
+                            onChangeText={(text) => {
+                                setaddEquipment({ ...addEquipment, dailyRate: text });
+                                setaddEquipmentError({ ...addEquipmentError, dailyRate: false });
+                            }}
                         />
-                        <Text style={styles.labelText} >Condition<Text style={styles.required}> *</Text></Text>
+                        {addEquipmentError.dailyRate && (
+                            <Text style={styles.errorText}>Daily Rate is required</Text>
+                        )}
+                        <Text style={styles.labelText} >Equipment Condition<Text style={styles.required}> *</Text></Text>
 
                         <Dropdown
-                            style={styles.dropdown}
+                            style={[styles.dropdown, { borderColor: addEquipmentError.Condition ? "#DC3545" : "#BABABA" }]}
                             placeholderStyle={styles.placeholderStyle}
                             selectedTextStyle={styles.selectedTextStyle}
                             inputSearchStyle={styles.inputSearchStyle}
@@ -675,16 +758,24 @@ export const ManageEquipmentComponent = () => {
                             maxHeight={300}
                             labelField="label"
                             valueField="value"
-                            placeholder="Select a equipment type"
-                            value={addStudio.Condition}
+                            placeholder="Select a equipment Condition"
+                            value={addEquipment.Condition}
                             onChange={(item) => {
-                                setaddStudio({ ...addStudio, Condition: item.value });
+                                setaddEquipment({ ...addEquipment, Condition: item.value });
+                                setaddEquipmentError({ ...addEquipmentError, Condition: false });
                             }}
                         />
+                        {addEquipmentError.Condition && (
+                            <Text style={styles.errorText}>Equipment Condition is required</Text>
+                        )}
 
                         {/* Save button section  */}
-                        <TouchableOpacity onPress={createOrEditEquipment} style={styles.createButton}>
-                            <Text style={styles.createButtonText}>{editEquip ? "Update equipment" : "Create equipment"}</Text>
+                        <TouchableOpacity disabled={isSubmitting} onPress={createOrEditEquipment} style={styles.createButton}>
+                            <Text style={styles.createButtonText}>{
+                                isSubmitting
+                                    ? (editEquip ? "Updating equipment" : "Creating equipment")
+                                    : (editEquip ? "Update equipment" : "Create equipment")
+                            }</Text>
                         </TouchableOpacity>
 
                     </>
@@ -714,22 +805,29 @@ const styles = StyleSheet.create({
         marginBottom: 16, // Space between rows
     },
     cardContainer: {
-        width: '48%', // Allows two columns with space in between
+        marginVertical: 25
     },
     card: {
         backgroundColor: '#fff',
         borderRadius: 12,
+        padding: 10,
         overflow: 'hidden',
         borderWidth: 1,
         borderColor: '#00000026',
     },
+    infoContainer: {
+        paddingTop: 10,
+    },
     cardImage: {
         width: '100%',
-        height: 120, // Height of the image section
+        borderRadius: 12,
+        height: 140, // Height of the image section
         resizeMode: 'cover',
     },
-    infoContainer: {
-        padding: 10,
+    infoContainerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 5
     },
     studioName: {
         fontSize: 14,
@@ -763,6 +861,7 @@ const styles = StyleSheet.create({
     labelText: {
         color: '#101010',
         fontSize: 14,
+        marginTop: 12,
         marginBottom: 6,
         ...typography.bold
     },
@@ -775,13 +874,17 @@ const styles = StyleSheet.create({
     required: {
         color: '#DC3545'
     },
+    errorText: {
+        color: '#DC3545',
+        fontSize: 12,
+        ...typography.semibold,
+    },
     input: {
         borderWidth: 1,
         borderColor: "#BABABA",
         color: '#101010',
         borderRadius: 10,
         padding: 12,
-        marginBottom: 12,
         fontSize: 14,
         backgroundColor: "#ffffff",
         ...typography.bold
@@ -791,12 +894,12 @@ const styles = StyleSheet.create({
         textAlignVertical: "top",
     },
     viewButton: {
+        width: '100%',
         paddingVertical: 8,
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
-        marginHorizontal: 10,
-        marginBottom: 10,
+        marginTop: 10,
         backgroundColor: '#1B4332',
     },
     viewButtonText: {
@@ -904,13 +1007,13 @@ const styles = StyleSheet.create({
         color: '#666',
         ...typography.bold
     },
-    addStudioDesc: {
+    addEquipmentDesc: {
         fontSize: 14,
         color: '#999',
         marginTop: 4,
         ...typography.semibold
     },
-    addStudioBtn: {
+    addEquipmentBtn: {
         marginTop: 10,
         backgroundColor: '#034833',
         flexDirection: 'row',
@@ -919,7 +1022,7 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         borderRadius: 6,
     },
-    addStudioText: {
+    addEquipmentText: {
         marginLeft: 10,
         color: '#fff',
         fontSize: 16,
@@ -938,16 +1041,18 @@ const styles = StyleSheet.create({
     },
     statusBadge: {
         position: 'absolute',
-        top: 10,
-        right: 10,
-        borderRadius: 6,
+        top: -24,
+        right: 20,
+        zIndex: -10,
+        borderTopRightRadius: 4,
+        borderTopLeftRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
     },
     statusText: {
         color: '#fff',
         fontSize: 12,
-        ...typography.medium
+        ...typography.regular,
     },
     infoRow: {
         borderRadius: 10,
@@ -1006,7 +1111,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         paddingHorizontal: 12,
         backgroundColor: '#fff',
-        marginBottom: 12,
     },
     placeholderStyle: {
         fontSize: 14,
