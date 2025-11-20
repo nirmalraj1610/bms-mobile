@@ -21,7 +21,13 @@ const imagePaths = {
     rightArrow: require('../assets/images/rightArrow.png'),
     PhotographerPlaceHolderImage: require('../assets/images/photographer_placeholder.jpg'),
     LocationNew: require('../assets/images/LocationNew.png'),
-    NotificationNew: require('../assets/images/NotificationNew.png')
+    NotificationNew: require('../assets/images/NotificationNew.png'),
+    camera: require('../assets/images/whyChoose/camera.png'),
+    thunder: require('../assets/images/whyChoose/thunder.png'),
+    payment: require('../assets/images/whyChoose/payment.png'),
+    star: require('../assets/images/whyChoose/star.png'),
+    target: require('../assets/images/whyChoose/target.png'),
+    mobile: require('../assets/images/whyChoose/mobile.png'),
 };
 
 export default imagePaths;

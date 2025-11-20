@@ -485,7 +485,12 @@ const HomeScreen: React.FC = () => {
   };
 
   const whyChooseImages = {
-    camera: require('../assets/images/camera.png'),
+    camera: imagePaths.camera,
+    thunder: imagePaths.thunder,
+    payment: imagePaths.payment,
+    star: imagePaths.star,
+    target: imagePaths.target,
+    mobile: imagePaths.mobile,
     // add more if needed
   };
 
@@ -511,9 +516,11 @@ const HomeScreen: React.FC = () => {
 
   const whyChooseData: whyChoose[] = [
     { id: '1', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
-    { id: '2', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
-    { id: '3', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
-    { id: '4', image: whyChooseImages.camera, title: 'Professional Studios', desc: 'Access to premium photography studios with professional equipment' },
+    { id: '2', image: whyChooseImages.thunder, title: 'Instant Booking', desc: 'Book studios instantly with real-time availability and pricing' },
+    { id: '3', image: whyChooseImages.payment, title: 'Secure Payments', desc: 'Multiple payment options including UPI, cards, and digital wallets' },
+    { id: '4', image: whyChooseImages.star, title: 'Verified Reviews', desc: 'Read authentic reviews from photographers and make informed decisions' },
+    { id: '5', image: whyChooseImages.target, title: 'Equipment Included', desc: 'Access to professional lighting, cameras, and props included with bookings' },
+    { id: '6', image: whyChooseImages.mobile, title: 'Mobile App', desc: 'Manage bookings, communicate, and access studios through our mobile app' },
   ];
 
   const renderCategoryChip = ({ item }: { item: Category }) => (
