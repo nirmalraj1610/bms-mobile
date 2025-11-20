@@ -342,7 +342,7 @@ export async function StudioCreate(payload: {
   return apiFetch<StudioCreateResponse>('/studio-create', { method: 'POST', body: payload });
 }
 
-export async function updateTimeSlots(payload: UpdateTimeSlotsPayload) {
+export async function updatePhotographerTimeSlots(payload: UpdateTimeSlotsPayload) {
   return apiFetch<UpdateTimeSlotsResponse>(
     '/photographer-availability-manage',
     {
@@ -359,9 +359,19 @@ export async function getPhotographerTimeSlotsApi(): Promise<UpdateTimeSlotsResp
   );
 }
 
+export async function updateStudioTimeSlots(payload: UpdateTimeSlotsPayload) {
+  return apiFetch<UpdateTimeSlotsResponse>(
+    '/studio-availability-manage',
+    {
+      method: 'PUT',
+      body: payload,
+    }
+  );
+}
+
 export async function getStudioTimeSlotsApi( query: TimeSlotQuery): Promise<UpdateTimeSlotsResponse> {
   return apiFetch<UpdateTimeSlotsResponse>(
-    '/photographer-availability-manage',
+    '/studio-availability-manage',
     { method: 'GET', query }
   );
 }

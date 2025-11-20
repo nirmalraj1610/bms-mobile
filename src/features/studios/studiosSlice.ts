@@ -24,7 +24,7 @@ import {
   createStudioEquip,
 } from './studios.service';
 import { TimeSlotQuery, UpdateTimeSlotsPayload } from '../../types/api';
-import { getStudioTimeSlotsApi, updateTimeSlots } from '../../lib/api';
+import { getStudioTimeSlotsApi, updateStudioTimeSlots } from '../../lib/api';
 
 const initialState: StudiosState = {
   search: { loading: false, error: null, results: [], query: '', total: 0 },
@@ -105,7 +105,7 @@ export const manageStudioTimeSlots = createAsyncThunk(
   'studio/timeslots/update',
   async (payload: UpdateTimeSlotsPayload, { rejectWithValue }) => {
     try {
-      return await updateTimeSlots(payload);
+      return await updateStudioTimeSlots(payload);
     } catch (error: any) {
       return rejectWithValue(error.message || 'Failed to update studio time slots');
     }
