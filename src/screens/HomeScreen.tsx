@@ -39,6 +39,7 @@ import imagePaths from '../constants/imagePaths';
 import RecommendCardSkeleton from '../components/skeletonLoaders/RecommendCardSkeleton';
 import RatedCardSkeleton from '../components/skeletonLoaders/RatedCardSkeleton';
 import { showInfo, showSuccess } from '../utils/helperFunctions';
+import { AnimatedDot } from '../components/AnimateDot';
 
 const { width } = Dimensions.get('window');
 const STUDIO_CARD_WIDTH = width * 0.4;
@@ -1053,8 +1054,8 @@ const HomeScreen: React.FC = () => {
             onMomentumScrollEnd={handleScroll}
           />
           <View style={styles.dotsRow}>
-            {whyChooseData.map((item, index) => (
-              <View key={index} style={currentIndex == index ? styles.dotActive : styles.dot} />
+            {whyChooseData.map((_, index) => (
+              <AnimatedDot key={index} isActive={currentIndex === index} />
             ))}
           </View>
         </View>
@@ -1554,20 +1555,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
     marginBottom: 10,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 3,
-    marginHorizontal: 3,
-    backgroundColor: '#D9D9D9',
-  },
-  dotActive: {
-    width: 16,
-    height: 4,
-    borderRadius: 3,
-    marginHorizontal: 3,
-    backgroundColor: '#034833',
   },
   ctaSection: {
     margin: 20,

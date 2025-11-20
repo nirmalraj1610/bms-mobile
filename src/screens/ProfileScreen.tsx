@@ -12,6 +12,7 @@ import {
   FlatList,
   ImageSourcePropType,
   Dimensions,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -29,6 +30,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import ConfirmationModal from "../components/ConfirmationModal";
 import ProfileSkeleton from "../components/skeletonLoaders/ProfileSkeleton";
 import { showError, showInfo, showSuccess } from "../utils/helperFunctions";
+import { AnimatedDot } from "../components/AnimateDot";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -264,24 +266,24 @@ const ProfileScreen: React.FC = () => {
   const convertedUserType = (type: string) => {
     let userType = 'User'
     switch (type) {
-            case 'studio_owner':
-              userType = 'Studio owner';
-              break;
-            // case 'photographer':
-            //   userType = 'Photographer';
-            //   break;
-            case 'photographer':
-              userType = 'User';
-              break;
+      case 'studio_owner':
+        userType = 'Studio owner';
+        break;
+      // case 'photographer':
+      //   userType = 'Photographer';
+      //   break;
+      case 'photographer':
+        userType = 'User';
+        break;
 
-            case 'client':
-              userType = 'User';
-              break;
+      case 'client':
+        userType = 'User';
+        break;
 
-            default:
-              userType = 'User';
-          }
-          return userType;
+      default:
+        userType = 'User';
+    }
+    return userType;
   }
 
 
@@ -604,10 +606,13 @@ const ProfileScreen: React.FC = () => {
                       onMomentumScrollEnd={handleScroll}
                     />
                     <View style={styles.dotsRow}>
-                      {whyChooseData.map((item, index) => (
-                        <View key={index} style={currentIndex == index ? styles.dotActive : styles.dot} />
+                      {whyChooseData.map((_, index) => (
+                        <AnimatedDot key={index} isActive={currentIndex === index} />
                       ))}
                     </View>
+
+
+
                   </View>
 
                 </ScrollView>
@@ -976,20 +981,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10,
     marginBottom: 10,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 3,
-    marginHorizontal: 3,
-    backgroundColor: '#D9D9D9',
-  },
-  dotActive: {
-    width: 16,
-    height: 4,
-    borderRadius: 3,
-    marginHorizontal: 3,
-    backgroundColor: '#034833',
   },
   editIconOutline: {
     padding: 5,
