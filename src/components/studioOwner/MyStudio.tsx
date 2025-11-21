@@ -137,7 +137,7 @@ export const MyStudioComponent = ({
             : imagePaths.StudioPlaceHolderImage;
 
         return (
-            <TouchableOpacity style={styles.cardContainer} onPress={() => onOpenViewStudio(item)} activeOpacity={0.8}>
+            <View style={styles.cardContainer}>
                 <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                     <Text style={[styles.statusText, { color: statusTextColor }]}>{statusText}</Text>
                 </View>
@@ -185,14 +185,14 @@ export const MyStudioComponent = ({
                                 </TouchableOpacity> : null}
 
                                 {/* Book Button (Bordered) */}
-                                <TouchableOpacity style={[styles.actionButton, styles.viewButton]} onPress={() => handlePressBookCard(item)}>
+                                <TouchableOpacity style={[styles.actionButton, styles.viewButton]} onPress={() => onOpenViewStudio(item)} >
                                     <Text style={styles.viewButtonText}>{item.status === 'active' ? 'Book' : 'Book now'}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </View>
                 </View>
-            </TouchableOpacity>
+            </View>
         );
     }
 

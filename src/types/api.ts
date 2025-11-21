@@ -43,18 +43,63 @@ export interface Review {
 }
 
 export interface StudioDetail {
-  images: any;
   id: string;
+  owner_id?: string;
+
   name: string;
   description?: string;
-  location?: { city?: string; address?: string; lat?: number; lng?: number };
-  pricing?: { hourly_rate?: number; daily_rate?: number; half_day_rate?: number };
+
+  location?: {
+    city?: string;
+    state?: string;
+    address?: string;
+    pincode?: number | string;
+    coordinates?: {
+      latitude?: number;
+      longitude?: number;
+    };
+  };
+
+  pricing?: {
+    hourly_rate?: number;
+    minimum_hours?: number;
+    extra_hour_rate?: number;
+    weekend_multiplier?: number;
+  };
+
   amenities?: string[];
   status?: string;
+
+  studio_type?: string;
+  studio_size?: number;
+  max_capacity?: number;
+  max_booking_hours?: number;
+  security_deposit?: number;
+
+  contact_phone?: string;
+
+  customers?: {
+    id?: string;
+    full_name?: string;
+    email?: string;
+    phone?: string;
+  };
+
+  studio_images?: {
+    id: string;
+    title?: string | null;
+    image_url: string;
+    is_primary?: boolean;
+    description?: string | null;
+    display_order?: number;
+  }[];
+
+  reviews?: Review[];
   average_rating?: number;
   total_reviews?: number;
-  customers?: { full_name?: string; email?: string; phone?: string };
-  reviews?: Review[];
+
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface StudioDetailResponse {

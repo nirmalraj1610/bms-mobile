@@ -1,50 +1,47 @@
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { typography } from "../constants/typography";
 
-const ConfirmationModal = ({
+const LogoutConfirmationModal = ({
     Visible = false,
-    ShowCancel = false,
-    OnClose = () => {},
-    OnSubmit = () => {},
-    Header = 'Heading',
-    Message = 'This is sample message for the confirmation modal.',
+    onClose = () => {},
+    onSubmit = () => {},
 }) => {
     return (
         <Modal
             visible={Visible}
             transparent={true}
             animationType="fade"
-            onRequestClose={OnClose}
+            onRequestClose={onClose}
         >
             <View style={styles.overlay}>
                 <View style={styles.modalBox}>
 
                     {/* Header */}
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalHeaderText}>{Header}</Text>
+                        <Text style={styles.modalHeaderText}>Logout</Text>
                     </View>
 
                     {/* Content */}
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>
-                            {Message}
+                            Are you sure you want to log out?
                         </Text>
                     </View>
 
                     {/* Footer */}
                     <View style={styles.modalFooter}>
-                        {ShowCancel ? <TouchableOpacity
+                        <TouchableOpacity
                             style={[styles.modalButton, styles.cancelButton]}
-                            onPress={OnClose}
+                            onPress={onClose}
                         >
                             <Text style={styles.cancelText}>Cancel</Text>
-                        </TouchableOpacity> : null}
+                        </TouchableOpacity>
 
                         <TouchableOpacity
                             style={[styles.modalButton, styles.okButton]}
-                            onPress={OnSubmit}
+                            onPress={onSubmit}
                         >
-                            <Text style={styles.okText}>Ok</Text>
+                            <Text style={styles.okText}>Logout</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -64,17 +61,17 @@ const styles = StyleSheet.create({
 
     modalBox: {
         backgroundColor: "#fff",
-        width: "90%",
+        width: "80%",
         borderRadius: 16,
-        padding: 10,
+        padding: 0,
         overflow: "hidden",
         elevation: 8,
     },
 
     /* Header */
     modalHeader: {
-        paddingVertical: 10,
-        alignItems: "flex-start",
+        paddingVertical: 15,
+        alignItems: "center",
         borderBottomWidth: 1,
         borderBottomColor: "#E5E5E5",
         backgroundColor: "#F9F9F9",
@@ -87,7 +84,7 @@ const styles = StyleSheet.create({
 
     /* Content */
     modalContent: {
-        padding: 10,
+        padding: 20,
         alignItems: "center",
         justifyContent: "center",
     },
@@ -102,27 +99,27 @@ const styles = StyleSheet.create({
     /* Footer */
     modalFooter: {
         flexDirection: "row",
-        justifyContent: "flex-end",
-        padding: 10,
+        justifyContent: "space-between",
+        padding: 15,
         borderTopWidth: 1,
         borderTopColor: "#E5E5E5",
         backgroundColor: "#F9F9F9",
     },
 
     modalButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 30,
+        flex: 1,
+        paddingVertical: 12,
         borderRadius: 8,
         alignItems: "center",
     },
 
     cancelButton: {
         backgroundColor: "#DC3545",
-        marginRight: 10,
+        marginRight: 8,
     },
     okButton: {
         backgroundColor: "#034833",
-        marginLeft: 10,
+        marginLeft: 8,
     },
 
     cancelText: {
@@ -135,4 +132,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ConfirmationModal;
+export default LogoutConfirmationModal;

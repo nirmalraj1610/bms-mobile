@@ -22,6 +22,7 @@ import { ENV } from '../config/env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { bookingAddEquipment, studioEquipmentList } from '../lib/api';
 import TimeSlotSkeleton from './skeletonLoaders/TimeSlotSkeleton';
+import ConfirmationModal from './ConfirmationModal';
 interface BookingModalProps {
   visible: boolean;
   onClose: () => void;
@@ -72,11 +73,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
   const [selectedEquipments, setSelectedEquipments] = useState<{ equipment_id: string; quantity: number; hourly_rate?: number; name?: string }[]>([]);
   const [equipmentNameMap, setEquipmentNameMap] = useState<Record<string, string>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [MinSlotsError, setMinSlotsError] = useState('');
+  const [messageModalVisible, setMessageModalVisible] = useState({ status: false, header: '', message: '' });
   const [successInfo, setSuccessInfo] = useState({
     dateText: '',
     timeRange: '',
     paymentId: '',
-    totalAmount: 0,
+    grandTotal: 0,
   });
 
   const monthNames = [
@@ -286,8 +289,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
         console.log('BookingModal - Successfully fetched availability:', result.payload);
         const payload: any = result.payload || {};
         const apiSlots = (payload.available_slots || payload.booking_slots || []).map((s: any) => ({
-          start_time: String(s.start_time).slice(0,5),
-          end_time: String(s.end_time).slice(0,5),
+          start_time: String(s.start_time).slice(0, 5),
+          end_time: String(s.end_time).slice(0, 5),
           is_booked: false,
         }));
         setDayBookings(payload.booked_slots || payload.bookings || []);
@@ -309,19 +312,77 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
 
   // Handle time slot multi-select toggle
   const handleTimeSlotToggle = (slot: TimeSlot) => {
+    setMinSlotsError('');
+
     setSelectedSlots(prev => {
-      const exists = prev.find(s => s.start_time === slot.start_time && s.end_time === slot.end_time);
-      const next = exists ? prev.filter(s => !(s.start_time === slot.start_time && s.end_time === slot.end_time)) : [...prev, slot];
-      next.sort((a, b) => a.start_time.localeCompare(b.start_time));
-      if (next.length > 0) {
-        const rangeStart = next[0].start_time;
-        const rangeEnd = next[next.length - 1].end_time;
-        setSelectedTime(`${rangeStart}-${rangeEnd}`);
-      } else {
-        setSelectedTime('');
+      const exists = prev.find(
+        s => s.start_time === slot.start_time && s.end_time === slot.end_time
+      );
+
+      // Sort previous selection
+      const sorted = [...prev].sort((a, b) =>
+        a.start_time.localeCompare(b.start_time)
+      );
+
+      // ─────────────────────────────────────
+      // 1) REMOVE SLOT (deselect)
+      // ─────────────────────────────────────
+      if (exists) {
+        // Only allow removing from start or end
+        const isFirst = sorted[0].start_time === slot.start_time;
+        const isLast = sorted[sorted.length - 1].start_time === slot.start_time;
+
+        // Middle slot removal not allowed
+        if (!isFirst && !isLast) {
+          setMessageModalVisible({ status: true, header: 'Invalid Selection', message: 'You can only remove the first or last selected time slot. Continuous selection is required.' });
+          return prev; // ❌ Deny middle removal
+        }
+
+        const next = prev.filter(
+          s => !(s.start_time === slot.start_time && s.end_time === slot.end_time)
+        );
+
+        updateTimeRange(next);
+        return next;
       }
+
+      // ─────────────────────────────────────
+      // 2) ADD SLOT — Must be continuous
+      // ─────────────────────────────────────
+      if (prev.length > 0) {
+        const first = sorted[0];
+        const last = sorted[sorted.length - 1];
+
+        const isNextToEnd = slot.start_time === last.end_time;
+        const isBeforeStart = slot.end_time === first.start_time;
+
+        if (!isNextToEnd && !isBeforeStart) {
+          setMessageModalVisible({ status: true, header: 'Invalid Selection', message: 'Time slots must be selected in order. Please pick the next available slot.' });
+          return prev; // ❌ Not continuous
+        }
+      }
+
+      // Add it
+      const next = [...prev, slot].sort((a, b) =>
+        a.start_time.localeCompare(b.start_time)
+      );
+
+      updateTimeRange(next);
       return next;
     });
+
+
+    // Helper function
+    const updateTimeRange = (list) => {
+      if (list.length === 0) {
+        setSelectedTime("");
+      } else {
+        const start = list[0].start_time;
+        const end = list[list.length - 1].end_time;
+        setSelectedTime(`${start}-${end}`);
+      }
+    };
+
   };
 
   // Calculate total amount
@@ -342,6 +403,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
   const totalAmount = useMemo(() => {
     return studioTotal + equipmentTotal;
   }, [studioTotal, equipmentTotal]);
+
+  const gstPercent = 0.18;
+
+  const subTotal = useMemo(() => {
+    return totalAmount * gstPercent;   // 18% of total
+  }, [totalAmount]);
+
+  const grandTotal = useMemo(() => {
+    return totalAmount + subTotal;     // final payable amount
+  }, [totalAmount, subTotal]);
 
   // Load selected equipments from storage to compute hourly subtotal
   useEffect(() => {
@@ -413,21 +484,26 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
       return;
     }
 
-    if (totalAmount <= 0) {
+    if (grandTotal <= 0) {
       Alert.alert('Error', 'Invalid booking amount');
+      return;
+    }
+
+    if (selectedSlots.length < studio?.pricing?.minimum_hours) {
+      setMinSlotsError(`Please select min ${studio?.pricing?.minimum_hours} time slots`);
       return;
     }
 
     setIsBooking(true);
 
     try {
-      const sorted = [...selectedSlots].sort((a,b) => a.start_time.localeCompare(b.start_time));
+      const sorted = [...selectedSlots].sort((a, b) => a.start_time.localeCompare(b.start_time));
       const bookingPayload = {
         studio_id: String(studio.id),
         booking_date: selectedDate,
         start_time: sorted[0].start_time,
         end_time: sorted[sorted.length - 1].end_time,
-        total_amount: totalAmount,
+        total_amount: grandTotal,
       };
 
       if (!disablePayment) {
@@ -443,7 +519,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
           image: 'https://i.imgur.com/3g7nmJC.png',
           currency: 'INR',
           key: ENV.RAZORPAY_KEY_ID,
-          amount: totalAmount * 100,
+          amount: grandTotal * 100,
           name: 'BookMyShoot',
           order_id: '',
           prefill: { email: 'user@example.com', contact: '9999999999', name: 'User Name' },
@@ -469,13 +545,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
                     }
                   }
                 }
-              } catch {}
+              } catch { }
               // Success
               setSuccessInfo({
                 dateText: formatDateForDisplay(selectedDate),
                 timeRange: `${formatTime(sorted[0].start_time)} to ${formatTime(sorted[sorted.length - 1].end_time)}`,
                 paymentId: data.razorpay_payment_id,
-                totalAmount,
+                grandTotal,
               });
               setShowSuccessModal(true);
             } else {
@@ -510,12 +586,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
                 }
               }
             }
-          } catch {}
+          } catch { }
           setSuccessInfo({
             dateText: formatDateForDisplay(selectedDate),
             timeRange: `${formatTime(sorted[0].start_time)} to ${formatTime(sorted[sorted.length - 1].end_time)}`,
             paymentId: '',
-            totalAmount,
+            grandTotal,
           });
           setShowSuccessModal(true);
         } else {
@@ -527,6 +603,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
       Alert.alert('Error', 'Unable to process booking. Please try again.');
     } finally {
       setIsBooking(false);
+      setMinSlotsError('');
     }
   };
 
@@ -534,7 +611,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
   const formatDateForDisplay = (dateString: string) => {
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('en-US', {
+    return date?.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -589,7 +666,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
           <View style={styles.studioInfo}>
             <Text style={styles.studioName}>{studio?.name}</Text>
             <Text style={styles.studioPrice}>
-              ₹{(studio?.pricing?.hourly_rate || studio?.pricing?.hourlyRate || 100).toLocaleString()}/hour
+              ₹{(studio?.pricing?.hourly_rate || studio?.pricing?.hourlyRate || 100)?.toLocaleString()}/hour
             </Text>
           </View>
 
@@ -665,13 +742,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
 
               {availabilityState.loading ? (
                 <TimeSlotSkeleton />
-      ) : (
+              ) : (
                 timeSlots.length === 0 ? (
                   <View style={styles.noSlotsContainer}>
                     <Text style={styles.noSlotsText}>{noSlotsMessage || 'No available slots for this date'}</Text>
                   </View>
                 ) : (
                   <View style={styles.timeSlotsContainer}>
+                    <Text style={[styles.noSlotsText, { color: '#065F46' }]}>{`Please select min ${studio?.pricing?.minimum_hours} time slots`} *</Text>
                     {timeSlots.map((slot, index) => (
                       <TouchableOpacity
                         key={index}
@@ -729,9 +807,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
                       <View key={`${item.equipment_id}-${idx}`} style={styles.pricingRowItem}>
                         <View style={styles.pricingRowItemLeft}>
                           <Text style={styles.pricingItemLabel}>{label}</Text>
-                          <Text style={styles.pricingItemSub}>Qty: {item.quantity} × ₹{Number(item.hourly_rate || 0).toLocaleString()}</Text>
+                          <Text style={styles.pricingItemSub}>Qty: {item.quantity} × ₹{Number(item.hourly_rate || 0)?.toLocaleString()}</Text>
                         </View>
-                        <Text style={styles.pricingItemValue}>₹{lineAmount.toLocaleString()}</Text>
+                        <Text style={styles.pricingItemValue}>₹{lineAmount?.toLocaleString()}</Text>
                       </View>
                     );
                   })
@@ -744,17 +822,24 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
 
                 <View style={styles.pricingRow}>
                   <Text style={styles.pricingLabel}>Studio Rate:</Text>
-                  <Text style={styles.pricingValue}>₹{studioTotal.toLocaleString()}</Text>
+                  <Text style={styles.pricingValue}>₹{studioTotal?.toLocaleString()}</Text>
+                </View>
+
+                <View style={styles.pricingRow}>
+                  <Text style={styles.pricingLabel}>Sub total (18% GST):</Text>
+                  <Text style={styles.pricingValue}>₹{subTotal?.toLocaleString()}</Text>
                 </View>
 
                 <View style={styles.divider} />
+
                 <View style={styles.pricingRow}>
                   <Text style={styles.totalLabel}>Total:</Text>
-                  <Text style={styles.totalValue}>₹{totalAmount.toLocaleString()}</Text>
+                  <Text style={styles.totalValue}>₹{grandTotal?.toLocaleString()}</Text>
                 </View>
               </View>
 
               {/* Book Button */}
+              {MinSlotsError ? <Text style={[styles.noSlotsText, { color: '#DC3545', marginBottom: 5 }]}>{`Please select min ${studio?.pricing?.minimum_hours} time slots`} *</Text> : null}
               {selectedSlots.length > 0 && (
                 <TouchableOpacity
                   style={[styles.bookButton, isBooking && styles.bookButtonDisabled]}
@@ -768,7 +853,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
                     </View>
                   ) : (
                     <Text style={styles.bookButtonText}>
-                      {disablePayment ? 'Book' : 'Pay & Book'} - ₹{totalAmount.toLocaleString()}
+                      {disablePayment
+                        ? 'Book Now'
+                        : `Pay & Book : ₹${grandTotal?.toLocaleString()}`
+                      }
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -782,7 +870,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
         dateText={successInfo.dateText}
         timeRange={successInfo.timeRange}
         paymentId={successInfo.paymentId}
-        totalAmount={successInfo.totalAmount}
+        totalAmount={successInfo.grandTotal}
         onClose={() => {
           setShowSuccessModal(false);
           onClose();
@@ -793,6 +881,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
           setShowTimeSlots(false);
         }}
       />
+
+      <ConfirmationModal
+        Visible={messageModalVisible.status}
+        Header={messageModalVisible.header}
+        Message={messageModalVisible.message}
+        OnSubmit={() => setMessageModalVisible({ status: false, header: '', message: '' })}
+      />
+
     </Modal>
   );
 };

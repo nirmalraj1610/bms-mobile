@@ -6,13 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   Image,
   ImageBackground,
   FlatList,
   ImageSourcePropType,
   Dimensions,
-  Animated,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -27,10 +25,10 @@ import { clearToken, clearUserData } from "../lib/http";
 import imagePaths from "../constants/imagePaths";
 import LinearGradient from "react-native-linear-gradient";
 import { Dropdown } from "react-native-element-dropdown";
-import ConfirmationModal from "../components/ConfirmationModal";
 import ProfileSkeleton from "../components/skeletonLoaders/ProfileSkeleton";
 import { showError, showInfo, showSuccess } from "../utils/helperFunctions";
 import { AnimatedDot } from "../components/AnimateDot";
+import LogoutConfirmationModal from "../components/LogoutConfirmationModal";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -621,7 +619,7 @@ const ProfileScreen: React.FC = () => {
 
           }
         </>}
-      <ConfirmationModal
+      <LogoutConfirmationModal
         Visible={logoutVisible}
         onClose={onCloseLogoutModal}
         onSubmit={confirmLogout} />

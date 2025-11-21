@@ -28,7 +28,7 @@ const StudioDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
   const studioId: string | undefined = route?.params?.studioId;
-  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState({ status: false, disablePayment: false });
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [heroImageError, setHeroImageError] = useState(false);
   const [amenitiesOpen, setAmenitiesOpen] = useState(false);
@@ -50,6 +50,7 @@ const StudioDetailsScreen: React.FC = () => {
   useEffect(() => {
     if (studioId) {
       dispatch(studioDetailsThunk(studioId));
+      toggleEquipment();
     }
   }, [dispatch, studioId]);
 
@@ -322,6 +323,7 @@ const StudioDetailsScreen: React.FC = () => {
   const handlePressBookNow = async () => {
     // 1) Token presence check
     let token: string | null = null;
+    let userData = {};
     try { token = await AsyncStorage.getItem('auth_token'); } catch { }
     if (!token) {
       setShowLoginModal(true);
@@ -329,7 +331,7 @@ const StudioDetailsScreen: React.FC = () => {
     }
     // 2) Expiry check from saved session
     try {
-      const userData = await getUserData();
+      userData = await getUserData();
       const exp = userData?.session?.expires_at; // seconds epoch
       if (typeof exp === 'number') {
         const isExpired = exp * 1000 <= Date.now();
@@ -339,8 +341,13 @@ const StudioDetailsScreen: React.FC = () => {
         }
       }
     } catch { }
-    // 3) Auth OK -> open booking modal
-    setShowBookingModal(true);
+
+    const disablePayment =
+      studioData?.owner_id === userData?.customer?.id ||
+      studioData?.owner_id === userData?.user?.id;
+
+    setShowBookingModal({ status: true, disablePayment });
+
   };
 
   const renderStars = (rating: number) => {
@@ -416,9 +423,11 @@ const StudioDetailsScreen: React.FC = () => {
         <Text style={styles.sectionSubTitle}>Payment Policy</Text>
         <Text style={styles.subTitle}>Advance payment may be required.</Text>
         <Text style={styles.sectionSubTitle}>Overtime Charges</Text>
-        <Text style={styles.subTitle}>-</Text>
+        <Text style={styles.subTitle}>₹{studioData?.pricing?.extra_hour_rate || 0}</Text>
         <Text style={styles.sectionSubTitle}>Security Deposit</Text>
-        <Text style={styles.subTitle}>-</Text>
+        <Text style={styles.subTitle}>₹{studioData?.security_deposit || 0}</Text>
+        <Text style={styles.sectionSubTitle}>Min Booking Hours</Text>
+        <Text style={styles.subTitle}>{studioData?.pricing?.minimum_hours || 0} hours</Text>
 
 
         {/* Links */}
@@ -455,8 +464,8 @@ const StudioDetailsScreen: React.FC = () => {
                     <View key={eq.id} style={styles.equipCard}>
                       {thumb ? (
                         <View>
-                        <Image source={{ uri: thumb }} resizeMode='cover' style={styles.equipThumb} />
-                        {imgCount > 0 && <TouchableOpacity onPress={() => openImage(eq)} style={styles.acceptBtn}>
+                          <Image source={{ uri: thumb }} resizeMode='cover' style={styles.equipThumb} />
+                          {imgCount > 0 && <TouchableOpacity onPress={() => openImage(eq)} style={styles.acceptBtn}>
                             <Icon name="image" size={16} color={'#FFFFFF'} style={styles.equipMetaIcon} />
                             <Text style={styles.acceptText}>{imgCount > 1 ? `View ${imgCount} images` : `View ${imgCount} image`}</Text>
                           </TouchableOpacity>}
@@ -602,9 +611,10 @@ const StudioDetailsScreen: React.FC = () => {
 
       {/* Booking Modal */}
       <BookingModal
-        visible={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
+        visible={showBookingModal.status}
+        onClose={() => setShowBookingModal({ status: false, disablePayment: false })}
         studio={studio}
+        disablePayment={showBookingModal.disablePayment}
       />
 
       {/* Login Required Modal */}
