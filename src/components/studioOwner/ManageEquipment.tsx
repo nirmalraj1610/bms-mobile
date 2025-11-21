@@ -112,12 +112,13 @@ export const ManageEquipmentComponent = () => {
 
             // response looks like { studios: [ ... ], total: 16 }
             const studiosList = studios
-                .map(studio => ({
+                .map((studio: any) => ({
                     label: studio.name,
                     value: studio.id,
                 }));
 
             setStudioList(studiosList || []);
+            setSelectedStudio(studiosList[0]?.value);
         } catch (error) {
             console.log('❌ Failed to load studios:', error);
         }

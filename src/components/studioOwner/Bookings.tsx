@@ -72,6 +72,7 @@ export const BookingsComponent = () => {
                 }));
 
             setStudioList(studiosList || []);
+            setSelectedStudio(studiosList[0]?.value);
             setStudioSData(studios || []);
         } catch (error) {
             console.log('❌ Failed to load studios:', error);
