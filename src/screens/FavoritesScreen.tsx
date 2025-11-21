@@ -441,6 +441,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingTop: 8,
+    paddingBottom: 180
   },
   card: {
     flexDirection: 'row',
