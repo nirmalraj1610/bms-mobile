@@ -29,6 +29,7 @@ import ProfileSkeleton from "../components/skeletonLoaders/ProfileSkeleton";
 import { showError, showInfo, showSuccess } from "../utils/helperFunctions";
 import { AnimatedDot } from "../components/AnimateDot";
 import LogoutConfirmationModal from "../components/LogoutConfirmationModal";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -80,6 +81,7 @@ const ProfileScreen: React.FC = () => {
   const [loggedInUser, setLoggedInUser] = useState(false)
   const [fullProfileData, setFullProfileData] = useState();
   const [logoutVisible, setLogoutVisible] = useState(false);
+  const [messageModalVisible, setMessageModalVisible] = useState({ status: false, header: '', message: '' });
   const [profile, setProfile] = useState({
     firstName: "",
     lastName: "",
@@ -88,6 +90,12 @@ const ProfileScreen: React.FC = () => {
     location: "",
     description: "",
   });
+
+  const [profileError, setProfileError] = useState({
+    firstName: false,
+    phone: false,
+    location: false
+  })
 
   const locations = [
     { label: "Mumbai", value: "Mumbai" },
@@ -197,6 +205,29 @@ const ProfileScreen: React.FC = () => {
 
   // --- Save Changes to API ---
   const handleSave = async () => {
+
+    // 🧩 profile Validation
+    const newErrors = {
+      firstName: !profile.firstName,
+      phone: !profile.phone,
+      location: !profile.location
+    };
+
+    setProfileError(newErrors);
+
+    // ❌ If any value is empty → show alert and stop
+    if (Object.values(newErrors).includes(true)) {
+      showError('Please fill all the required fields!...');
+      return;
+    }
+
+    const mobileTrimmed = profile.phone.trim();
+
+    if (!isValidMobile(mobileTrimmed)) {
+      setMessageModalVisible({ status: true, header: 'Invalid Mobile Number', message: 'Please enter a valid 10-digit mobile number' });
+      return;
+    }
+
     setLoading(true);
     try {
       const payload: any = {
@@ -214,6 +245,11 @@ const ProfileScreen: React.FC = () => {
       setLoading(false);
       setIsEditing(false)
     }
+  };
+
+  const isValidMobile = (value: string) => {
+    const mobileRegex = /^[0-9]{10}$/;   // Strict 10-digit Indian mobile number
+    return mobileRegex.test(value);
   };
 
   const handleDocumentPick = async () => {
@@ -415,16 +451,20 @@ const ProfileScreen: React.FC = () => {
                     ) : (
                       <>
                         {/* Editable Mode */}
-                        <Text style={styles.labelText} >First Name</Text>
+                        <Text style={styles.labelText} >First Name<Text style={styles.required}> *</Text></Text>
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { borderColor: profileError.firstName ? "#DC3545" : "#BABABA" }]}
                           placeholderTextColor={'#898787'}
                           placeholder="First Name"
                           value={profile.firstName}
-                          onChangeText={(text) =>
-                            setProfile({ ...profile, firstName: text })
-                          }
+                          onChangeText={(text) => {
+                            setProfile({ ...profile, firstName: text });
+                            setProfileError({ ...profileError, firstName: false });
+                          }}
                         />
+                        {profileError.firstName && (
+                          <Text style={styles.errorText}>First Name is required</Text>
+                        )}
                         <Text style={styles.labelText} >Last Name</Text>
 
                         <TextInput
@@ -446,24 +486,28 @@ const ProfileScreen: React.FC = () => {
                           value={profile.email}
                         />
 
-                        <Text style={styles.labelText} >Phone Number</Text>
+                        <Text style={styles.labelText} >Phone Number<Text style={styles.required}> *</Text></Text>
 
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { borderColor: profileError.phone ? "#DC3545" : "#BABABA" }]}
                           placeholderTextColor={'#898787'}
                           placeholder="Phone Number"
                           keyboardType="phone-pad"
                           value={profile.phone}
-                          onChangeText={(text) =>
-                            setProfile({ ...profile, phone: text })
-                          }
+                          onChangeText={(text) => {
+                            setProfile({ ...profile, phone: text });
+                            setProfileError({ ...profileError, phone: false });
+                          }}
                         />
+                        {profileError.phone && (
+                          <Text style={styles.errorText}>Phone Number is required</Text>
+                        )}
 
                         {/* Dropdown */}
-                        <Text style={styles.labelText} >Location</Text>
+                        <Text style={styles.labelText} >Location<Text style={styles.required}> *</Text></Text>
 
                         <Dropdown
-                          style={styles.dropdown}
+                          style={[styles.dropdown, { borderColor: profileError.location ? "#DC3545" : "#BABABA" }]}
                           placeholderStyle={styles.placeholderStyle}
                           selectedTextStyle={styles.selectedTextStyle}
                           inputSearchStyle={styles.inputSearchStyle}
@@ -474,8 +518,14 @@ const ProfileScreen: React.FC = () => {
                           valueField="value"
                           placeholder="Select your location"
                           value={profile.location}
-                          onChange={(item) => setProfile({ ...profile, location: item.value })}
+                          onChange={(item) => {
+                            setProfile({ ...profile, location: item.value });
+                            setProfileError({ ...profileError, location: false });
+                          }}
                         />
+                        {profileError.location && (
+                          <Text style={styles.errorText}>Location is required</Text>
+                        )}
 
                         <Text style={styles.labelText} >About</Text>
 
@@ -623,6 +673,14 @@ const ProfileScreen: React.FC = () => {
         Visible={logoutVisible}
         onClose={onCloseLogoutModal}
         onSubmit={confirmLogout} />
+
+      <ConfirmationModal
+        Visible={messageModalVisible.status}
+        Header={messageModalVisible.header}
+        Message={messageModalVisible.message}
+        OnSubmit={() => setMessageModalVisible({ status: false, header: '', message: '' })}
+      />
+
     </SafeAreaView>
   );
 };
@@ -747,7 +805,6 @@ const styles = StyleSheet.create({
     color: '#101010',
     borderRadius: 10,
     padding: 12,
-    marginBottom: 12,
     fontSize: 14,
     backgroundColor: "#ffffff",
     ...typography.semibold,
@@ -782,6 +839,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     ...typography.medium,
     marginBottom: 6,
+    marginTop: 12
   },
   uploadButton: {
     borderWidth: 1,
@@ -1060,6 +1118,14 @@ const styles = StyleSheet.create({
     color: COLORS.background,
     ...typography.bold,
   },
+  required: {
+    color: '#DC3545'
+  },
+  errorText: {
+    color: '#DC3545',
+    fontSize: 12,
+    ...typography.semibold,
+  },
   dropdown: {
     height: 50,
     borderColor: '#ccc',
@@ -1067,7 +1133,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     backgroundColor: '#fff',
-    marginBottom: 12,
   },
   placeholderStyle: {
     fontSize: 14,

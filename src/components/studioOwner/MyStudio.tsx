@@ -209,14 +209,14 @@ export const MyStudioComponent = ({
                 {/* Dashboard views one */}
                 <View style={styles.statusViewsOutline}>
                     <View style={styles.bgImageCard}>
-                        <Icon name="storefront" size={32} color="#2F2F2F" />
+                        <Image source={imagePaths.activeStudios} resizeMode="contain" style={styles.bgImage} />
                         <View>
                             <Text style={styles.bgCountText}>{studiosStats?.activeStudios_count}</Text>
                             <Text style={styles.bgText}>Active Studios</Text>
                         </View>
                     </View>
                     <View style={styles.bgImageCard}>
-                        <Icon name="pending-actions" size={32} color="#2F2F2F" />
+                        <Image source={imagePaths.pendingRequests} resizeMode="contain" style={styles.bgImage} />
                         <View>
                             <Text style={styles.bgCountText}>{studiosStats?.pending_Approval}</Text>
                             <Text style={styles.bgText}>Pending Approvals</Text>
@@ -323,15 +323,20 @@ const styles = StyleSheet.create({
         marginRight: 10
     },
     bgImageCard: {
-        flex: 0.48, // Each card takes roughly half the row
+        width: '48%',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 16,
         borderRadius: 12,
+        gap: 5,
         overflow: 'hidden',
         height: 80,
         backgroundColor: '#F2F5EC'
+    },
+    bgImage: {
+        height: 36,
+        width: 36,
     },
     bgText: {
         fontSize: 10,

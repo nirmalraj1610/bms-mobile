@@ -28,6 +28,10 @@ const imagePaths = {
     star: require('../assets/images/whyChoose/star.png'),
     target: require('../assets/images/whyChoose/target.png'),
     mobile: require('../assets/images/whyChoose/mobile.png'),
+    activeStudios: require('../assets/images/statusCardIcons/studioOwner/active_studios.png'),
+    totalBookings: require('../assets/images/statusCardIcons/studioOwner/total_bookings.png'),
+    totalEarnings: require('../assets/images/statusCardIcons/studioOwner/total_earnings.png'),
+    pendingRequests: require('../assets/images/statusCardIcons/studioOwner/pending_requests.png'),
 };
 
 export default imagePaths;

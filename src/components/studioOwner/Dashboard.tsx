@@ -124,29 +124,29 @@ export const DashboardComponent = () => {
             // response looks like { studiosBookings: [ ... ], total: 16 }
             setStudioBookingList(studiosBookings || []);
 
-                    // 1. Count active studios (if still needed globally)
-        const activeStudiosCount = studiosData.length;
+            // 1. Count active studios (if still needed globally)
+            const activeStudiosCount = studiosData.length;
 
-        // 2. Find ONLY the selected studio
-        const selected = studiosData.find(studio => studio.id === selectedStudio);
+            // 2. Find ONLY the selected studio
+            const selected = studiosData.find(studio => studio.id === selectedStudio);
 
-        // 3. If not found, avoid crash
-        if (!selected) {
-            setStudiosStats({ pending_Bookings: 0, total_Bookings: 0, total_Earnings: 0, activeStudios_count: 0 });
-            return;
-        }
+            // 3. If not found, avoid crash
+            if (!selected) {
+                setStudiosStats({ pending_Bookings: 0, total_Bookings: 0, total_Earnings: 0, activeStudios_count: 0 });
+                return;
+            }
 
-        // 4. Build stats ONLY for this studio
-        const studioStats = {
-            pending_Bookings: selected?.stats?.pending_bookings || 0,
-            total_Bookings: selected?.stats?.total_bookings || 0,
-            total_Earnings: selected?.stats?.total_revenue || 0,
-            activeStudios_count: activeStudiosCount || 0,
-        };
+            // 4. Build stats ONLY for this studio
+            const studioStats = {
+                pending_Bookings: selected?.stats?.pending_bookings || 0,
+                total_Bookings: selected?.stats?.total_bookings || 0,
+                total_Earnings: selected?.stats?.total_revenue || 0,
+                activeStudios_count: activeStudiosCount || 0,
+            };
 
-        // 5. Update state
-        setStudiosStats(studioStats);
-        
+            // 5. Update state
+            setStudiosStats(studioStats);
+
         } catch (error) {
             console.log('❌ Failed to load studios bookings:', error);
         }
@@ -331,7 +331,7 @@ export const DashboardComponent = () => {
             {/* Dashboard views one */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>
-                    <Icon name="storefront" size={32} color="#2F2F2F" />
+                    <Image source={imagePaths.activeStudios} resizeMode="contain" style={styles.bgImage} />
                     <View>
                         <Text style={styles.bgCountText}>{studiosStats?.activeStudios_count}</Text>
                         <Text style={styles.bgText}>Active Studios</Text>
@@ -339,7 +339,7 @@ export const DashboardComponent = () => {
                 </View>
 
                 <View style={styles.bgImageCard}>
-                    <Icon name="camera-alt" size={32} color="#2F2F2F" />
+                    <Image source={imagePaths.totalBookings} resizeMode="contain" style={styles.bgImage} />
                     <View>
                         <Text style={styles.bgCountText}>{studiosStats?.total_Bookings}</Text>
                         <Text style={styles.bgText}>Total Bookings</Text>
@@ -349,7 +349,7 @@ export const DashboardComponent = () => {
             {/* Dashboard views two */}
             <View style={styles.statusViewsOutline}>
                 <View style={styles.bgImageCard}>
-                    <Icon name="currency-rupee" size={32} color="#2F2F2F" />
+                    <Image source={imagePaths.totalEarnings} resizeMode="contain" style={styles.bgImage} />
                     <View>
                         <Text style={styles.bgCountText}>₹{studiosStats?.total_Earnings}</Text>
                         <Text style={styles.bgText}>Total Earnings</Text>
@@ -357,7 +357,7 @@ export const DashboardComponent = () => {
                 </View>
 
                 <View style={styles.bgImageCard}>
-                    <Icon name="pending-actions" size={32} color="#2F2F2F" />
+                    <Image source={imagePaths.pendingRequests} resizeMode="contain" style={styles.bgImage} />
                     <View>
                         <Text style={styles.bgCountText}>{studiosStats?.pending_Bookings}</Text>
                         <Text style={styles.bgText}>Pending Requests</Text>
@@ -541,15 +541,20 @@ const styles = StyleSheet.create({
     },
 
     bgImageCard: {
-        flex: 0.48, // Each card takes roughly half the row
+        width: '48%',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 16,
         borderRadius: 12,
+        gap: 5,
         overflow: 'hidden',
         height: 80,
         backgroundColor: '#F2F5EC'
+    },
+    bgImage: {
+        height: 36,
+        width: 36,
     },
     bgText: {
         fontSize: 10,
