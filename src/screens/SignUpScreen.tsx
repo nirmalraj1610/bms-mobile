@@ -17,12 +17,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS } from '../constants';
 import { philosopherTypography, typography } from '../constants/typography';
 import imagePaths from '../constants/imagePaths';
-import { showSuccess } from '../utils/helperFunctions';
+import { showError, showSuccess } from '../utils/helperFunctions';
 import { Dropdown } from 'react-native-element-dropdown';
 import { authSignup } from '../lib/api';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const SignUpScreen: React.FC = () => {
   const [name, setName] = useState('');
@@ -43,20 +43,56 @@ const SignUpScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+  const [messageModalVisible, setMessageModalVisible] = useState({ status: false, header: '', message: '' });
+  const [signUpError, setSignUpError] = useState({
+    userType: false,
+    name: false,
+    email: false,
+    phone: false,
+    password: false,
+    confirmPassword: false,
+  })
 
   const handleSignUp = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all required fields');
+
+    // 🧩 signup Validation
+    const newErrors = {
+      userType: !userType,
+      name: !name,
+      email: !email,
+      phone: !phone,
+      password: !password,
+      confirmPassword: !confirmPassword,
+    };
+
+    setSignUpError(newErrors);
+
+    // ❌ If any value is empty → show alert and stop
+    if (Object.values(newErrors).includes(true)) {
+      showError('Please fill all the required fields!...');
+      return;
+    }
+
+        const emailTrimmed = email.trim();
+    if (!isValidEmail(emailTrimmed)) {
+      setMessageModalVisible({ status: true, header: 'Invalid Email', message: 'Please enter a valid email address' });
+      return;
+    }
+
+    const mobileTrimmed = phone.trim();
+
+    if (!isValidMobile(mobileTrimmed)) {
+      setMessageModalVisible({ status: true, header: 'Invalid Mobile Number', message: 'Please enter a valid 10-digit mobile number' });
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      setMessageModalVisible({ status: true, header: 'Password match error', message: 'Password and confirm password not matched' });
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      setMessageModalVisible({ status: true, header: 'Password length error', message: 'Password must be at least 6 characters long' });
       return;
     }
 
@@ -75,197 +111,245 @@ const SignUpScreen: React.FC = () => {
       if (res?.session?.access_token) {
         navigation.replace('Main');
       } else {
+        showSuccess('Account created Successfully. Please check your email for verification.')
         setModalTitle('Signup Successful');
         setModalMessage('Account created. Please check your email for verification.');
         setModalVisible(true);
       }
     } catch (e: any) {
       setIsLoading(false);
+      showError('Failed to sign up, Please try again later!...')
       setModalTitle('Signup Failed');
       setModalMessage(e?.message || 'Failed to sign up');
       setModalVisible(true);
     }
   };
 
+  const isValidEmail = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value);
+  };
+
+  const isValidMobile = (value: string) => {
+    const mobileRegex = /^[0-9]{10}$/;   // Strict 10-digit Indian mobile number
+    return mobileRegex.test(value);
+  };
+
   const navigateToLogin = () => {
     navigation.goBack();
   };
 
-      const handleTermsAndConditions = (provider: string) => {
-      Alert.alert(provider, `${provider} will be implemented soon.`);
-    };
+  const handleTermsAndConditions = (provider: string) => {
+    Alert.alert(provider, `${provider} will be implemented soon.`);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
-            <ImageBackground
+      <ImageBackground
         source={imagePaths.SignupBg}
         resizeMode="cover"
         style={styles.backgroundImage}
       >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardContainer}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardContainer}
         >
-          {/* Logo Section */}
-          <View style={styles.logoContainer}>
-            <Image
-              source={imagePaths.logo}
-              style={styles.headerLogo}
-              resizeMode="contain"
-            />
-            <Text style={styles.tagline}>Discover Your</Text>
-            <Text style={styles.taglineSecond}>Best Photo Studio, Photographers</Text>
-          </View>
-
-          {/* Form Section */}
-          <View style={styles.formContainer}>
-            <View style={styles.titleOutline}>
-              <Text style={styles.formTitle}>Sign Up</Text>
-              <View style={styles.borderLine} />
-            </View>
-
-            {/* User Type */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>User type</Text>
-              <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                containerStyle={styles.dropdownContainerStyle}
-                data={USER_TYPES}
-                maxHeight={250}
-                labelField="label"
-                valueField="value"
-                placeholder="Select user type"
-                value={userType}
-                onChange={(item: any) => setUserType(item.value)}
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Logo Section */}
+            <View style={styles.logoContainer}>
+              <Image
+                source={imagePaths.logo}
+                style={styles.headerLogo}
+                resizeMode="contain"
               />
+              <Text style={styles.tagline}>Discover Your</Text>
+              <Text style={styles.taglineSecond}>Best Photo Studio, Photographers</Text>
             </View>
 
-            {/* Name Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your name"
-                placeholderTextColor="#616161"
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Email Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Mail id</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your mail"
-                placeholderTextColor="#616161"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-
-            {/* Phone Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Phone number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your phone number"
-                placeholderTextColor="#616161"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Set password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#616161"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeIcon}
-                >
-                  <Icon
-                    name={showPassword ? 'visibility-off' : 'visibility'}
-                    size={20}
-                    color="#171725"
-                  />
-                </TouchableOpacity>
+            {/* Form Section */}
+            <View style={styles.formContainer}>
+              <View style={styles.titleOutline}>
+                <Text style={styles.formTitle}>Sign Up</Text>
+                <View style={styles.borderLine} />
               </View>
-            </View>
 
-            {/* Confirm Password Input */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Confirm password</Text>
-              <View style={styles.passwordContainer}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#616161"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
+              {/* User Type */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>User type<Text style={styles.required}> *</Text></Text>
+                <Dropdown
+                  style={[styles.dropdown, { borderColor: signUpError.userType ? "#DC3545" : "#616161" }]}
+                  placeholderStyle={styles.placeholderStyle}
+                  selectedTextStyle={styles.selectedTextStyle}
+                  containerStyle={styles.dropdownContainerStyle}
+                  data={USER_TYPES}
+                  maxHeight={250}
+                  labelField="label"
+                  valueField="value"
+                  placeholder="Select user type"
+                  value={userType}
+                  onChange={(item: any) => {
+                    setUserType(item.value);
+                    setSignUpError({ ...signUpError, userType: false });
+                  }}
                 />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  style={styles.eyeIcon}
-                >
-                  <Icon
-                    name={showConfirmPassword ? 'visibility-off' : 'visibility'}
-                    size={20}
-                    color="#171725"
-                  />
-                </TouchableOpacity>
+                {signUpError.userType && (
+                  <Text style={styles.errorText}>User type is required</Text>
+                )}
               </View>
-            </View>
 
-            {/* Sign Up Button */}
-            <TouchableOpacity
-              style={[styles.signUpButton, isLoading && styles.disabledButton]}
-              onPress={handleSignUp}
-              disabled={isLoading}
-            >
-              <Text style={styles.signUpButtonText}>
-                {isLoading ? 'Creating Account...' : 'Sign Up'}
-              </Text>
-            </TouchableOpacity>
+              {/* Name Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Name<Text style={styles.required}> *</Text></Text>
+                <TextInput
+                  style={[styles.input, { borderColor: signUpError.name ? "#DC3545" : "#616161" }]}
+                  placeholder="Enter your name"
+                  placeholderTextColor="#616161"
+                  value={name}
+                  onChangeText={(text) => {
+                    setName(text);
+                    setSignUpError({ ...signUpError, name: false });
+                  }}
+                  autoCapitalize="words"
+                />
+                {signUpError.name && (
+                  <Text style={styles.errorText}>Name is required</Text>
+                )}
+              </View>
 
-            {/* Sign In Link */}
-            <View style={styles.signInContainer}>
-              <Text style={styles.signInText}>Already have an account? </Text>
-              <TouchableOpacity onPress={navigateToLogin}>
-                <Text style={styles.signInLink}>Sign In</Text>
+              {/* Email Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Mail id<Text style={styles.required}> *</Text></Text>
+                <TextInput
+                  style={[styles.input, { borderColor: signUpError.email ? "#DC3545" : "#616161" }]}
+                  placeholder="Enter your mail"
+                  placeholderTextColor="#616161"
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    setSignUpError({ ...signUpError, email: false });
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                {signUpError.email && (
+                  <Text style={styles.errorText}>Email is required</Text>
+                )}
+              </View>
+
+              {/* Phone Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Phone number<Text style={styles.required}> *</Text></Text>
+                <TextInput
+                  style={[styles.input, { borderColor: signUpError.phone ? "#DC3545" : "#616161" }]}
+                  placeholder="Enter your phone number"
+                  placeholderTextColor="#616161"
+                  value={phone}
+                  onChangeText={(text) => {
+                    setPhone(text);
+                    setSignUpError({ ...signUpError, phone: false });
+                  }}
+                  keyboardType="phone-pad"
+                />
+                {signUpError.phone && (
+                  <Text style={styles.errorText}>Phone Number is required</Text>
+                )}
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Set password<Text style={styles.required}> *</Text></Text>
+                <View style={[styles.passwordContainer, { borderColor: signUpError.password ? "#DC3545" : "#616161" }]}>>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#616161"
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      setSignUpError({ ...signUpError, password: false });
+                    }}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    <Icon
+                      name={showPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#171725"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {signUpError.password && (
+                  <Text style={styles.errorText}>Password is required</Text>
+                )}
+              </View>
+
+              {/* Confirm Password Input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Confirm password<Text style={styles.required}> *</Text></Text>
+                <View style={[styles.passwordContainer, { borderColor: signUpError.confirmPassword ? "#DC3545" : "#616161" }]}>>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#616161"
+                    value={confirmPassword}
+                    onChangeText={(text) => {
+                      setConfirmPassword(text);
+                      setSignUpError({ ...signUpError, confirmPassword: false });
+                    }}
+                    secureTextEntry={!showConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    <Icon
+                      name={showConfirmPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#171725"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {signUpError.confirmPassword && (
+                  <Text style={styles.errorText}>Confirm Password is required</Text>
+                )}
+              </View>
+
+              {/* Sign Up Button */}
+              <TouchableOpacity
+                style={[styles.signUpButton, isLoading && styles.disabledButton]}
+                onPress={handleSignUp}
+                disabled={isLoading}
+              >
+                <Text style={styles.signUpButtonText}>
+                  {isLoading ? 'Creating Account...' : 'Sign Up'}
+                </Text>
               </TouchableOpacity>
-            </View>
 
-            {/* Terms and Privacy */}
-            <View style={styles.termsContainer}>
-              <Text style={styles.termsText}>
-                By continuing, you agree to our{'\n'}
-                <Text onPress={() => handleTermsAndConditions('Terms of Service')} style={styles.linkText}>Terms of Service</Text> and <Text onPress={() => handleTermsAndConditions('Privacy Policy')} style={styles.linkText}>Privacy Policy</Text>
-              </Text>
+              {/* Sign In Link */}
+              <View style={styles.signInContainer}>
+                <Text style={styles.signInText}>Already have an account? </Text>
+                <TouchableOpacity onPress={navigateToLogin}>
+                  <Text style={styles.signInLink}>Sign In</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Terms and Privacy */}
+              <View style={styles.termsContainer}>
+                <Text style={styles.termsText}>
+                  By continuing, you agree to our{'\n'}
+                  <Text onPress={() => handleTermsAndConditions('Terms of Service')} style={styles.linkText}>Terms of Service</Text> and <Text onPress={() => handleTermsAndConditions('Privacy Policy')} style={styles.linkText}>Privacy Policy</Text>
+                </Text>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </ImageBackground>
       <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
@@ -289,6 +373,12 @@ const SignUpScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+      <ConfirmationModal
+        Visible={messageModalVisible.status}
+        Header={messageModalVisible.header}
+        Message={messageModalVisible.message}
+        OnSubmit={() => setMessageModalVisible({ status: false, header: '', message: '' })}
+      />
     </SafeAreaView>
   );
 };
@@ -298,7 +388,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-      backgroundImage: {
+  backgroundImage: {
     flex: 1,
     alignItems: 'center',
   },
@@ -335,7 +425,7 @@ const styles = StyleSheet.create({
     // marginTop: 50,
     flex: 1,
   },
-    titleOutline: {
+  titleOutline: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between'
@@ -362,7 +452,7 @@ const styles = StyleSheet.create({
     ...typography.bold,
   },
   input: {
-  borderWidth: 1,
+    borderWidth: 1,
     borderColor: '#616161',
     borderRadius: 4,
     paddingHorizontal: 15,
@@ -373,7 +463,7 @@ const styles = StyleSheet.create({
     ...typography.semibold,
   },
   passwordContainer: {
-   flexDirection: 'row',
+    flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#616161',
@@ -426,6 +516,14 @@ const styles = StyleSheet.create({
   termsContainer: {
     alignItems: 'center',
     marginBottom: 20
+  },
+  required: {
+    color: '#DC3545'
+  },
+  errorText: {
+    color: '#DC3545',
+    fontSize: 12,
+    ...typography.semibold,
   },
   termsText: {
     marginTop: 20,
