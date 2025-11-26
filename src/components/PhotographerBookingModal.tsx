@@ -53,7 +53,6 @@ const PhotographerBookingModal: React.FC<PhotographerBookingModalProps> = ({
   const dispatch = useAppDispatch();
   const availabilityState = useAppSelector(state => state.photographers.availability);
   const bookingState = useAppSelector(state => state.photographers.booking);
-console.log(availabilityState,'availabilityState');
 
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -221,7 +220,6 @@ console.log(availabilityState,'availabilityState');
           };
 
           const result = await dispatch(createPhotographerBooking(bookingPayload));
-          console.log(result, 'resultttssssssssssssssssttttttt');
           
           if (createPhotographerBooking.fulfilled.match(result)) {
             Alert.alert(

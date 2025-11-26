@@ -119,7 +119,7 @@ const FavoritesScreen: React.FC = () => {
         showInfo('Please log in to view your favorites!...');
         return;
       }
-      try { console.log('toggleFavorite error:', err); } catch { }
+      try { console.error('toggleFavorite error:', err); } catch { }
     }
   };
 

@@ -108,7 +108,6 @@ export const ManageEquipmentComponent = () => {
         // }
         try {
             const studios = await dispatch(loadMyStudioThunk({ status: "active" })).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
             const studiosList = studios
@@ -120,7 +119,7 @@ export const ManageEquipmentComponent = () => {
             setStudioList(studiosList || []);
             setSelectedStudio(studiosList[0]?.value);
         } catch (error) {
-            console.log('❌ Failed to load studios:', error);
+            console.error('❌ Failed to load studios:', error);
         }
         finally {
             setIsLoading(false);
@@ -145,12 +144,11 @@ export const ManageEquipmentComponent = () => {
 
         try {
             const studiosEquipments = await dispatch(getStudioEquipmentThunk(params)).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 StudiosEquipments from API:', studiosEquipments);
 
             // response looks like { studiosEquipments: [ ... ], total: 16 }
             setStudioEquip(studiosEquipments || []);
         } catch (error) {
-            console.log('❌ Failed to load studios bookings:', error);
+            console.error('❌ Failed to load studios bookings:', error);
         }
         finally {
             setIsLoading(false);
@@ -173,7 +171,7 @@ export const ManageEquipmentComponent = () => {
         const selectedStudioName = studioList.find(
             (studio) => studio.value === selectedStudio
         )?.label || '';
-        console.log(selectedStudioName, 'selectedStudioName');
+
         const itemStudioId = item?.id || selectedStudio || '';
 
 
@@ -328,20 +326,16 @@ export const ManageEquipmentComponent = () => {
             if (editEquip && editEquipId) {
                 formData.append('action', 'update');
                 formData.append('equipment_id', editEquipId);
-                console.log('📦 Final Payload (Update):', formData);
 
                 const response = await dispatch(updateStudioEquipThunk(formData)).unwrap();
                 clearStateValues();
                 showSuccess('Equipment updated successfully!...');
-                console.log('✅ Equipment updated successfully:', response);
             } else {
                 formData.append('action', 'add');
-                console.log('📦 Final Payload (Add):', formData);
 
                 const response = await dispatch(createStudioEquipThunk(formData)).unwrap();
                 clearStateValues();
                 showSuccess('Equipment created successfully!...');
-                console.log('✅ Equipment created successfully:', response);
             }
         } catch (error) {
             showError('Something went wrong!...');

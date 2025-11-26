@@ -142,7 +142,6 @@ const BookingScreen: React.FC = () => {
     setShowEquipmentsViewModal(false);
     setEquipmentsViewBooking(null);
   };
-  console.log('bookings:', bookings);
 
   // Transform API data to match component expectations
   const transformedBookings = useMemo(() => {
@@ -185,7 +184,6 @@ const BookingScreen: React.FC = () => {
       booking.bookingType === selectedBookingType
     );
   }, [query, transformedBookings, selectedBookingType]);
-  console.log('filteredBookings:', filteredBookings);
 
   const filteredPastBookings = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -269,15 +267,11 @@ const BookingScreen: React.FC = () => {
 
   // Equipment selection handler
   const handleSelectEquipment = (booking: any) => {
-    console.log('🔧 Select Equipment clicked for booking:', booking);
 
     // Find the original booking data to get studio_id
     const originalBooking = bookings.find(b => b.id === booking.id);
-    console.log('📍 Original booking data:', originalBooking);
 
     if (originalBooking?.studios?.id) {
-      console.log('✅ Studio ID found:', originalBooking.studios.id);
-      console.log('📡 Dispatching getStudioEquipmentThunk...');
 
       setSelectedBookingForEquipment(booking);
 
@@ -287,10 +281,9 @@ const BookingScreen: React.FC = () => {
       }));
 
       setShowEquipmentModal(true);
-      console.log('✅ Equipment modal should now be visible');
     } else {
-      console.log('❌ No studio ID found in booking data');
-      console.log('📊 Available booking data:', originalBooking);
+      console.error('❌ No studio ID found in booking data');
+      console.error('📊 Available booking data:', originalBooking);
     }
   };
 
@@ -362,7 +355,6 @@ const BookingScreen: React.FC = () => {
       setRescheduleLoading(false);
     }
   };
-  console.log(filteredBookings, 'filteredBookingsfilteredBookings');
 
   // Handle Check-In
   const handleCheckInPress = async (bookingId: string) => {
@@ -373,7 +365,7 @@ const BookingScreen: React.FC = () => {
       showSuccess('Checked in successfully!...');
     } catch (e) {
       showError('Check-in failed. Please try again!...');
-      console.log('❌ Check-in failed:', e);
+      console.error('❌ Check-in failed:', e);
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
@@ -388,7 +380,7 @@ const BookingScreen: React.FC = () => {
       showSuccess('Checked out successfully!...');
     } catch (e) {
       showError('Check-out failed. Please try again!...');
-      console.log('❌ Check-out failed:', e);
+      console.error('❌ Check-out failed:', e);
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
@@ -957,12 +949,10 @@ const BookingScreen: React.FC = () => {
         selectedEquipment={selectedEquipment}
         bookingId={selectedBookingForEquipment?.id}
         onClose={() => {
-          console.log('🚪 Closing equipment modal');
           setShowEquipmentModal(false);
           setSelectedBookingForEquipment(null);
         }}
         onSelectEquipment={(equipment: Equipment, quantity: number) => {
-          console.log('✅ Equipment selected:', equipment, 'Quantity:', quantity);
           const existingIndex = selectedEquipment.findIndex(eq => eq.id === equipment.id);
           if (existingIndex >= 0) {
             // Update existing equipment quantity
@@ -975,7 +965,6 @@ const BookingScreen: React.FC = () => {
           }
         }}
         onRemoveEquipment={(equipmentId: string) => {
-          console.log('❌ Removing equipment:', equipmentId);
           setSelectedEquipment(selectedEquipment.filter(eq => eq.id !== equipmentId));
         }}
       />

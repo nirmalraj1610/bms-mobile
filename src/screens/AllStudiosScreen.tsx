@@ -67,7 +67,7 @@ const AllStudiosScreen: React.FC = () => {
         navigation.navigate('Auth' as never, { screen: 'Login' } as never);
         return;
       }
-      try { console.log('toggleFavorite error:', err); } catch { }
+      try { console.error('toggleFavorite error:', err); } catch { }
     }
   };
 

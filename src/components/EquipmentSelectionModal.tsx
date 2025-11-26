@@ -43,14 +43,6 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
 }) => {
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
-  useEffect(() => {
-    console.log('🔧 EquipmentSelectionModal props changed:');
-    console.log('- visible:', visible);
-    console.log('- equipment:', equipment);
-    console.log('- loading:', loading);
-    console.log('- selectedEquipment:', selectedEquipment);
-  }, [visible, equipment, loading, selectedEquipment]);
-
   const handleQuantityChange = (equipmentId: string, quantity: number, maxQuantity: number) => {
     const validQuantity = Math.max(0, Math.min(quantity, maxQuantity));
     setQuantities(prev => ({
@@ -62,12 +54,11 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
   const handleAddEquipment = (item: Equipment) => {
     const quantity = quantities[item.id] || 1;
     if (quantity > 0 && quantity <= item.quantity_available) {
-      console.log('✅ Adding equipment:', item.item_name, 'Quantity:', quantity);
       onSelectEquipment(item, quantity);
       // Reset quantity to 1 after adding
       setQuantities(prev => ({ ...prev, [item.id]: 1 }));
     } else {
-      console.log('❌ Invalid quantity:', quantity, 'Available:', item.quantity_available);
+      console.error('❌ Invalid quantity:', quantity, 'Available:', item.quantity_available);
     }
   };
 
@@ -82,36 +73,24 @@ const EquipmentSelectionModal: React.FC<EquipmentSelectionModalProps> = ({
 
   const handleOkPress = async () => {
     try {
-      console.log('🟦 [EquipmentAdd] Starting OK handler');
-      console.log('🟦 [EquipmentAdd] Props snapshot:', {
-        bookingId,
-        selectedEquipmentCount: selectedEquipment.length,
-      });
 
       if (!bookingId) {
-        console.log('❌ [EquipmentAdd] Missing bookingId. Aborting.');
+        console.error('❌ [EquipmentAdd] Missing bookingId. Aborting.');
         return onClose();
       }
 
-      console.log('🟦 [EquipmentAdd] Preparing payload from selectedEquipment...');
       const equipment_items = selectedEquipment.map((item) => ({
         equipment_id: item.id,
         quantity: item.selectedQuantity || 1,
       }));
       const payload = { booking_id: bookingId, equipment_items };
-      console.log('📦 [EquipmentAdd] Payload ready:', payload);
 
-      console.log('📡 [EquipmentAdd] Sending POST /booking-add-equipment');
       const response = await bookingAddEquipment(payload);
-      console.log('✅ [EquipmentAdd] API responded successfully');
-      console.log('🔍 [EquipmentAdd] Response object:', response);
-
-      console.log('🎉 [EquipmentAdd] Equipment added to booking:', bookingId);
       onClose();
     } catch (error: any) {
-      console.log('❌ [EquipmentAdd] API error:', error);
-      if (error?.status) console.log('❌ [EquipmentAdd] HTTP status:', error.status);
-      if (error?.error) console.log('❌ [EquipmentAdd] Error message:', error.error);
+      console.error('❌ [EquipmentAdd] API error:', error);
+      if (error?.status) console.error('❌ [EquipmentAdd] HTTP status:', error.status);
+      if (error?.error) console.error('❌ [EquipmentAdd] Error message:', error.error);
     }
   };
 

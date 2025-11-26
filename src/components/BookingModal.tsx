@@ -47,9 +47,6 @@ interface CalendarDay {
 const { width } = Dimensions.get('window');
 
 const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, disablePayment = false }) => {
-  // console.log('BookingModal - Received studio prop:', studio);
-  // console.log('BookingModal - Studio ID:', studio?.id);
-  // console.log('BookingModal - Studio type:', typeof studio?.id);
 
   const dispatch = useAppDispatch();
   const availabilityState = useAppSelector(state => state.studios.availability);
@@ -208,16 +205,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
   // Handle date selection
   // Test function to manually test availability API
   const testAvailabilityAPI = async () => {
-    console.log('=== Testing Availability API ===');
     const testPayload = {
       studio_id: '97098219-80bb-4595-9449-7efeee39d169', // Real studio ID from logs
       date: '2024-01-15'
     };
-    console.log('Testing with payload:', testPayload);
 
     try {
       const result = await dispatch(studioAvailabilityThunk(testPayload));
-      console.log('Test API result:', result);
       Alert.alert('API Test', `Result: ${JSON.stringify(result, null, 2)}`);
     } catch (error) {
       console.error('Test API error:', error);
@@ -226,12 +220,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
   };
 
   const handleDateSelect = async (date: string) => {
-    // console.log('=== BookingModal Date Selection Debug ===');
-    // console.log('Selected date:', date);
-    // console.log('Studio object received:', studio);
-    // console.log('Studio object type:', typeof studio);
-    // console.log('Studio object keys:', studio ? Object.keys(studio) : 'null');
-    // console.log('Full studio object JSON:', JSON.stringify(studio, null, 2));
 
     setSelectedDate(date);
     setShowTimeSlots(true);
@@ -241,19 +229,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
 
     // Extract studio ID with comprehensive validation
     let studioId = studio?.id;
-    console.log('Initial studioId:', studioId, 'Type:', typeof studioId);
 
-    // Check if studio has other ID fields
-    if (studio) {
-      console.log('Checking for alternative ID fields:');
-      console.log('studio._id:', (studio as any)._id);
-      console.log('studio.studio_id:', (studio as any).studio_id);
-      console.log('studio.studioId:', (studio as any).studioId);
-    }
 
     // More robust validation
     if (!studio) {
-      console.error('BookingModal - Studio object is null or undefined');
       setTimeSlots([]);
       return;
     }
@@ -272,7 +251,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
       return;
     }
 
-    console.log('✅ Valid studioId confirmed:', studioId);
 
     const studioIdString = String(studioId).trim();
     if (studioIdString === '' || studioIdString === 'undefined' || studioIdString === 'null') {
@@ -281,12 +259,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ visible, onClose, studio, d
       return;
     }
 
-    // console.log('BookingModal - Dispatching studioAvailabilityThunk with studio_id:', studioIdString, 'date:', date);
 
     try {
       const result = await dispatch(studioAvailabilityThunk({ studio_id: studioIdString, date }));
       if (studioAvailabilityThunk.fulfilled.match(result)) {
-        console.log('BookingModal - Successfully fetched availability:', result.payload);
         const payload: any = result.payload || {};
         const apiSlots = (payload.available_slots || payload.booking_slots || []).map((s: any) => ({
           start_time: String(s.start_time).slice(0, 5),

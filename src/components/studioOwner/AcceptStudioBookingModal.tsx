@@ -23,11 +23,9 @@ const AcceptStudioBookingModal = ({ visible = false, onClose = () => { }, bookin
   const handleConfirmAccept = async () => {
     setLoading(true);
     let payload = { booking_id: booking?.id }
-    console.log('final payload for accept booking', payload);
 
     try {
       const response = await dispatch(doAcceptBooking(payload)).unwrap();
-      console.log('accept response', response);
       showSuccess('Booking accepted successfully.');
       onCloseModal();
     } catch (err: any) {

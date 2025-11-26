@@ -57,12 +57,11 @@ export const DashboardComponent = () => {
 
         try {
             const photographerBookings = await dispatch(loadPhotographerBookingsThunk(params)).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 photographerBookings from API:', photographerBookings);
 
             // response looks like { photographerBookings: [ ... ], total: 16 }
             setPhotographerBookingList(photographerBookings || []);
         } catch (error) {
-            console.log('❌ Failed to load photographer bookings:', error);
+            console.error('❌ Failed to load photographer bookings:', error);
         }
         finally {
             setIsLoading(false);

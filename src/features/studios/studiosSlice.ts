@@ -47,18 +47,10 @@ export const studiosSearchThunk = createAsyncThunk('studios/search', async (quer
 
 export const studioDetailsThunk = createAsyncThunk('studios/details', async (id: string, { rejectWithValue }) => {
   try {
-    console.log('=== studioDetailsThunk Debug ===');
-    console.log('Fetching studio details for ID:', id);
-    console.log('ID type:', typeof id);
 
     const res = await getStudioDetails(id);
-    console.log('API response:', res);
-    console.log('API response type:', typeof res);
-    console.log('API response keys:', res ? Object.keys(res) : 'null');
-    console.log('res.studio:', res.studio);
 
     const studioData = res.studio || null;
-    console.log('Returning studio data:', studioData);
 
     return studioData;
   } catch (err: any) {
@@ -126,20 +118,15 @@ export const getStudioTimeSlots = createAsyncThunk(
 
 export const loadFavoritesThunk = createAsyncThunk('studios/loadFavorites', async (_, { rejectWithValue }) => {
   try {
-    console.log('=== loadFavoritesThunk Debug ===');
-    console.log('Calling getFavoriteStudios API...');
     const res = await getFavoriteStudios();
-    console.log('API Response:', res);
     const favorites = res.favorites || [];
-    console.log('Extracted favorites:', favorites);
-    console.log('Favorites count:', favorites.length);
     return favorites;
   } catch (err: any) {
-    console.log('loadFavoritesThunk Error:', err);
+    console.error('loadFavoritesThunk Error:', err);
 
     // Handle authentication errors gracefully
     if (err?.status === 401 || err?.error?.includes('unauthorized') || err?.error?.includes('authentication')) {
-      console.log('Authentication error detected, user not logged in');
+      console.error('Authentication error detected, user not logged in');
       // Return empty array instead of rejecting for auth errors
       return [];
     }
@@ -199,11 +186,10 @@ export const loadMyStudioThunk = createAsyncThunk(
   async (params?: { status?: string; include_stats?: boolean }, { rejectWithValue }) => {
     try {
       const res = await getMyStudios(params);
-      console.log("API Response:", res);
       const studios = res.studios || [];
       return studios;
     } catch (err: any) {
-      console.log("loadMyStudioThunk Error:", err);
+      console.error("loadMyStudioThunk Error:", err);
 
       // Handle authentication errors gracefully
       if (
@@ -211,7 +197,7 @@ export const loadMyStudioThunk = createAsyncThunk(
         err?.error?.includes("unauthorized") ||
         err?.error?.includes("authentication")
       ) {
-        console.log("Authentication error detected, user not logged in");
+        console.error("Authentication error detected, user not logged in");
         return [];
       }
 
@@ -233,11 +219,10 @@ export const loadStudioBookingsThunk = createAsyncThunk(
   }, { rejectWithValue }) => {
     try {
       const res = await getStudiosBookings(params);
-      console.log("API Response:", res);
       const bookings = res.bookings || [];
       return bookings;
     } catch (err: any) {
-      console.log("loadMyStudioThunk Error:", err);
+      console.error("loadMyStudioThunk Error:", err);
 
       // Handle authentication errors gracefully
       if (
@@ -245,7 +230,7 @@ export const loadStudioBookingsThunk = createAsyncThunk(
         err?.error?.includes("unauthorized") ||
         err?.error?.includes("authentication")
       ) {
-        console.log("Authentication error detected, user not logged in");
+        console.error("Authentication error detected, user not logged in");
         return [];
       }
 
@@ -258,14 +243,11 @@ export const getStudioEquipmentThunk = createAsyncThunk(
   'studios/getEquipment',
   async (payload: { studio_id: string; available_only?: boolean }, { rejectWithValue }) => {
     try {
-      console.log('🔧 getStudioEquipmentThunk called with payload:', payload);
 
       const res = await getStudioEquipment(payload.studio_id, payload.available_only);
-      console.log('📡 API response received:', res);
 
       // The API returns { equipment: [...] } according to the provided format
       const equipmentData = res.equipment || [];
-      console.log('✅ Equipment data extracted:', equipmentData);
 
       return equipmentData;
     } catch (err: any) {
@@ -372,11 +354,7 @@ const studiosSlice = createSlice({
       })
       .addCase(loadFavoritesThunk.fulfilled, (state, action) => {
         state.favorites.loading = false;
-        console.log('=== loadFavoritesThunk.fulfilled Debug ===');
-        console.log('Payload received:', action.payload);
-        console.log('Setting favorites.items to:', action.payload);
         state.favorites.items = action.payload;
-        console.log('Updated favorites state:', state.favorites.items);
       })
       .addCase(loadFavoritesThunk.rejected, (state, action) => {
         state.favorites.loading = false;

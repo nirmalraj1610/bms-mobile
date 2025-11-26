@@ -27,11 +27,9 @@ const CancelStudioBookingModal = ({ visible = false, onClose = () => { }, bookin
     if (cancelReason.trim()) {
       payload = { ...payload, cancellation_reason: cancelReason.trim() }
     }
-    console.log('final payload for cancel booking', payload);
     
     try {
-     const response =  await dispatch(doCancelBooking(payload)).unwrap();
-      console.log('cancel response', response);  
+     const response =  await dispatch(doCancelBooking(payload)).unwrap(); 
       showSuccess('Booking cancelled successfully.');    
       onCloseModal();
     } catch (err: any) {

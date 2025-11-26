@@ -74,15 +74,12 @@ const LoginScreen: React.FC = () => {
 
     try {
       setIsLoading(true);
-      console.log('Attempting login with:', { emailOrPhone, password });
 
       const result = await dispatch(login({ email: trimmed, password })).unwrap();
-      console.log('Login Success:', result);
-
       showSuccess('User Logged in successfully!...');
       navigation.replace('Main');
     } catch (err: any) {
-      console.log('Login Error:', err);
+      console.error('Login Error:', err);
       setMessageModalVisible({ status: true, header: 'Login Failed', message: err?.message || 'Something went wrong, please try again' });
       showError('Something went wrong, please try again');
     } finally {

@@ -80,7 +80,6 @@ export const MyStudioComponent = ({
         }
         try {
             const studios = await dispatch(loadMyStudioThunk(params)).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
             setStudioList(studios || []);
@@ -101,7 +100,7 @@ export const MyStudioComponent = ({
             setStudiosStats(studioStats);
 
         } catch (error) {
-            console.log('❌ Failed to load studios:', error);
+            console.error('❌ Failed to load studios:', error);
         }
         finally {
             setIsLoading(false);

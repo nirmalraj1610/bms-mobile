@@ -68,7 +68,6 @@ const PhotographerDashboardScreen: React.FC = () => {
           }
           else {
             const user = userData?.customer;
-            console.log('userData:', user);
             setCurrentUser(user);
           }
         }

@@ -116,8 +116,6 @@ const AddStudioComponent = ({
     if (editStudio && editStudioId) {
       getStudioDetails();
       getTimeSlots();
-      console.log(editStudio, editStudioId);
-
     }
   }, [editStudio, editStudioId]);
 
@@ -126,10 +124,9 @@ const AddStudioComponent = ({
     try {
       const studioData = await dispatch(studioDetailsThunk(editStudioId)).unwrap();
       setStudioValues(studioData || {});
-      console.log(studioData, 'responseresponseresponseresponseresponseresponse');
     }
     catch (err: any) {
-      console.log(err, 'errerrerrerrerrerrerrerrerrerrerrerrerrerrerrerrerr');
+      console.error(err, 'unable to fetch studio details.');
     }
 
   }
@@ -151,10 +148,6 @@ const AddStudioComponent = ({
       .unwrap()
       .then((res) => {
         if (!res?.availability) return;
-
-        console.log(res, 'ddddddddddddddddddddddd');
-
-
 
         setDays((prevDays) =>
           prevDays.map((day) => {
@@ -180,7 +173,7 @@ const AddStudioComponent = ({
       .catch((err) => {
         setIsLoading(false);
         showError('Failed to load availability time slots!...');
-        console.log("Failed to load availability", err);
+        console.error("Failed to load availability", err);
       });
   };
 

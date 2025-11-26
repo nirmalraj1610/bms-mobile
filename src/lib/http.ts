@@ -40,7 +40,6 @@ async function getToken(): Promise<string | null> {
       } catch {}
     }
     return null;
-    // return 'eyJhbGciOiJIUzI1NiIsImtpZCI6Ii9ZOXc0dnZacFhyTDRPSjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3d1eWhieHp0YXRvZXZrZmF2b29uLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI4ODZmOWNlYi02YmM4LTQ3YzMtYjg3MC04OWMwZTUwNjZiNmMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzYxMTM0MzQ0LCJpYXQiOjE3NjExMzA3NDQsImVtYWlsIjoicmdvd3RoYW1vZmZpY2VAZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiZ293dGhhbSBzaWRoYXJ0aGFuIiwidXNlcl90eXBlIjoic3R1ZGlvX293bmVyIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NjExMzA3NDR9XSwic2Vzc2lvbl9pZCI6IjUyNTk1YTQyLTIzMTEtNGEyYi04NjU4LWI5MjQ3NDA5NGFhNiIsImlzX2Fub255bW91cyI6ZmFsc2V9.5fjMtlhefYAeqDtagNqJ4Hx0ymCWnH5LIGPvU-LE2x0'
   } catch {
     return null;
   }
@@ -105,7 +104,7 @@ export async function apiFetch<T>(
       const preview = authHeader.slice(0, 20) + '...';
       console.log('[apiFetch] Authorization header attached:', preview);
     } else if (auth) {
-      console.log('[apiFetch] Authorization header missing (no token found)');
+      console.error('[apiFetch] Authorization header missing (no token found)');
     } else {
       console.log('[apiFetch] Authorization header intentionally omitted (auth:false)');
     }
@@ -118,7 +117,7 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     try {
-      console.log('[apiFetch] Response error:', {
+      console.error('[apiFetch] Response error:', {
         status: res.status,
         isJson,
         errorData: data,
@@ -143,7 +142,6 @@ export async function saveUserData(userData: object) {
   try {
     const userDetails = JSON.stringify(userData);
     await AsyncStorage.setItem('UserData', userDetails);
-    console.log('✅ User data saved successfully');
   } catch (error) {
     console.error('❌ Failed to save user data:', error);
   }

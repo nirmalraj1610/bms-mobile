@@ -50,12 +50,11 @@ export const PortfolioComponent = () => {
 
         try {
             const portfolioData = await dispatch(getPhotographerPortfolio(photographerId)).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 portfolioData from API:', portfolioData?.photographer?.portfolio);
 
             // response looks like { portfolioData: [ ... ], total: 16 }
             setPhotographerPortfolio(portfolioData?.photographer?.portfolio || []);
         } catch (error) {
-            console.log('❌ Failed to load photographer portfolios:', error);
+            console.error('❌ Failed to load photographer portfolios:', error);
         }
         finally {
             setIsLoading(false);
@@ -148,13 +147,12 @@ export const PortfolioComponent = () => {
             else {
                 response = await dispatch(createPhotographerPortfolio(formData)).unwrap();
                 showSuccess('Portfolio created Successfully!...');
-                console.log("✅ Portfolio created Successfully:", response);
                 clearStateValues();
             }
 
         } catch (error) {
             showError('Something went wrong!...');
-            console.log("❌ Error creating portfolio:", error);
+            console.error("❌ Error creating portfolio:", error);
         }
     };
 

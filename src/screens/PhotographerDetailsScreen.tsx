@@ -228,7 +228,7 @@ const PhotographerDetailsScreen: React.FC = () => {
       </SafeAreaView>
     </Modal>
   );
-  console.log('photographerphotographerphotographer', photographer);
+  
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':

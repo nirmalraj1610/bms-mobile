@@ -147,11 +147,10 @@ export const loadPhotographerBookingsThunk = createAsyncThunk(
   }, { rejectWithValue }) => {
     try {
       const res = await getPhotographerBookings(params);
-      console.log("API Response:", res);
       const bookings = res.bookings || [];
       return bookings;
     } catch (err: any) {
-      console.log("loadPhotographerBookingsThunk Error:", err);
+      console.error("loadPhotographerBookingsThunk Error:", err);
 
       // Handle authentication errors gracefully
       if (
@@ -159,7 +158,7 @@ export const loadPhotographerBookingsThunk = createAsyncThunk(
         err?.error?.includes("unauthorized") ||
         err?.error?.includes("authentication")
       ) {
-        console.log("Authentication error detected, user not logged in");
+        console.error("Authentication error detected, user not logged in");
         return [];
       }
 

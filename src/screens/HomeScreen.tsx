@@ -75,7 +75,6 @@ const HomeScreen: React.FC = () => {
   // Redux selectors
   const studiosState = useSelector((state: RootState) => state.studios);
   const photographersState = useSelector((state: RootState) => state.photographers);
-  console.log(studiosState, 'studiooooooo');
 
   // Get studios and photographers data
   const studiosError = studiosState.searchError;
@@ -85,24 +84,19 @@ const HomeScreen: React.FC = () => {
   const checkAuthAndLoadFavorites = async () => {
     try {
       const token = await AsyncStorage.getItem('auth_token');
-      console.log('=== Auth Check Debug ===');
-      console.log('Token exists:', !!token);
 
       if (token) {
-        console.log('User is authenticated, loading favorites...');
         dispatch(loadFavoritesThunk());
       } else {
-        console.log('User not authenticated, skipping favorites loading');
+        console.error('User not authenticated, skipping favorites loading');
       }
     } catch (error) {
-      console.log('Error checking authentication:', error);
+      console.error('Error checking authentication:', error);
     }
   };
 
   // Fetch data on component mount
   useEffect(() => {
-    console.log('=== HomeScreen useEffect Debug ===');
-    console.log('Component mounted, dispatching initial data fetches...');
 
     // Fetch studios with basic search parameters
     dispatch(studiosSearchThunk({
@@ -130,8 +124,6 @@ const HomeScreen: React.FC = () => {
   // Reload favorites when screen comes into focus (e.g., after login)
   useFocusEffect(
     React.useCallback(() => {
-      console.log('=== HomeScreen Focus Effect ===');
-      console.log('Screen focused, checking auth and reloading favorites...');
       checkAuthAndLoadFavorites();
     }, [])
   );
@@ -177,7 +169,6 @@ const HomeScreen: React.FC = () => {
           }
           else {
             const user = userData?.customer;
-            console.log('userData:', user);
             setCurrentUser(user);
           }
         }
@@ -218,13 +209,11 @@ const HomeScreen: React.FC = () => {
     }
     try {
       setIsSearchingLocations(true);
-      console.log('[Location] Searching locations:', q);
       const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=8`);
       const data = await resp.json();
-      console.log('[Location] Search results count:', (data || []).length);
       setLocationSearchResults(data || []);
     } catch (e) {
-      console.log('[Location] Search error:', e);
+      console.error('[Location] Search error:', e);
       setLocationSearchResults([]);
     } finally {
       setIsSearchingLocations(false);
@@ -245,7 +234,6 @@ const HomeScreen: React.FC = () => {
 
   const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
     try {
-      console.log('[Location] Reverse geocoding coords:', lat, lon);
       const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`;
       const resp = await fetch(url, {
         headers: {
@@ -268,10 +256,9 @@ const HomeScreen: React.FC = () => {
       const country = addr.country;
       let resolved = normalizeCityName(cityRaw) || normalizeCityName(data?.name) || normalizeCityName(data?.display_name?.split(',')[0]) || normalizeCityName(state) || normalizeCityName(country);
       if (!resolved) throw new Error('No city/state from Nominatim');
-      console.log('[Location] Reverse geocode resolved name:', resolved);
       return resolved;
     } catch {
-      console.log('[Location] Reverse geocode error; trying BigDataCloud fallback');
+      console.error('[Location] Reverse geocode error; trying BigDataCloud fallback');
       try {
         const url2 = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
         const resp2 = await fetch(url2);
@@ -279,13 +266,11 @@ const HomeScreen: React.FC = () => {
         const d2 = await resp2.json();
         const resolved2 = normalizeCityName(d2.city || d2.locality || d2.principalSubdivision || d2.countryName);
         if (resolved2) {
-          console.log('[Location] BigDataCloud resolved name:', resolved2);
           return resolved2;
         }
       } catch (e) {
-        console.log('[Location] BigDataCloud fallback failed:', e);
+        console.error('[Location] BigDataCloud fallback failed:', e);
       }
-      console.log('[Location] All reverse geocoders failed; falling back to coords string');
       return `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
     }
   };
@@ -293,13 +278,11 @@ const HomeScreen: React.FC = () => {
   // Fetch current GPS location and set temp selection
   const fetchCurrentLocation = async () => {
     try {
-      console.log('[Location] Fetch current location: begin');
       setLocationError(null);
       setPermissionBlocked(false);
       setIsFetchingCurrentLocation(true);
       let canUseGeo = true;
       if (Platform.OS === 'android') {
-        console.log('[Location] Requesting Android fine/coarse location permissions');
         const results = await PermissionsAndroid.requestMultiple([
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
@@ -308,20 +291,17 @@ const HomeScreen: React.FC = () => {
         const coarse = results[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION];
         const granted = fine === PermissionsAndroid.RESULTS.GRANTED || coarse === PermissionsAndroid.RESULTS.GRANTED;
         const blocked = fine === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN || coarse === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
-        console.log('[Location] Permission results => fine:', fine, 'coarse:', coarse);
         if (!granted) {
           canUseGeo = false;
           setPermissionBlocked(blocked);
           const msg = blocked ? 'Location permission denied (blocked). Open Settings.' : 'Location permission denied';
           setLocationError(msg);
-          console.log('[Location] Permission not granted. blocked?', blocked);
         }
       }
 
       // Try device geolocation first (using react-native-geolocation-service)
       const getPosition = () =>
         new Promise<any>((resolve, reject) => {
-          console.log('[Location] Using Geolocation.getCurrentPosition');
           Geolocation.getCurrentPosition(
             (pos: any) => resolve(pos),
             (err: any) => reject(err),
@@ -333,67 +313,57 @@ const HomeScreen: React.FC = () => {
       let lon: number | null = null;
       if (canUseGeo) {
         try {
-          console.log('[Location] Attempting device geolocation');
           const position = await getPosition();
           lat = (position as any)?.coords?.latitude ?? null;
           lon = (position as any)?.coords?.longitude ?? null;
-          console.log('[Location] Device coords:', lat, lon);
         } catch (e) {
-          console.log('[Location] Device geolocation failed:', e);
+          console.error('[Location] Device geolocation failed:', e);
         }
       }
 
       // Fallback to IP-based location if device coords unavailable
       if (lat == null || lon == null) {
         try {
-          console.log('[Location] Falling back to IP-based location');
           const resp = await fetch('https://ipapi.co/json/');
           const data = await resp.json();
           lat = data?.latitude ?? null;
           lon = data?.longitude ?? null;
-          console.log('[Location] IP-based coords:', lat, lon);
         } catch (e) {
-          console.log('[Location] IP-based location request failed:', e);
+          console.error('[Location] IP-based location request failed:', e);
         }
       }
 
       // Secondary IP provider fallback
       if (lat == null || lon == null) {
         try {
-          console.log('[Location] Trying secondary IP provider');
           const resp2 = await fetch('https://freeipapi.com/api/json');
           const data2 = await resp2.json();
           lat = data2?.latitude ?? null;
           lon = data2?.longitude ?? null;
-          console.log('[Location] Secondary IP coords:', lat, lon);
         } catch (e) {
-          console.log('[Location] Secondary IP provider failed:', e);
+          console.error('[Location] Secondary IP provider failed:', e);
         }
       }
 
       if (lat != null && lon != null) {
         const name = await reverseGeocode(lat, lon);
         setTempSelectedLocationName(name);
-        console.log('[Location] Temp selected name set:', name);
       } else {
-        console.log('[Location] Unable to obtain coordinates');
         setLocationError('Unable to obtain current location');
       }
     } catch (e) {
       // ignore, keep temp name unchanged
-      console.log('[Location] Fetch current location error:', e);
+      console.error('[Location] Fetch current location error:', e);
     } finally {
-      console.log('[Location] Fetch current location: end');
       setIsFetchingCurrentLocation(false);
     }
   };
 
   const openAppSettings = async () => {
     try {
-      console.log('[Location] Opening app settings');
       await Linking.openSettings();
     } catch (e) {
-      console.log('[Location] Failed to open settings:', e);
+      console.error('[Location] Failed to open settings:', e);
     }
   };
 

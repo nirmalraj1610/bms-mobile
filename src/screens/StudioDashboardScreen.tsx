@@ -82,7 +82,6 @@ const StudioDashboardScreen: React.FC = () => {
             const user = userData?.customer;
             // cast/assign safely
             setCurrentUser((user as Customer) ?? null);
-            console.log('userData:', user);
           }
         } else {
           // If no session expiry in response, still try to set customer if provided

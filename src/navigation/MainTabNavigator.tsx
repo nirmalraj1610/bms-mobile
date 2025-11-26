@@ -30,7 +30,6 @@ const MainTabNavigator: React.FC = () => {
     try {
       const userData: any = await getUserProfile();
       const userType = userData?.customer?.customer_profiles?.user_type;
-      console.log('User type:', userType);
       setCurrentUser(userType);
       setValidUser(true);
     } catch (err) {

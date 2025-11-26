@@ -79,12 +79,11 @@ export const ServicesComponent = () => {
 
         try {
             const serviceData = await dispatch(getPhotographerServices(photographerId)).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 serviceData from API:', serviceData);
 
             // response looks like { serviceData: [ ... ], total: 16 }
             setPhotographerServices(serviceData?.services || []);
         } catch (error) {
-            console.log('❌ Failed to load photographer services:', error);
+            console.error('❌ Failed to load photographer services:', error);
         }
         finally {
             setIsLoading(false);
@@ -171,20 +170,18 @@ export const ServicesComponent = () => {
                 };
                 response = await dispatch(updatePhotographerServices(payload)).unwrap();
                 showSuccess('Service Updated Successfully!...');
-                console.log("✅ Service Updated Successfully:", response);
                 clearStateValues();
             }
             // ✅ Create flow
             else {
                 response = await dispatch(createPhotographerServices(payload)).unwrap();
                 showSuccess('Service Created Successfully!...');
-                console.log("✅ Service Created Successfully:", response);
                 clearStateValues();
             }
 
         } catch (error) {
             showError('Something went wrong!...')
-            console.log("❌ Error creating/updating service:", error);
+            console.error("❌ Error creating/updating service:", error);
         }
     };
 

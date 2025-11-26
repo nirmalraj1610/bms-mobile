@@ -65,7 +65,6 @@ export const BookingsComponent = () => {
             params = { ...params, status: selectedFilter, }
         }
         if (startdate && enddate) {
-            console.log('calling here', startdate, enddate);
             params = { ...params, from_date: startdate, to_date: enddate }
         }
 
@@ -73,12 +72,11 @@ export const BookingsComponent = () => {
 
         try {
             const photographerBookings = await dispatch(loadPhotographerBookingsThunk(params)).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 photographerBookings from API:', photographerBookings);
 
             // response looks like { photographerBookings: [ ... ], total: 16 }
             setPhotographerBookingList(photographerBookings || []);
         } catch (error) {
-            console.log('❌ Failed to load photographer bookings:', error);
+            console.error('❌ Failed to load photographer bookings:', error);
         }
         finally {
             setIsLoading(false);

@@ -63,7 +63,6 @@ export const DashboardComponent = () => {
         // }
         try {
             const studios = await dispatch(loadMyStudioThunk({ status: "active", include_stats: true })).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 Studios from API:', studios);
 
             // response looks like { studios: [ ... ], total: 16 }
             const studiosList = studios
@@ -76,7 +75,7 @@ export const DashboardComponent = () => {
             setSelectedStudio(studiosList[0]?.value);
             setStudioSData(studios || []);
         } catch (error) {
-            console.log('❌ Failed to load studios:', error);
+            console.error('❌ Failed to load studios:', error);
         }
         finally {
             setIsLoading(false);
@@ -119,7 +118,6 @@ export const DashboardComponent = () => {
 
         try {
             const studiosBookings = await dispatch(loadStudioBookingsThunk(params)).unwrap(); // ✅ unwrap to get actual data
-            console.log('📦 StudiosBookings from API:', studiosBookings);
 
             // response looks like { studiosBookings: [ ... ], total: 16 }
             setStudioBookingList(studiosBookings || []);
@@ -148,7 +146,7 @@ export const DashboardComponent = () => {
             setStudiosStats(studioStats);
 
         } catch (error) {
-            console.log('❌ Failed to load studios bookings:', error);
+            console.error('❌ Failed to load studios bookings:', error);
         }
         finally {
             setIsLoading(false);

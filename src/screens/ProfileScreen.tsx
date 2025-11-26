@@ -169,8 +169,8 @@ const ProfileScreen: React.FC = () => {
       fetchProfile();
       showSuccess('User logged out Successfully!...');
     } catch (error) {
-      console.log(error);
       showError('Something went wrong!...');
+      console.error(error);
     }
   };
 
@@ -276,7 +276,6 @@ const ProfileScreen: React.FC = () => {
 
       try {
         const response = await dispatch(updateProfileImage(formdata)).unwrap();
-        console.log('✅ Profile updated successfully:', response);
 
         // 🧠 Update local state on success
         setFullProfileData((prev) => ({

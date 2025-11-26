@@ -51,9 +51,6 @@ export const SlotsManagementComponent = () => {
             .then((res) => {
                 if (!res?.availability) return;
 
-                console.log(res, 'sssssssssssssssssssss');
-
-
                 setDays((prevDays) =>
                     prevDays.map((day) => {
                         const match = res.availability.find(
@@ -80,7 +77,7 @@ export const SlotsManagementComponent = () => {
                 setIsLoading(false);
                 setRefreshing(false);
                 showError('Failed to load availability time slots!...');
-                console.log("Failed to load availability", err);
+                console.error("Failed to load availability", err);
             });
     };
 
@@ -114,13 +111,10 @@ export const SlotsManagementComponent = () => {
         const payload = { availability_slots: buildOperatingHoursPayload(days) };
 
         try {
-            console.log('📤 Sending payload to API:', payload);
-
             const response = await dispatch(managePhotographerTimeSlots(payload)).unwrap();
             showSuccess('Availability time slots updated successfully!...');
             setIsLoading(false);
             getTimeSlots();
-            console.log('✅ API Response:', response);
 
         } catch (error: any) {
             setIsLoading(false);

@@ -56,20 +56,9 @@ const StudioDetailsScreen: React.FC = () => {
 
   // Use actual studio data or fallback to search results or mock data
   const studio: Studio | StudioDetail = useMemo(() => {
-    // console.log('=== StudioDetailsScreen Debug ===');
-    // console.log('studioId from route:', studioId);
-    // console.log('studioData from API:', studioData);
-    // console.log('searchResults:', searchResults);
-    // console.log('loading:', loading);
-    // console.log('error:', error);
-    // console.log('Redux state - studios.detail:', { data: studioData, loading, error });
 
     // First priority: Use API detail data if available
     if (studioData) {
-      // console.log('✅ Using API detail data');
-      // console.log('API studio object:', JSON.stringify(studioData, null, 2));
-      // console.log('API studio ID:', studioData.id);
-      // console.log('API studio ID type:', typeof studioData.id);
       return studioData;
     }
 
@@ -77,9 +66,6 @@ const StudioDetailsScreen: React.FC = () => {
     if (searchResults && searchResults.length > 0 && studioId) {
       const studioFromSearch = searchResults.find((s: any) => s.id === studioId);
       if (studioFromSearch) {
-        // console.log('✅ Using studio from search results');
-        // console.log('Search studio object:', JSON.stringify(studioFromSearch, null, 2));
-        // console.log('Search studio ID:', studioFromSearch.id);
         return studioFromSearch;
       }
     }
@@ -96,17 +82,14 @@ const StudioDetailsScreen: React.FC = () => {
     // If still not found, use the first studio from favorites as fallback
     if (!mockStudio) {
       mockStudio = mockFavoriteStudios[0];
-      console.log('Using fallback studio, original ID:', mockStudio?.id, 'route studioId:', studioId);
 
       // Only override ID if we're using fallback and have a valid studioId
       if (mockStudio && studioId) {
         const studioWithCorrectId = { ...mockStudio, id: studioId };
-        console.log('Using fallback mock data with corrected ID:', studioWithCorrectId.id);
         return studioWithCorrectId;
       }
     }
 
-    console.log('Using found mock studio, ID:', mockStudio?.id);
     return mockStudio;
   }, [studioData, studioId, searchResults]);
 
