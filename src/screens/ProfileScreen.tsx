@@ -95,7 +95,12 @@ const ProfileScreen: React.FC = () => {
     firstName: false,
     phone: false,
     location: false
-  })
+  });
+
+  const [documentError, setDocumentError] = useState({
+    documentType: false,
+    document: false,
+  });
 
   const locations = [
     { label: "Mumbai", value: "Mumbai" },
@@ -201,10 +206,10 @@ const ProfileScreen: React.FC = () => {
         </Text>
       </View>
     </LinearGradient>
-  )
+  );
 
-  // --- Save Changes to API ---
-  const handleSave = async () => {
+  // --- Save Changes to API for update profile ---
+  const handleSaveProfile = async () => {
 
     // 🧩 profile Validation
     const newErrors = {
@@ -256,8 +261,27 @@ const ProfileScreen: React.FC = () => {
     const result = await launchImageLibrary({ mediaType: 'photo' });
     if (!result.didCancel && result.assets && result.assets.length > 0) {
       setSelectedFile(result.assets[0]);
+      setDocumentError({ ...documentError, document: false });
     }
   };
+
+  const onpressDocumentVerification = () => {
+      // Validation
+  const newErrors = {
+    documentType: !selectedDocType,
+    document: !selectedFile,
+  };
+
+  setDocumentError(newErrors);
+
+  if (Object.values(newErrors).includes(true)) {
+    showError('Please fill all the required fields!...');
+    return;
+  }
+
+  console.log('validation passed');
+  
+  }
 
   const handleProfilePick = async () => {
     const result = await launchImageLibrary({ mediaType: 'photo' });
@@ -539,7 +563,7 @@ const ProfileScreen: React.FC = () => {
                           }
                         />
 
-                        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                        <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
                           <Text style={styles.saveButtonText}>Save Changes</Text>
                         </TouchableOpacity>
                       </>
@@ -551,9 +575,9 @@ const ProfileScreen: React.FC = () => {
               {/* VERIFICATION TAB */}
               {activeTab === "verification" && !loading && (
                 <ScrollView contentContainerStyle={{ padding: 16 }}>
-                  <Text style={styles.labelText} >Select Document Type</Text>
+                  <Text style={styles.labelText} >Select Document Type<Text style={styles.required}> *</Text></Text>
                   <Dropdown
-                    style={styles.dropdown}
+                    style={[styles.dropdown, { borderColor: documentError.documentType ? "#DC3545" : "#BABABA" }]}
                     placeholderStyle={styles.placeholderStyle}
                     selectedTextStyle={styles.selectedTextStyle}
                     inputSearchStyle={styles.inputSearchStyle}
@@ -564,19 +588,28 @@ const ProfileScreen: React.FC = () => {
                     valueField="value"
                     placeholder="Choose document type"
                     value={selectedDocType}
-                    onChange={(item) => setSelectedDocType(item.value)}
+                    onChange={(item) => {
+                      setSelectedDocType(item.value);
+                      setDocumentError({ ...documentError, documentType: false });
+                    }}
                   />
 
-                  <Text style={styles.labelText} >Select a Document</Text>
+                  {documentError.documentType && (
+                    <Text style={styles.errorText}>Document type is required</Text>
+                  )}
+
+                  <Text style={styles.labelText} >Select a Document<Text style={styles.required}> *</Text></Text>
                   {selectedFile ?
-                    <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                    <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
+                      onPress={handleDocumentPick} >
                       <Image
                         source={{ uri: (selectedFile as any)?.uri }}
                         style={styles.selectedImage}
                         resizeMode={"cover"}
                       />
                     </TouchableOpacity> :
-                    <TouchableOpacity style={styles.uploadButton} onPress={handleDocumentPick}>
+                    <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
+                      onPress={handleDocumentPick} >
                       <Icon name="cloud-upload" size={28} color="#034833" />
                       <Text style={styles.uploadTextHeader}>Upload Document Image</Text>
                       <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
@@ -585,8 +618,11 @@ const ProfileScreen: React.FC = () => {
                       </Text>
                       <Text style={styles.chooseFilesText}>Choose File</Text>
                     </TouchableOpacity>}
+                  {documentError.document && (
+                    <Text style={styles.errorText}>Document is required</Text>
+                  )}
 
-                  <TouchableOpacity style={styles.submitButton}>
+                  <TouchableOpacity onPress={onpressDocumentVerification} style={styles.submitButton}>
                     <Text style={styles.submitButtonText}>Submit for Verification</Text>
                   </TouchableOpacity>
                 </ScrollView>
@@ -846,7 +882,6 @@ const styles = StyleSheet.create({
     height: 200,
     borderColor: "#BABABA",
     borderRadius: 10,
-    marginBottom: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
     alignItems: 'center',
@@ -880,6 +915,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#034833",
     paddingVertical: 14,
     borderRadius: 10,
+    marginTop: 16,
     alignItems: "center",
   },
   submitButtonText: {
