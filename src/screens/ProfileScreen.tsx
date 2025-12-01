@@ -30,6 +30,8 @@ import { showError, showInfo, showSuccess } from "../utils/helperFunctions";
 import { AnimatedDot } from "../components/AnimateDot";
 import LogoutConfirmationModal from "../components/LogoutConfirmationModal";
 import ConfirmationModal from "../components/ConfirmationModal";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { kycUploadFile } from '../lib/api';
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -259,28 +261,60 @@ const ProfileScreen: React.FC = () => {
 
   const handleDocumentPick = async () => {
     const result = await launchImageLibrary({ mediaType: 'photo' });
-    if (!result.didCancel && result.assets && result.assets.length > 0) {
-      setSelectedFile(result.assets[0]);
-      setDocumentError({ ...documentError, document: false });
+    if (result?.didCancel) return;
+    const asset = result?.assets?.[0];
+    if (!asset) return;
+    const type = asset.type || '';
+    const size = asset.fileSize || 0;
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const isTypeOk = allowed.includes(type);
+    const isSizeOk = size > 0 && size <= 5 * 1024 * 1024;
+    if (!isTypeOk) { showError('Invalid file type. Allowed: JPEG, PNG, WEBP'); return; }
+    if (!isSizeOk) { showError('File size exceeds 5MB limit'); return; }
+    setSelectedFile(asset as any);
+    setDocumentError({ ...documentError, document: false });
+  };
+
+  const onpressDocumentVerification = async () => {
+    const newErrors = {
+      documentType: !selectedDocType,
+      document: !selectedFile,
+    };
+    setDocumentError(newErrors);
+    if (Object.values(newErrors).includes(true)) {
+      showError('Please fill all the required fields!...');
+      return;
     }
-  };
-
-  const onpressDocumentVerification = () => {
-      // Validation
-  const newErrors = {
-    documentType: !selectedDocType,
-    document: !selectedFile,
-  };
-
-  setDocumentError(newErrors);
-
-  if (Object.values(newErrors).includes(true)) {
-    showError('Please fill all the required fields!...');
-    return;
-  }
-
-  console.log('validation passed');
-  
+    const token = await AsyncStorage.getItem('auth_token');
+    if (!token) {
+      showError('Missing authorization. Please log in.');
+      return;
+    }
+    const apiDocType = (() => {
+      const v = String(selectedDocType || '').toLowerCase();
+      if (['aadhar', 'voter', 'pan', 'passport', 'licence'].includes(v)) return 'id_proof';
+      if (['address', 'address_proof'].includes(v)) return 'address_proof';
+      if (['business', 'business_license'].includes(v)) return 'business_license';
+      return 'id_proof';
+    })();
+    const asset: any = selectedFile;
+    const formData: any = new FormData();
+    formData.append('document_type', apiDocType);
+    formData.append('file', {
+      uri: asset.uri,
+      type: asset.type || 'image/jpeg',
+      name: asset.fileName || `kyc_${Date.now()}.jpg`,
+    } as any);
+    try {
+      const data: any = await kycUploadFile(formData);
+      console.log('KYC upload response:', { status: 200, ok: true, data });
+      showSuccess('KYC document uploaded successfully');
+      setSelectedDocType('');
+      setSelectedFile(null);
+    } catch (e: any) {
+      console.log('KYC upload error:', e);
+      showError(e?.error || 'Failed to upload file');
+    }
   }
 
   const handleProfilePick = async () => {

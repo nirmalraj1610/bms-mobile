@@ -1,4 +1,4 @@
-import { getUserProfile, updateUserProfile as updateProfileApi, kycUpload, updateProfileImageApi } from '../../lib/api';
+import { getUserProfile, updateUserProfile as updateProfileApi, kycUpload, updateProfileImageApi, kycUploadFile } from '../../lib/api';
 
 export const getProfile = async () => {
   return getUserProfile();
@@ -14,4 +14,8 @@ export const updateUserProfileImage = async (formData: FormData) => {
 
 export const uploadKyc = async (payload: { document_type: string; document_url: string }) => {
   return kycUpload(payload);
+};
+
+export const uploadKycFile = async (formData: FormData) => {
+  return kycUploadFile(formData);
 };

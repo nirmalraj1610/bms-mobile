@@ -73,6 +73,10 @@ export async function kycUpload(payload: { document_type: string; document_url: 
   return apiFetch<{ message: string; document: any }>('/kyc-upload', { method: 'POST', body: payload });
 }
 
+export async function kycUploadFile(formData: FormData) {
+  return apiFetch<{ message: string; kyc_document: any }>('/kyc-upload', { method: 'POST', body: formData });
+}
+
 // Studios
 export async function studiosSearch(query?: Record<string, string | number | boolean>) {
   return apiFetch<StudiosSearchResponse>('/studios-search', { method: 'GET', query, auth: false });
