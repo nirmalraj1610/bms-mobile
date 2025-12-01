@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { pick, types as DocumentTypes, isErrorWithCode, errorCodes } from '@react-native-documents/picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { philosopherTypography, typography } from '../constants/typography';
@@ -260,19 +261,34 @@ const ProfileScreen: React.FC = () => {
   };
 
   const handleDocumentPick = async () => {
-    const result = await launchImageLibrary({ mediaType: 'photo' });
-    if (result?.didCancel) return;
-    const asset = result?.assets?.[0];
-    if (!asset) return;
-    const type = asset.type || '';
-    const size = asset.fileSize || 0;
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const isTypeOk = allowed.includes(type);
-    const isSizeOk = size > 0 && size <= 5 * 1024 * 1024;
-    if (!isTypeOk) { showError('Invalid file type. Allowed: JPEG, PNG, WEBP'); return; }
-    if (!isSizeOk) { showError('File size exceeds 5MB limit'); return; }
-    setSelectedFile(asset as any);
-    setDocumentError({ ...documentError, document: false });
+    try {
+      const [doc] = await pick({
+        type: [DocumentTypes.images, DocumentTypes.pdf],
+        presentationStyle: 'fullScreen',
+      });
+
+      if (!doc) return;
+      const type = (doc as any).type || '';
+      const size = (doc as any).size || 0;
+      const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+      const isTypeOk = allowed.includes(type) || String(type).startsWith('image/');
+      const isSizeOk = size > 0 && size <= 5 * 1024 * 1024;
+      if (!isTypeOk) { showError('Invalid file type. Allowed: JPEG, PNG, WEBP, PDF'); return; }
+      if (!isSizeOk) { showError('File size exceeds 5MB limit'); return; }
+
+      const unified: any = {
+        uri: (doc as any).uri,
+        type,
+        name: (doc as any).name || (doc as any).fileName,
+        size,
+      };
+
+      setSelectedFile(unified);
+      setDocumentError({ ...documentError, document: false });
+    } catch (err: any) {
+      if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) return;
+      showError('Failed to open file picker');
+    }
   };
 
   const onpressDocumentVerification = async () => {
@@ -300,10 +316,13 @@ const ProfileScreen: React.FC = () => {
     const asset: any = selectedFile;
     const formData: any = new FormData();
     formData.append('document_type', apiDocType);
+    const isPdf = String(asset?.type || '').toLowerCase() === 'application/pdf' || String(asset?.name || asset?.fileName || '').toLowerCase().endsWith('.pdf');
+    const filename = asset?.fileName || asset?.name || `kyc_${Date.now()}.${isPdf ? 'pdf' : 'jpg'}`;
+    const mime = asset?.type || (isPdf ? 'application/pdf' : 'image/jpeg');
     formData.append('file', {
-      uri: asset.uri,
-      type: asset.type || 'image/jpeg',
-      name: asset.fileName || `kyc_${Date.now()}.jpg`,
+      uri: asset?.uri,
+      type: mime,
+      name: filename,
     } as any);
     try {
       const data: any = await kycUploadFile(formData);
@@ -636,19 +655,29 @@ const ProfileScreen: React.FC = () => {
                   {selectedFile ?
                     <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
                       onPress={handleDocumentPick} >
-                      <Image
-                        source={{ uri: (selectedFile as any)?.uri }}
-                        style={styles.selectedImage}
-                        resizeMode={"cover"}
-                      />
+                      {String(((selectedFile as any)?.type || '')).startsWith('image/') ? (
+                        <Image
+                          source={{ uri: (selectedFile as any)?.uri }}
+                          style={styles.selectedImage}
+                          resizeMode={"cover"}
+                        />
+                      ) : (
+                        <View style={styles.pdfPreviewRow}>
+                          <Icon name="picture-as-pdf" size={32} color="#DC3545" />
+                          <View style={{ marginLeft: 8, flex: 1 }}>
+                            <Text style={styles.uploadTextHeader} numberOfLines={1}>{(selectedFile as any)?.name || (selectedFile as any)?.fileName || 'Selected PDF'}</Text>
+                            <Text style={styles.uploadTextDesc}>{Math.round((((selectedFile as any)?.size || 0) / 1024))} KB</Text>
+                          </View>
+                        </View>
+                      )}
                     </TouchableOpacity> :
                     <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
                       onPress={handleDocumentPick} >
                       <Icon name="cloud-upload" size={28} color="#034833" />
-                      <Text style={styles.uploadTextHeader}>Upload Document Image</Text>
-                      <Text style={styles.uploadTextDesc}>Click to browse your image</Text>
+                      <Text style={styles.uploadTextHeader}>Upload Document</Text>
+                      <Text style={styles.uploadTextDesc}>Click to browse your file</Text>
                       <Text style={styles.supportedFilesText}>
-                        Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
+                        Supported formats: JPG, PNG, WebP, PDF. Max size: 5MB.
                       </Text>
                       <Text style={styles.chooseFilesText}>Choose File</Text>
                     </TouchableOpacity>}
@@ -944,6 +973,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     ...typography.bold,
     color: "#034833",
+  },
+  pdfPreviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   submitButton: {
     backgroundColor: "#034833",
