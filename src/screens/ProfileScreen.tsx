@@ -129,6 +129,60 @@ const ProfileScreen: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [uploadedDocument, setUploadedDocument] = useState(false);
 
+  const KYC_STATUS_CONFIG = {
+    pending: {
+      icon: "hourglass-empty",
+      color: "#A0A0A0",
+      label: "KYC - Pending Verification",
+      bg: "#F1F1F1"
+    },
+    submitted: {
+      icon: "hourglass-top",
+      color: "#FE9A55",
+      label: "KYC - Submitted for Review",
+      bg: "#FFF3E8"
+    },
+    approved: {
+      icon: "check-circle",
+      color: "#034833",
+      label: "KYC - Verified Successfully",
+      bg: "#E8F5E9"
+    },
+    rejected: {
+      icon: "cancel",
+      color: "#DC3545",
+      label: "KYC - Rejected – Resubmit Required",
+      bg: "#FDECEA"
+    }
+  };
+
+
+  const KycBadge = ({ status }) => {
+    const cfg = KYC_STATUS_CONFIG[status];
+
+    if (!cfg) return null;
+
+    return (
+      <TouchableOpacity
+        onPress={() => setActiveTab("verification")}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: 4,
+          paddingHorizontal: 10,
+          borderRadius: 20,
+          backgroundColor: cfg.bg,
+          marginBottom: 10
+        }}>
+        <Icon name={cfg.icon} size={16} color={cfg.color} />
+        <Text style={{ marginLeft: 6, fontSize: 13, color: cfg.color, fontWeight: "600" }}>
+          {cfg.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+
   // --- API Call to Fetch Profile ---
   useEffect(() => {
     if (isFocused) {
@@ -398,8 +452,6 @@ const ProfileScreen: React.FC = () => {
     return userType;
   }
 
-  const showIcon = ["submitted", "approved"].includes(fullProfileData?.kyc_status);
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Loading */}
@@ -430,28 +482,16 @@ const ProfileScreen: React.FC = () => {
                     />
                   </View>
                 </TouchableOpacity>
+                <KycBadge status={fullProfileData?.kyc_status} />
                 <View style={styles.userDetailOutline}>
-                  <Text style={styles.userName}>
-                    {fullProfileData?.full_name}
-
-                    {showIcon && (
-                      <Icon
-                        name={fullProfileData?.kyc_status === "submitted"
-                          ? "hourglass-top"
-                          : "check-circle"}
-                        size={18}
-                        color={fullProfileData?.kyc_status === "submitted"
-                          ? "#FE9A55"
-                          : "#034833"}
-                      />
-                    )}
-                  </Text>
-
+                  <Text style={styles.userName}>{fullProfileData?.full_name}</Text>
                   <Text style={styles.userRole}>
                     ( {convertedUserType(fullProfileData?.customer_profiles?.user_type)} )
                   </Text>
                 </View>
+
                 <TouchableOpacity onPress={onOpenLogoutModal} style={styles.logoutBtn}>
+                  <Icon name="logout" size={20} color="#FFFFFF" />
                   <Text style={styles.logoutBtnText}>Logout</Text>
                 </TouchableOpacity>
               </View>
@@ -506,14 +546,23 @@ const ProfileScreen: React.FC = () => {
                   <View style={{ backgroundColor: isEditing ? '#FFFFFF' : "#f5f5f5", padding: 16 }}>
                     <View style={styles.editHeader}>
                       <Text style={styles.sectionTitle}>Personal Information</Text>
-                      <TouchableOpacity style={styles.editIconOutline} onPress={() => setIsEditing(!isEditing)}>
+                      <TouchableOpacity
+                        style={[
+                          styles.toggleEditButton,
+                          isEditing ? styles.viewMode : styles.editMode
+                        ]}
+                        onPress={() => setIsEditing(!isEditing)}
+                      >
                         <Icon
-                          name={isEditing ? "save" : "edit"}
-                          size={22}
+                          name={isEditing ? "remove-red-eye" : "edit"}
+                          size={18}
                           color="#FFFFFF"
                         />
-
+                        <Text style={styles.toggleEditButtonText}>
+                          {isEditing ? "View" : "Edit"}
+                        </Text>
                       </TouchableOpacity>
+
                     </View>
 
                     {/* If not editing – just show info */}
@@ -1110,7 +1159,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 10,
     marginBottom: 8,
@@ -1249,14 +1298,17 @@ const styles = StyleSheet.create({
   },
   logoutBtn: {
     backgroundColor: '#DC3545',
-    paddingHorizontal: 40,
-    paddingVertical: 10,
-    marginTop: 10,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
     borderRadius: 6,
   },
   logoutBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
+    marginLeft: 6,
     ...typography.bold,
   },
   toggleContainer: {
@@ -1267,8 +1319,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.bg,
     borderWidth: 1,
     padding: 8,
-    marginTop: 16,
-    marginBottom: 16,
     elevation: 2,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
@@ -1355,7 +1405,7 @@ const styles = StyleSheet.create({
   statusTitle: {
     marginTop: 10,
     fontSize: 17,
-    fontWeight: "700",
+    ...typography.bold,
     color: "#101010",
   },
   statusMessage: {
@@ -1363,6 +1413,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     color: "#555",
+    ...typography.semibold,
     paddingHorizontal: 10,
     lineHeight: 20,
   },
@@ -1376,7 +1427,31 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: "#FFF",
     fontSize: 14,
-    fontWeight: "600",
+    ...typography.medium,
+  },
+  toggleEditButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignSelf: "center",
+  },
+
+  editMode: {
+    backgroundColor: "#034833", // Edit profile button (Green)
+  },
+
+  viewMode: {
+    backgroundColor: "#FE9A55", // View profile button (Orange)
+  },
+
+  toggleEditButtonText: {
+    color: "#FFFFFF",
+    marginLeft: 6,
+    fontSize: 16,
+    ...typography.semibold,
   },
 
 });
