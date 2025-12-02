@@ -82,7 +82,7 @@ const ProfileScreen: React.FC = () => {
 
   // PERSONAL INFO STATES
   const [loggedInUser, setLoggedInUser] = useState(false)
-  const [fullProfileData, setFullProfileData] = useState();
+  const [fullProfileData, setFullProfileData] = useState({});
   const [logoutVisible, setLogoutVisible] = useState(false);
   const [messageModalVisible, setMessageModalVisible] = useState({ status: false, header: '', message: '' });
   const [profile, setProfile] = useState({
@@ -127,6 +127,7 @@ const ProfileScreen: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadedDocument, setUploadedDocument] = useState(false);
 
   // --- API Call to Fetch Profile ---
   useEffect(() => {
@@ -143,6 +144,7 @@ const ProfileScreen: React.FC = () => {
       const cp = profileRoot?.customer_profiles ?? {};
       const nameParts = (profileRoot?.full_name ?? "").split(" ");
       setFullProfileData(profileRoot);
+      setUploadedDocument(profileRoot?.kyc_status === "pending" ? false : true);
       setProfile({
         firstName: nameParts[0] || "",
         lastName: nameParts.slice(1).join(" ") || "",
@@ -396,7 +398,7 @@ const ProfileScreen: React.FC = () => {
     return userType;
   }
 
-
+  const showIcon = ["submitted", "approved"].includes(fullProfileData?.kyc_status);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -429,7 +431,25 @@ const ProfileScreen: React.FC = () => {
                   </View>
                 </TouchableOpacity>
                 <View style={styles.userDetailOutline}>
-                  <Text style={styles.userName}>{fullProfileData?.full_name}</Text> <Text style={styles.userRole}>( {convertedUserType(fullProfileData?.customer_profiles?.user_type)} )</Text>
+                  <Text style={styles.userName}>
+                    {fullProfileData?.full_name}
+
+                    {showIcon && (
+                      <Icon
+                        name={fullProfileData?.kyc_status === "submitted"
+                          ? "hourglass-top"
+                          : "check-circle"}
+                        size={18}
+                        color={fullProfileData?.kyc_status === "submitted"
+                          ? "#FE9A55"
+                          : "#034833"}
+                      />
+                    )}
+                  </Text>
+
+                  <Text style={styles.userRole}>
+                    ( {convertedUserType(fullProfileData?.customer_profiles?.user_type)} )
+                  </Text>
                 </View>
                 <TouchableOpacity onPress={onOpenLogoutModal} style={styles.logoutBtn}>
                   <Text style={styles.logoutBtnText}>Logout</Text>
@@ -627,68 +647,124 @@ const ProfileScreen: React.FC = () => {
 
               {/* VERIFICATION TAB */}
               {activeTab === "verification" && !loading && (
-                <ScrollView contentContainerStyle={{ padding: 16 }}>
-                  <Text style={styles.labelText} >Select Document Type<Text style={styles.required}> *</Text></Text>
-                  <Dropdown
-                    style={[styles.dropdown, { borderColor: documentError.documentType ? "#DC3545" : "#BABABA" }]}
-                    placeholderStyle={styles.placeholderStyle}
-                    selectedTextStyle={styles.selectedTextStyle}
-                    inputSearchStyle={styles.inputSearchStyle}
-                    containerStyle={styles.dropdownContainerStyle}
-                    data={documentTypes}
-                    maxHeight={300}
-                    labelField="label"
-                    valueField="value"
-                    placeholder="Choose document type"
-                    value={selectedDocType}
-                    onChange={(item) => {
-                      setSelectedDocType(item.value);
-                      setDocumentError({ ...documentError, documentType: false });
-                    }}
-                  />
+                <>
+                  {/* ---------- KYC STATUS BLOCK (SUBMITTED / APPROVED / REJECTED) ---------- */}
+                  {(fullProfileData?.kyc_status === "submitted" ||
+                    fullProfileData?.kyc_status === "approved" ||
+                    fullProfileData?.kyc_status === "rejected") && uploadedDocument ? (
 
-                  {documentError.documentType && (
-                    <Text style={styles.errorText}>Document type is required</Text>
-                  )}
+                    <View style={styles.statusContainer}>
+                      <Icon
+                        name={
+                          fullProfileData?.kyc_status === "submitted"
+                            ? "hourglass-top"
+                            : fullProfileData?.kyc_status === "approved"
+                              ? "verified-user"
+                              : "cancel"
+                        }
+                        size={30}
+                        color={
+                          fullProfileData?.kyc_status === "submitted"
+                            ? "#FE9A55"
+                            : fullProfileData?.kyc_status === "approved"
+                              ? "#034833"
+                              : "#DC3545"
+                        }
+                      />
 
-                  <Text style={styles.labelText} >Select a Document<Text style={styles.required}> *</Text></Text>
-                  {selectedFile ?
-                    <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
-                      onPress={handleDocumentPick} >
-                      {String(((selectedFile as any)?.type || '')).startsWith('image/') ? (
-                        <Image
-                          source={{ uri: (selectedFile as any)?.uri }}
-                          style={styles.selectedImage}
-                          resizeMode={"cover"}
-                        />
-                      ) : (
-                        <View style={styles.pdfPreviewRow}>
-                          <Icon name="picture-as-pdf" size={32} color="#DC3545" />
-                          <View style={{ marginLeft: 8, flex: 1 }}>
-                            <Text style={styles.uploadTextHeader} numberOfLines={1}>{(selectedFile as any)?.name || (selectedFile as any)?.fileName || 'Selected PDF'}</Text>
-                            <Text style={styles.uploadTextDesc}>{Math.round((((selectedFile as any)?.size || 0) / 1024))} KB</Text>
-                          </View>
-                        </View>
-                      )}
-                    </TouchableOpacity> :
-                    <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
-                      onPress={handleDocumentPick} >
-                      <Icon name="cloud-upload" size={28} color="#034833" />
-                      <Text style={styles.uploadTextHeader}>Upload Document</Text>
-                      <Text style={styles.uploadTextDesc}>Click to browse your file</Text>
-                      <Text style={styles.supportedFilesText}>
-                        Supported formats: JPG, PNG, WebP, PDF. Max size: 5MB.
+                      <Text style={styles.statusTitle}>
+                        {fullProfileData?.kyc_status === "submitted"
+                          ? "Submitted for Verification"
+                          : fullProfileData?.kyc_status === "approved"
+                            ? "Verification Approved"
+                            : "Verification Rejected"}
                       </Text>
-                      <Text style={styles.chooseFilesText}>Choose File</Text>
-                    </TouchableOpacity>}
-                  {documentError.document && (
-                    <Text style={styles.errorText}>Document is required</Text>
-                  )}
 
-                  <TouchableOpacity onPress={onpressDocumentVerification} style={styles.submitButton}>
-                    <Text style={styles.submitButtonText}>Submit for Verification</Text>
-                  </TouchableOpacity>
-                </ScrollView>
+                      <Text style={styles.statusMessage}>
+                        {fullProfileData?.kyc_status === "submitted"
+                          ? "Your document has been successfully submitted and is currently under review. You will be notified once the verification is complete."
+                          : fullProfileData?.kyc_status === "approved"
+                            ? "Your document has been verified successfully! Your identity is now confirmed."
+                            : "Your verification attempt was rejected. Please upload clear and valid documents to continue."}
+                      </Text>
+
+                      {/* If rejected, allow re-submit */}
+                      {fullProfileData?.kyc_status === "rejected" && (
+                        <TouchableOpacity
+                          style={styles.retryButton}
+                          onPress={() => setUploadedDocument(false)}
+                        >
+                          <Text style={styles.retryButtonText}>Re-Submit Document</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                  ) : (
+                    /* ---------- NORMAL DOCUMENT UPLOAD UI ---------- */
+                    <ScrollView contentContainerStyle={{ padding: 16 }}>
+                      <Text style={styles.labelText} >Select Document Type<Text style={styles.required}> *</Text></Text>
+                      <Dropdown
+                        style={[styles.dropdown, { borderColor: documentError.documentType ? "#DC3545" : "#BABABA" }]}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        containerStyle={styles.dropdownContainerStyle}
+                        data={documentTypes}
+                        maxHeight={300}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Choose document type"
+                        value={selectedDocType}
+                        onChange={(item) => {
+                          setSelectedDocType(item.value);
+                          setDocumentError({ ...documentError, documentType: false });
+                        }}
+                      />
+
+                      {documentError.documentType && (
+                        <Text style={styles.errorText}>Document type is required</Text>
+                      )}
+
+                      <Text style={styles.labelText} >Select a Document<Text style={styles.required}> *</Text></Text>
+                      {selectedFile ?
+                        <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
+                          onPress={handleDocumentPick} >
+                          {String(((selectedFile as any)?.type || '')).startsWith('image/') ? (
+                            <Image
+                              source={{ uri: (selectedFile as any)?.uri }}
+                              style={styles.selectedImage}
+                              resizeMode={"cover"}
+                            />
+                          ) : (
+                            <View style={styles.pdfPreviewRow}>
+                              <Icon name="picture-as-pdf" size={32} color="#DC3545" />
+                              <View style={{ marginLeft: 8, flex: 1 }}>
+                                <Text style={styles.uploadTextHeader} numberOfLines={1}>{(selectedFile as any)?.name || (selectedFile as any)?.fileName || 'Selected PDF'}</Text>
+                                <Text style={styles.uploadTextDesc}>{Math.round((((selectedFile as any)?.size || 0) / 1024))} KB</Text>
+                              </View>
+                            </View>
+                          )}
+                        </TouchableOpacity> :
+                        <TouchableOpacity style={[styles.uploadButton, { borderColor: documentError.document ? "#DC3545" : "#BABABA" }]}
+                          onPress={handleDocumentPick} >
+                          <Icon name="cloud-upload" size={28} color="#034833" />
+                          <Text style={styles.uploadTextHeader}>Upload Document</Text>
+                          <Text style={styles.uploadTextDesc}>Click to browse your file</Text>
+                          <Text style={styles.supportedFilesText}>
+                            Supported formats: JPG, PNG, WebP, PDF. Max size: 5MB.
+                          </Text>
+                          <Text style={styles.chooseFilesText}>Choose File</Text>
+                        </TouchableOpacity>}
+                      {documentError.document && (
+                        <Text style={styles.errorText}>Document is required</Text>
+                      )}
+
+                      <TouchableOpacity onPress={onpressDocumentVerification} style={styles.submitButton}>
+                        <Text style={styles.submitButtonText}>Submit for Verification</Text>
+                      </TouchableOpacity>
+                    </ScrollView>
+                  )}
+                </>
               )}
             </View> :
             <View style={styles.logoutUserContainer}>
@@ -1048,6 +1124,8 @@ const styles = StyleSheet.create({
   userName: {
     color: '#101010',
     fontSize: 16,
+    textAlign: 'center',
+    alignItems: 'center',
     ...typography.bold,
     marginRight: 6,
   },
@@ -1265,6 +1343,42 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
+  statusContainer: {
+    backgroundColor: "#F4F7FA",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    margin: 16,
+    borderWidth: 1,
+    borderColor: "#DDE3EB",
+  },
+  statusTitle: {
+    marginTop: 10,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#101010",
+  },
+  statusMessage: {
+    marginTop: 6,
+    fontSize: 14,
+    textAlign: "center",
+    color: "#555",
+    paddingHorizontal: 10,
+    lineHeight: 20,
+  },
+  retryButton: {
+    marginTop: 14,
+    backgroundColor: "#034833",
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
 });
 
 export default ProfileScreen;
